@@ -1,7 +1,7 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
-#include <string>;
+#include <string>
 
 // this is the token struct containing information about one token
 
@@ -11,4 +11,4 @@ struct token {
     std::string text; // the text of the token exactly as it appears in the input
 };
 
-#endif TOKEN_H
+#endif

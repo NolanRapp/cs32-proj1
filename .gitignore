@@ -1,0 +1,7 @@
+._*
+*.exe
+*.o
+*.out
+*.nfs*
+output
+*._.

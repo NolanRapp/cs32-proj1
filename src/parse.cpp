@@ -3,10 +3,13 @@
 
 TreeLeaf::TreeLeaf (double val) {
     value = val; // initializing one numerical
-};
+}
+
 double TreeLeaf::evaluateNode() {
     return value;
-};
+}
+
+
 
 TreeOperator::TreeOperator(char operation, TreeNode* right, TreeNode* left) {
     operation = operation;
@@ -15,6 +18,7 @@ TreeOperator::TreeOperator(char operation, TreeNode* right, TreeNode* left) {
 
     // initializing operation used, right child, and left child for class
 }
+
 double TreeOperator::evaluateNode() {
     //TODO: implement... call TreeLeaf's evaulateNode to get values
 
@@ -25,7 +29,8 @@ double TreeOperator::evaluateNode() {
 
 
     return 0.0;
-};
+}
+
 
 
 Parser::Parser() {
@@ -43,6 +48,7 @@ TreeNode* Parser::parse() {
     
     return nullptr;
 };
+
 
 
 int main() {

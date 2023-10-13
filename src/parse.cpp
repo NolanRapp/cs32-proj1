@@ -5,30 +5,68 @@ TreeLeaf::TreeLeaf (double val) {
     value = val; // initializing one numerical
 }
 
-double TreeLeaf::evaluateNode() {
+double TreeLeaf::evaluateNode() const{
     return value;
 }
 
 
 
-TreeOperator::TreeOperator(char operation, TreeNode* right, TreeNode* left) {
-    operation = operation;
-    right = right;
-    left = left; 
+TreeOperator::~TreeOperator{   
+	for(int i = 0; i < children.size(); i++){
+		TreeNode* tempPtr = children[i];
+		children [i] = nullptr;
 
-    // initializing operation used, right child, and left child for class
+		delete tempPtr;
+	}
 }
 
-double TreeOperator::evaluateNode() {
-    //TODO: implement... call TreeLeaf's evaulateNode to get values
+TreeOperator::TreeOperator(char operation) {
+    operation = operation;
+    childrenQ = new vector<TreeNode*>; 
 
+    // initializing operation used and vector for its operands and child operators
+}
+
+void TreeOperator::addChild(TreeNode* child){
+	childrenQ.push(child);
+}
+
+double TreeOperator::evaluateNode() const{
     // the purpose of this function is to return the evaluated operation
-    // between the left child, operator, and right child
+    // from all children of this operation in the AST
+	
+	// we can assume children vector is nonempty
+	
+	double result = children[0]->evaluateNode();
 
-    // maybe use "switch"
+	switch(operation){
+	case '*':
+		for(int i = 1; i < children.size(); i++){
+			result *= children[i]->evaluateNode();
+		}
+		break;
+	case "/":
+		for(int i = 1; i < children.size(); i++){
+			if (children[i]->evaluateNode() == 0){
+				throw std::runtime_error("Runtime error: division by zero.");	
+			}
 
+			result /= children[i]->evaluateNode();
+		}
+		break;
+	case "+":
+		for(int i = 1; i < children.size(); i++){
+			result += children[i]->evaluateNode();
+		}
+		break;
+	case "-":
+		for(int i = 1; i < children.size(); i++){
+			result -= children[i]->evaluateNode();
+		}
+		break;
+	}
 
-    return 0.0;
+    return result;
 }
 
 
@@ -39,15 +77,17 @@ Parser::Parser() {
     //              of tokens created by lexer
 }
 
-TreeNode* Parser::parse() {
+TreeNode* Parser::parse(const std::vector<token>& input) {
     /*
     todo:   function is supposed to parse tokens / construct AST
             function will call above functions to then execute the operation
             ** use recursion? 
     */ 
     
+	
+
     return nullptr;
-};
+}
 
 
 
@@ -62,7 +102,7 @@ int main() {
     but place here: lexer and input as tokens in a vector
     std::vector<Token> tokens;
 
-   Parser parser(tokens);
+    Parser parser(tokens);
 
 
    TODO:    build AST using parser.parse() function 

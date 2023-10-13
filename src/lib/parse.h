@@ -5,6 +5,7 @@
 #include <iostream>
 #include <string>
 #include <vector>
+// #include <queue>
 
 class TreeNode {
     /* 
@@ -31,7 +32,7 @@ class TreeLeaf : public TreeNode {
 
     public:
         TreeLeaf(double val);
-        virtual double evaluateNode();
+        virtual double evaluateNode() const;
 
     private:
         double value;
@@ -41,23 +42,20 @@ class TreeLeaf : public TreeNode {
 
 class TreeOperator : public TreeNode {
     /*
-    This class assigns right and left children to an operator. This will 
+    This class assigns a vector of operands to an operator. This will 
     indicate which values the operation is to be preformed on.
     Eventually, this will allow for linkage and sorting of nodes
     */
 
     public:
-        TreeOperator(char operation, TreeNode* right, TreeNode* left);
-        virtual double evaluateNode();
-        ~TreeOperator() {
-            delete right;
-            delete left;
-        };
+        TreeOperator(char operation);
+        virtual double evaluateNode() const;
+        void addChild(TreeNode* child);
+		~TreeOperator();
 
     private:
         char operation;
-        TreeNode* right;
-        TreeNode* left;
+        std::vector<TreeNode*> children;
 };
 
 
@@ -72,8 +70,11 @@ class Parser {
 
     public:
         Parser();
-        TreeNode* parse();
-    };
+        TreeNode* parse(const std::vector<token>& input);
+	
+	private:
+		TreeNode* mHead;
+};
 
 
 #endif

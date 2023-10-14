@@ -74,14 +74,15 @@ Parser::Parser(std::queue<token> originalInput) {
     // initialize and return the head of the created AST 
 
     if (originalInput.front().text != "(") {
-        // throw error 
+        // Parse Error (Expects "()" for S expression)
     }
     else {
         originalInput.pop();
+		if(operators.find(originalInput.front().text) == operators.end()){
+			// Parse Error (Expects Operator)
+		}
         mHead = createTree(originalInput);
     }
-
-    // note: doesn't handle case of first token being just a number 
 }
 
 TreeNode* Parser::createTree(std::queue<token>& input) {
@@ -90,54 +91,44 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
     Recursion is used to simplify the tree build
     */
 
-    if (input.empty()) {
-        // inital check if input is empty
-        // throw error here
-    }
+    TreeOperator* head;
+	TreeLeaf* leaf;
 
-    TreeOperator* head; 
-
-    if (input.front().text == "+" || input.front().text == "-" || input.front().text == "*" || input.front().text == "/") {
-        head = new TreeOperator((input.front().text).at(0));
+    if (operators.find(input.front().text) != operators.end()) {
+       	head = new TreeOperator(input.front().text.at(0));
         input.pop();
 
         while (input.front().text != ")") {
-            // is this the right sign parenthesis?
-            head->addChild(createTree(input));
+			
+			// Makes sure only numbers or new expressions are registered
+	        if(operators.find(input.front().text) != operators.end() || input.front().text == "END"){
+				// Parse Error (Expects only numbers and new S expressions)
+			}
+
+			// Checks for new expression
+			if(input.front().text == "(") {
+				input.pop();
+				if(operators.find(input.front().text) == operators.end()){
+					// Parse Error (Expects Operator)
+				}
+			}
+
+			head->addChild(createTree(input));
         }
+
         input.pop();
-        return head;
-        }
-
-    else if (isNum(input.front().text)) {
-        TreeLeaf* leaf = new TreeLeaf(input.front().text.at(0));
-        input.pop();
-        return leaf;
-        // cast head as a double
-        // number
-    }
-
-    /*else if ((input.front().text == ")") || (input.front().text == "(") || (input.front().text == "END")) {
-        // throw parsing error 
-        // add in opening parenthesis to this?
-    }*/
-
+		return head;
+	}
+	// Ideally speaking the only alternative case is a number
     else {
-        // commented out above errors, not sure if we need to include them as specific else if statements
-        // throw error here 
+        leaf = new TreeLeaf(std::stold(input.front().text));
+        input.pop();
+		return leaf;
     }
 
     return nullptr;
 }
 
-bool Parser::isNum(std::string tokenValue) {
-    if (isdigit(tokenValue.at(0))) {
-        return true;
-    }
-    else {
-        return false;
-    }
-}
 
 
 int main() {

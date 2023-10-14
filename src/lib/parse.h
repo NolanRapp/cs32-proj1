@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <queue>
+#include <set>
 
 class TreeNode {
     /* 
@@ -17,7 +18,7 @@ class TreeNode {
     */
 
     public:
-        virtual double evaluateNode() const;
+        virtual double evaluateNode() const = 0;
         virtual ~TreeNode() {};
 };
 
@@ -74,8 +75,12 @@ class Parser {
 	
 	private:
 		TreeNode* mHead;
-        bool isNum(std::string tokenValue); // helper function to check if token is a number
-
+		std::set<std::string> operators = {
+			"*",
+			"/",
+			"+",
+			"-"
+		};
 };
 
 

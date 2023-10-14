@@ -33,7 +33,7 @@ double TreeOperator::evaluateNode() const{
     // from all children of this operation in the AST
 	
 	// we can assume children vector is nonempty
-	
+
 	double result = children[0]->evaluateNode();
 
 	switch(operation) {
@@ -166,26 +166,24 @@ int main() {
 
 		// manual token push for parser testing:
 			tokens.push(token(1, 1, "("));
-        	tokens.push(token(1, 2, "("));
-			tokens.push(token(1, 3, "1"));
+        	tokens.push(token(1, 2, "*"));
+			tokens.push(token(1, 3, "("));
 			tokens.push(token(1, 4, "+"));
-			tokens.push(token(1, 5, "2"));
-			tokens.push(token(1, 6, ")"));
-			tokens.push(token(1, 7, "*"));
+			tokens.push(token(1, 5, "1"));
+			tokens.push(token(1, 6, "2"));
+			tokens.push(token(1, 7, ")"));
 			tokens.push(token(1, 1, "3"));
-			tokens.push(token(1, 2, "*"));
-			tokens.push(token(1, 3, "()"));
+			tokens.push(token(1, 2, "("));
+			tokens.push(token(1, 3, "/"));
 			tokens.push(token(1, 4, "4"));
-			tokens.push(token(1, 5, "/"));
-			tokens.push(token(1, 6, "5"));
-			tokens.push(token(1, 7, "/"));
-			tokens.push(token(1, 8, "("));
-			tokens.push(token(1, 9, "6"));
-			tokens.push(token(1, 10, "-"));
-			tokens.push(token(1, 11, "7"));
+			tokens.push(token(1, 5, "5"));
+			tokens.push(token(1, 6, "("));
+			tokens.push(token(1, 7, "-"));
+			tokens.push(token(1, 8, "6"));
+			tokens.push(token(1, 9, "7"));
+			tokens.push(token(1, 10, ")"));
+			tokens.push(token(1, 11, ")"));
 			tokens.push(token(1, 12, ")"));
-			tokens.push(token(1, 13, ")"));
-			tokens.push(token(1, 14, ")"));
 		
 		Parser parser(tokens);
 		TreeNode* ASThead = parser.getHead();
@@ -193,7 +191,6 @@ int main() {
 		// TODO: print in infix form
 		double calculation = ASThead->evaluateNode();
 		std::cout << "calculation: " << calculation << std::endl;
-
 
 	}
 

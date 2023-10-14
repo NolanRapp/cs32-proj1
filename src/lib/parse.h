@@ -8,6 +8,8 @@
 #include <queue>
 #include <set>
 
+using namespace std;
+
 class TreeNode {
     /* 
     This class is the BASE of the inheritance implemented in Class TreeLeaf and 
@@ -32,7 +34,7 @@ class TreeLeaf : public TreeNode {
     */
 
     public:
-        TreeLeaf(char val);
+        TreeLeaf(double val);
         virtual double evaluateNode() const;
 
     private:
@@ -72,6 +74,7 @@ class Parser {
     public:
         Parser(std::queue<token> originalInput);
         TreeNode* createTree(std::queue<token>& input); // recursively constructs AST
+        TreeNode* getHead();
 	
 	private:
 		TreeNode* mHead;

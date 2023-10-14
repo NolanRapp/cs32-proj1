@@ -1,7 +1,7 @@
 #include "lib/parse.h"
 #include "lib/lex.h"
 
-TreeLeaf::TreeLeaf (char val) {
+TreeLeaf::TreeLeaf (double val) {
     value = val; // initializing one numerical
 }
 
@@ -74,15 +74,23 @@ Parser::Parser(std::queue<token> originalInput) {
     // initialize and return the head of the created AST 
 
     if (originalInput.front().text != "(") {
-        // Parse Error (Expects "()" for S expression)
+        std::cout << "Unexpected token at line" << originalInput.front().line << "column"
+		<< originalInput.front().column << ": " << originalInput.front().text << std::endl;
+		exit(2);
+		// Parse Error (Expects "()" for S expression)
     }
     else {
         originalInput.pop();
 		if(operators.find(originalInput.front().text) == operators.end()){
+			std::cout << "Unexpected token at line" << originalInput.front().line << "column"
+			<< originalInput.front().column << ": " << originalInput.front().text << std::endl;
+			exit(2);
 			// Parse Error (Expects Operator)
 		}
         mHead = createTree(originalInput);
     }
+
+	// ADD Parse Error here to check input doesn't contain multiple (or no) top-level S expressions
 }
 
 TreeNode* Parser::createTree(std::queue<token>& input) {
@@ -102,6 +110,9 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
 			
 			// Makes sure only numbers or new expressions are registered
 	        if(operators.find(input.front().text) != operators.end() || input.front().text == "END"){
+				std::cout << "Unexpected token at line" << input.front().line << "column"
+				<< input.front().column << ": " << input.front().text << std::endl;
+				exit(2);
 				// Parse Error (Expects only numbers and new S expressions)
 			}
 
@@ -109,6 +120,9 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
 			if(input.front().text == "(") {
 				input.pop();
 				if(operators.find(input.front().text) == operators.end()){
+					std::cout << "Unexpected token at line" << input.front().line << "column"
+					<< input.front().column << ": " << input.front().text << std::endl;
+					exit(2);
 					// Parse Error (Expects Operator)
 				}
 			}
@@ -129,35 +143,48 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
     return nullptr;
 }
 
+TreeNode* Parser::getHead() {
+	return mHead;
+}
+
 
 
 int main() {
-    std::string input;
-    std::getline(std::cin, input);
-    // reading input into a string
     
-    /* 
-    Lexer lexer(input);
-    not sure the implementation of lexer yet
-    but place here: lexer and input as tokens in a vector
-    std::vector<Token> tokens;
+	try {
+		// all parsing implementation goes here
+		std::string sExpression;
+		char ch;
+		while (std::cin.get(ch) && ch != '\n') {
+			sExpression.push_back(ch);
+		}
 
-    Parser parser(tokens);
+		//Lexer lexer(sExpression);
+		std::queue<token> tokens;
+			// eventually want to SET TOKENS EQUAL TO lexer function that fills this queue
+		
+		Parser parser(tokens);
+		TreeNode* ASThead = parser.getHead();
+		// Parse Error here? if "no / multiple top level s-expressions" found
+		// TODO: print in infix form
+		double calculation = ASThead->evaluateNode();
 
 
-   TODO:    build AST using parser.parse() function 
-            print AST in in "infix form" (maybe write another function for this?) 
-            print the value of the expression 
-            
-            otherwise, print error messages
-                - lexer error: print the same error message as the lex program
-                - parse error: print an error message with exit code 2
-                - division by zero error while evaluating AST: print "Runtime Error: division by zero" and exit with exit code 3
-            delete AST TreeNode* variable to keep memory clean
+	}
 
-            ERROR MESSAGES ... implement 
-    
-    */
+	catch (const std::runtime_error& e) {
+		std::cout << e.what() << std::endl;
+		exit(3);
+	}
 
    return 0;
 };
+
+
+ /* 
+TODO:
+	otherwise, print error messages
+		- lexer error: print the same error message as the lex program
+		delete AST TreeNode* variable to keep memory clean
+		TreeOperator destructor?    
+*/

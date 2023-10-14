@@ -5,19 +5,19 @@
 #include <iostream>
 #include <string>
 #include <vector>
-// #include <queue>
+#include <queue>
 
 class TreeNode {
     /* 
     This class is the BASE of the inheritance implemented in Class TreeLeaf and 
     Class TreeOperator
-    It initializes the function evaluateNode() and assigns it to a temporary value of 0.0
+    It initializes the function evaluateNode(), our virtual function
     TreeNode also contains a destructor, which gets inherited with evaluateNode().
         If a variable goes out of evaluateNode() scope, ~TreeNode will be called 
     */
 
     public:
-        virtual double evaluateNode() = 0;
+        virtual double evaluateNode() const;
         virtual ~TreeNode() {};
 };
 
@@ -25,13 +25,13 @@ class TreeNode {
 
 class TreeLeaf : public TreeNode {
     /* 
-    This class Is used to store and return ONE numerical value. 
+    This class is used to store and return ONE numerical value. 
     The evaluateNode() function will just return this value, to be used 
     in conjunction with TreeOperator
     */
 
     public:
-        TreeLeaf(double val);
+        TreeLeaf(char val);
         virtual double evaluateNode() const;
 
     private:
@@ -44,14 +44,15 @@ class TreeOperator : public TreeNode {
     /*
     This class assigns a vector of operands to an operator. This will 
     indicate which values the operation is to be preformed on.
-    Eventually, this will allow for linkage and sorting of nodes
+
+    UPDATE FUNCTION DEF
     */
 
     public:
         TreeOperator(char operation);
         virtual double evaluateNode() const;
         void addChild(TreeNode* child);
-		~TreeOperator();
+		//~TreeOperator();
 
     private:
         char operation;
@@ -64,16 +65,17 @@ class Parser {
     /*
     This class reads in a token vector from the Lexer.
     It parses the vector to create an Abstract Syntax Tree.
-    It then executes the desired operation using TreeNode and TreeLeaf,
-    and TreeOperator classes.
+    It uses the TreeNode, TreeLeaf, and TreeOperator classes.
     */
 
     public:
-        Parser();
-        TreeNode* parse(const std::vector<token>& input);
+        Parser(std::queue<token> originalInput);
+        TreeNode* createTree(std::queue<token>& input); // recursively constructs AST
 	
 	private:
 		TreeNode* mHead;
+        bool isNum(std::string tokenValue); // helper function to check if token is a number
+
 };
 
 

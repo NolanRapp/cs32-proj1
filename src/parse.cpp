@@ -1,7 +1,7 @@
 #include "lib/parse.h"
 #include "lib/lex.h"
 
-TreeLeaf::TreeLeaf (double val) {
+TreeLeaf::TreeLeaf (char val) {
     value = val; // initializing one numerical
 }
 
@@ -11,24 +11,23 @@ double TreeLeaf::evaluateNode() const{
 
 
 
-TreeOperator::~TreeOperator{   
-	for(int i = 0; i < children.size(); i++){
+/*TreeOperator::~TreeOperator {   
+	for (int i = 0; i < children.size(); i++) {
 		TreeNode* tempPtr = children[i];
-		children [i] = nullptr;
+		children[i] = nullptr;
 
 		delete tempPtr;
 	}
-}
+}*/
 
 TreeOperator::TreeOperator(char operation) {
-    operation = operation;
-    childrenQ = new vector<TreeNode*>; 
+    this->operation = operation;
 
     // initializing operation used and vector for its operands and child operators
 }
 
 void TreeOperator::addChild(TreeNode* child){
-	childrenQ.push(child);
+	children.push_back(child);
 }
 
 double TreeOperator::evaluateNode() const{
@@ -41,12 +40,12 @@ double TreeOperator::evaluateNode() const{
 
 	switch(operation){
 	case '*':
-		for(int i = 1; i < children.size(); i++){
+		for (unsigned int i = 1; i < children.size(); i++) {
 			result *= children[i]->evaluateNode();
 		}
 		break;
-	case "/":
-		for(int i = 1; i < children.size(); i++){
+	case '/':
+		for (unsigned int i = 1; i < children.size(); i++) {
 			if (children[i]->evaluateNode() == 0){
 				throw std::runtime_error("Runtime error: division by zero.");	
 			}
@@ -54,13 +53,13 @@ double TreeOperator::evaluateNode() const{
 			result /= children[i]->evaluateNode();
 		}
 		break;
-	case "+":
-		for(int i = 1; i < children.size(); i++){
+	case '+':
+		for (unsigned int i = 1; i < children.size(); i++) {
 			result += children[i]->evaluateNode();
 		}
 		break;
-	case "-":
-		for(int i = 1; i < children.size(); i++){
+	case '-':
+		for (unsigned int i = 1; i < children.size(); i++) {
 			result -= children[i]->evaluateNode();
 		}
 		break;
@@ -71,24 +70,74 @@ double TreeOperator::evaluateNode() const{
 
 
 
-Parser::Parser() {
-    // nothing to do here yet
-    // eventually: we want this constructor to initialize the vector
-    //              of tokens created by lexer
+Parser::Parser(std::queue<token> originalInput) {
+    // initialize and return the head of the created AST 
+
+    if (originalInput.front().text != "(") {
+        // throw error 
+    }
+    else {
+        originalInput.pop();
+        mHead = createTree(originalInput);
+    }
+
+    // note: doesn't handle case of first token being just a number 
 }
 
-TreeNode* Parser::parse(const std::vector<token>& input) {
+TreeNode* Parser::createTree(std::queue<token>& input) {
     /*
-    todo:   function is supposed to parse tokens / construct AST
-            function will call above functions to then execute the operation
-            ** use recursion? 
-    */ 
-    
-	
+    The createTree function parses input tokens in a queue and constructs AST
+    Recursion is used to simplify the tree build
+    */
+
+    if (input.empty()) {
+        // inital check if input is empty
+        // throw error here
+    }
+
+    TreeOperator* head; 
+
+    if (input.front().text == "+" || input.front().text == "-" || input.front().text == "*" || input.front().text == "/") {
+        head = new TreeOperator((input.front().text).at(0));
+        input.pop();
+
+        while (input.front().text != ")") {
+            // is this the right sign parenthesis?
+            head->addChild(createTree(input));
+        }
+        input.pop();
+        return head;
+        }
+
+    else if (isNum(input.front().text)) {
+        TreeLeaf* leaf = new TreeLeaf(input.front().text.at(0));
+        input.pop();
+        return leaf;
+        // cast head as a double
+        // number
+    }
+
+    /*else if ((input.front().text == ")") || (input.front().text == "(") || (input.front().text == "END")) {
+        // throw parsing error 
+        // add in opening parenthesis to this?
+    }*/
+
+    else {
+        // commented out above errors, not sure if we need to include them as specific else if statements
+        // throw error here 
+    }
 
     return nullptr;
 }
 
+bool Parser::isNum(std::string tokenValue) {
+    if (isdigit(tokenValue.at(0))) {
+        return true;
+    }
+    else {
+        return false;
+    }
+}
 
 
 int main() {
@@ -106,7 +155,6 @@ int main() {
 
 
    TODO:    build AST using parser.parse() function 
-                variable of type TreeNode? TreeNode*?
             print AST in in "infix form" (maybe write another function for this?) 
             print the value of the expression 
             
@@ -115,6 +163,8 @@ int main() {
                 - parse error: print an error message with exit code 2
                 - division by zero error while evaluating AST: print "Runtime Error: division by zero" and exit with exit code 3
             delete AST TreeNode* variable to keep memory clean
+
+            ERROR MESSAGES ... implement 
     
     */
 

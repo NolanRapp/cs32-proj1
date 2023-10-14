@@ -55,7 +55,7 @@ class TreeOperator : public TreeNode {
         TreeOperator(char operation);
         virtual double evaluateNode() const;
         void addChild(TreeNode* child);
-		//~TreeOperator();
+		// ~TreeOperator();
 
     private:
         char operation;

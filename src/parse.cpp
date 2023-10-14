@@ -11,13 +11,11 @@ double TreeLeaf::evaluateNode() const{
 
 
 
-/*TreeOperator::~TreeOperator {   
-	for (int i = 0; i < children.size(); i++) {
-		TreeNode* tempPtr = children[i];
-		children[i] = nullptr;
-
-		delete tempPtr;
+/*~TreeOperator {   
+	for (TreeNode* child : children) {
+		delete child;
 	}
+	children.clear();
 }*/
 
 TreeOperator::TreeOperator(char operation) {
@@ -38,7 +36,7 @@ double TreeOperator::evaluateNode() const{
 	
 	double result = children[0]->evaluateNode();
 
-	switch(operation){
+	switch(operation) {
 	case '*':
 		for (unsigned int i = 1; i < children.size(); i++) {
 			result *= children[i]->evaluateNode();
@@ -152,22 +150,49 @@ TreeNode* Parser::getHead() {
 int main() {
     
 	try {
-		// all parsing implementation goes here
+		/*
+		TO IMPLEMENT WHEN LEXER IS READY: 
+
 		std::string sExpression;
 		char ch;
 		while (std::cin.get(ch) && ch != '\n') {
 			sExpression.push_back(ch);
 		}
+		Lexer lexer(sExpression);
+		*/
 
-		//Lexer lexer(sExpression);
 		std::queue<token> tokens;
 			// eventually want to SET TOKENS EQUAL TO lexer function that fills this queue
+
+		// manual token push for parser testing:
+			tokens.push(token(1, 1, "("));
+        	tokens.push(token(1, 2, "("));
+			tokens.push(token(1, 3, "1"));
+			tokens.push(token(1, 4, "+"));
+			tokens.push(token(1, 5, "2"));
+			tokens.push(token(1, 6, ")"));
+			tokens.push(token(1, 7, "*"));
+			tokens.push(token(1, 1, "3"));
+			tokens.push(token(1, 2, "*"));
+			tokens.push(token(1, 3, "()"));
+			tokens.push(token(1, 4, "4"));
+			tokens.push(token(1, 5, "/"));
+			tokens.push(token(1, 6, "5"));
+			tokens.push(token(1, 7, "/"));
+			tokens.push(token(1, 8, "("));
+			tokens.push(token(1, 9, "6"));
+			tokens.push(token(1, 10, "-"));
+			tokens.push(token(1, 11, "7"));
+			tokens.push(token(1, 12, ")"));
+			tokens.push(token(1, 13, ")"));
+			tokens.push(token(1, 14, ")"));
 		
 		Parser parser(tokens);
 		TreeNode* ASThead = parser.getHead();
 		// Parse Error here? if "no / multiple top level s-expressions" found
 		// TODO: print in infix form
 		double calculation = ASThead->evaluateNode();
+		std::cout << "calculation: " << calculation << std::endl;
 
 
 	}
@@ -183,8 +208,8 @@ int main() {
 
  /* 
 TODO:
-	otherwise, print error messages
-		- lexer error: print the same error message as the lex program
-		delete AST TreeNode* variable to keep memory clean
-		TreeOperator destructor?    
+	- lexer error: print the same error message as the lex program
+	- delete AST TreeNode* variable to keep memory clean
+	- TreeOperator destructor? getting weird errors with that
+	- run tests and make sure we handle cases properly
 */

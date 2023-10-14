@@ -15,7 +15,6 @@ token maketoken(std::string text, int line, int column){
   t.line = line;
   t.column = column;
   t.text = text;
-
 }
 
 std::vector<token> lex() {
@@ -50,6 +49,8 @@ std::vector<token> lex() {
                     if (i == '.') {
                         if (decimal){
                             //print error
+                            std::cout << "Syntax error on line " << line << "column " << column << ".";
+                            return; //BRUH THEY DIDNT TELL US TO THROW AN ERROR OR SOMETHING BUT WHAT DO I RETURN??? AN EMPTY VECTOR???? LIKE BE FR
                         }
                         else {
                             decimal = true;
@@ -62,6 +63,7 @@ std::vector<token> lex() {
             //not valid!
             else {
                 std::cout << "Syntax error on line " << line << "column " << column << ".";
+                return; //BRUH THEY DIDNT TELL US TO THROW AN ERROR OR SOMETHING BUT WHAT DO I RETURN??? AN EMPTY VECTOR???? LIKE BE FR
             }
         }
     }

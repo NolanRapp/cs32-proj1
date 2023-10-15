@@ -9,6 +9,10 @@ double TreeLeaf::evaluateNode() const{
     return value;
 }
 
+void TreeLeaf::printInfix() const {
+	std::cout << value;
+}
+
 
 
 /*~TreeOperator {   
@@ -64,6 +68,20 @@ double TreeOperator::evaluateNode() const{
 	}
 
     return result;
+}
+
+void TreeOperator::printInfix() const {
+	if (children.empty()) {
+		return;
+	}
+
+	std::cout << '(';
+	children[0]->printInfix();
+	for (unsigned int i = 1; i < children.size(); i++) {
+		std::cout << ' ' << operation << ' ';
+		children[i]->printInfix();
+	}
+	std::cout << ')';
 }
 
 
@@ -187,10 +205,12 @@ int main() {
 		
 		Parser parser(tokens);
 		TreeNode* ASThead = parser.getHead();
+		ASThead->printInfix();
+		std::cout << std::endl;
 		// Parse Error here? if "no / multiple top level s-expressions" found
 		// TODO: print in infix form
 		double calculation = ASThead->evaluateNode();
-		std::cout << "calculation: " << calculation << std::endl;
+		std::cout << calculation << std::endl;
 
 	}
 

@@ -21,6 +21,7 @@ class TreeNode {
 
     public:
         virtual double evaluateNode() const = 0;
+        virtual void printInfix() const = 0;
         virtual ~TreeNode() {};
 };
 
@@ -36,6 +37,7 @@ class TreeLeaf : public TreeNode {
     public:
         TreeLeaf(double val);
         virtual double evaluateNode() const;
+        virtual void printInfix() const;
 
     private:
         double value;
@@ -55,6 +57,7 @@ class TreeOperator : public TreeNode {
         TreeOperator(char operation);
         virtual double evaluateNode() const;
         void addChild(TreeNode* child);
+        virtual void printInfix() const;
 		// ~TreeOperator();
 
     private:

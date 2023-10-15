@@ -50,7 +50,7 @@ std::vector<token> lex() {
                         if (decimal){
                             //print error
                             std::cout << "Syntax error on line " << line << "column " << column << ".";
-                            return; //BRUH THEY DIDNT TELL US TO THROW AN ERROR OR SOMETHING BUT WHAT DO I RETURN??? AN EMPTY VECTOR???? LIKE BE FR
+                            return 1; //apperently you return a 1 but its not a queue so idk
                         }
                         else {
                             decimal = true;
@@ -63,7 +63,7 @@ std::vector<token> lex() {
             //not valid!
             else {
                 std::cout << "Syntax error on line " << line << "column " << column << ".";
-                return; //BRUH THEY DIDNT TELL US TO THROW AN ERROR OR SOMETHING BUT WHAT DO I RETURN??? AN EMPTY VECTOR???? LIKE BE FR
+                return 1; //apperently you return a 1 but its not a queue so idk
             }
         }
     }

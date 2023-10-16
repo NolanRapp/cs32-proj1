@@ -12,7 +12,7 @@ void Lexer::printTokens() {
     while (!lexTokens.empty()) {
         token printToken = lexTokens.front();
         std::cout << std::setw(4) << printToken.line << std::setw(4) << 
-        printToken.column << std::setw(8) << printToken.text << std::endl;
+        printToken.column << std::setw(4) << printToken.text << std::endl;
         // using example from  https://cplusplus.com/reference/iomanip/setw/ 
         
         lexTokens.pop();
@@ -73,7 +73,7 @@ void Lexer::lex() {
                     // peek returns next character in the input sequence, without extracting it
                     // https://cplusplus.com/reference/istream/istream/peek/
 
-                    if (i == '.') {
+                    if (std::cin.peek() == '.') {
                         if (decimal) {
                             //print error
                             std::cout << "Syntax error on line " << line << " column " << column << ".";

@@ -77,8 +77,8 @@ void Lexer::lex() {
                     // https://cplusplus.com/reference/istream/istream/peek/
 
                     if (std::cin.peek() == '.') {
+                        // checking for multiple decimals
                         if (decimal) {
-                            //print error
                             std::cout << "Syntax error on line " << line << " column " << column + 1 << ".";
                             exit(1);
                         }
@@ -94,7 +94,7 @@ void Lexer::lex() {
 
                 // checking for trailing decimal
                 if (placeholder.back() == '.') {
-                    std::cout << "Syntax error on line " << line << " column " << startingColumn + 1 << ".";
+                    std::cout << "Syntax error on line " << line << " column " << column + 1 << ".";
                     exit(1);
                 }
 

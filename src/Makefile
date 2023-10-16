@@ -9,14 +9,17 @@ CXXFLAGS = -Wall -Wextra -std=c++17 -Wno-unused-parameter
 # #  $< is the first dependency
 
 
-output: parse.o lex.o
-	g++ $(CXXFLAGS) parse.o lex.o -o output
+Parser: parse.cpp Parser.o Lexer.o
+	g++ $(CXXFLAGS) $+ -o $@
 
-parse.o: parse.cpp lib/parse.h
-	g++ $(CXXFLAGS) -c parse.cpp
+Lexer: lex.cpp Lexer.o
+	g++ $(CXXFLAGS) $+ -o $@
 
-lex.o: lex.cpp lib/lex.h
-	g++ $(CXXFLAGS) -c lex.cpp
+Parser.o: lib/Parser.h lib/Parser.cpp
+	g++ $(CXXFLAGS) -c $+
+
+Lexer.o: lib/Lexer.h lib/Lexer.cpp
+	g++ $(CXXFLAGS) -c $+
 
 clean:
-	rm *.o output
+	rm *.o Parser Lexer

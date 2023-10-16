@@ -59,17 +59,17 @@ void Lexer::lex() {
                 lexTokens.push(token(line,column, std::string(1, i)));
             }
 
-            //if number input or decimal input, check validity:
-            else if (isdigit(i) || i == '.') {
-                bool decimal = (i == '.'); // sets boolean equal to true if i == '.'
+            //if number, check validity:
+            else if (isdigit(i)) {
+                bool decimal = false; 
                 std::string placeholder(1, i); // this converts a char (1) to a string
                 int startingColumn = column;
 
-                // checking for leading decimal
-                if (i == '.' && !(isdigit(placeholder.back()))) {
-                    std::cout << "Syntax error on line " << line << " column " << column << ".\n";
-                    exit(1);
-                }
+                // checking for leading decimal <- not needed should get error in next if else statements
+                // if (i == '.' && !(isdigit(placeholder.back()))) {
+                //     std::cout << "Syntax error on line " << line << " column " << column << ".\n";
+                //     exit(1);
+                // }
 
                 // if number is a decimal:
                 while ((isdigit(std::cin.peek()) || std::cin.peek() == '.')) {
@@ -116,9 +116,9 @@ void Lexer::lex() {
 
 int main() {
 
-	Lexer lexer;
-	lexer.lex();
-	lexer.printTokens();
+    Lexer lexer;
+    lexer.lex();
+    lexer.printTokens();
 
     return 0;
 }

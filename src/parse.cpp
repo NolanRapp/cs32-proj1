@@ -7,11 +7,10 @@ int main() {
 	try {
 		std::queue<token> tokens;
 		
-		// will want to add something like: 
-		// Lexer lex;
-		// Parser parser(lex.lexTokens);
+		Lexer lexer;
+		lexer.lex();
+		Parser parser(lexer.getLexQueue());
 
-		Parser parser(tokens);
 		TreeNode* ASThead = parser.getHead();
 		ASThead->printInfix();
 		std::cout << std::endl;

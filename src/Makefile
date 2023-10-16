@@ -22,4 +22,4 @@ Lexer.o: lib/Lexer.h lib/Lexer.cpp
 	g++ $(CXXFLAGS) -c $+
 
 clean:
-	rm *.o Parser Lexer
+	rm *.o lib/*.gch Parser Lexer

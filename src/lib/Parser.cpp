@@ -150,7 +150,7 @@ TreeNode* Parser::getHead() {
 	return mHead;
 }
 
-void Parser::parseError(int col, int line, std::string text) {
+void Parser::parseError(int line, int col, std::string text) {
 	std::cout << "Unexpected token at line " << line << " column "
 	<< col << ": " << text << std::endl;
 	exit(2);

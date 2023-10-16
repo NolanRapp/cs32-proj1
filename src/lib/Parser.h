@@ -92,7 +92,7 @@ class Parser {
 			"+",
 			"-"
 		};
-        void parseError(int col, int line, std::string text);
+        void parseError(int line, int col, std::string text);
 };
 
 

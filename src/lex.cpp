@@ -1,13 +1,13 @@
 #include "lib/lex.h"
 
-void createend(std::vector<token>& inputvec){
+void createend(std::queue<token>& inputq){
     //TODO: make END token
     token end;
     //end.line = line; 
     //end.column = column; 
     end.text = "END";
 }
-void printtokens(std::vector<token>& inputvec){
+void printtokens(std::queue<token>& inputq){
 //TODO print token line, column, value
 }
 token maketoken(std::string text, int line, int column){
@@ -17,9 +17,9 @@ token maketoken(std::string text, int line, int column){
   t.text = text;
 }
 
-std::vector<token> lex() {
+std::queue<token> lex() {
     char i;
-    std::vector<token> output;
+    std::queue<token> output;
     int line = 1; // TODO: iterate this at every new line
     int column = 1; // TODO: iterate this for each new char
     std::string placeholder = "/0";
@@ -32,12 +32,13 @@ std::vector<token> lex() {
         '/'
     };
     while (std::cin >> i){
+
         if (!isspace(i)){
 
             //if valid non-number input:
             if (valid.find(i)!=valid.end()){
                 placeholder = i;
-                output.push_back(maketoken(placeholder,line,column));
+                output.push(maketoken(placeholder,line,column));
             }
 
             //if number input check validity:
@@ -45,6 +46,7 @@ std::vector<token> lex() {
                 placeholder = "/0";
                 bool decimal = false;
                 placeholder += i;
+                column++;
                 while (std::cin >> i && (isdigit(i) || i == '.')){
                     if (i == '.') {
                         if (decimal){
@@ -57,8 +59,18 @@ std::vector<token> lex() {
                         }
                     }
                     placeholder += i;
+                    column++;
                 }
-                output.push_back(maketoken(placeholder,line,column));
+
+                output.push(maketoken(placeholder,line,column));
+
+                if (valid.find(i)!=valid.end()){
+                    placeholder = i;
+                    output.push(maketoken(placeholder,line,column));
+                }
+                else if (isspace(i)){
+                    break;
+                }
             }
             //not valid!
             else {
@@ -66,6 +78,12 @@ std::vector<token> lex() {
                 return; //TODO: throw a standard library error here and then in main we catch it by returning 1
             }
         }
+
+        if (i == '/n') {
+            line++;
+            column = 0;
+        }
+        column++;
     }
 
     createend(output);

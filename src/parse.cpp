@@ -162,28 +162,10 @@ int main() {
     
 	try {
 		std::queue<token> tokens;
-			//= lex();
-			// eventually want to SET TOKENS EQUAL TO lexer function that fills this queue
-
-		/*tokens.push(token(1, 1, "("));
-		tokens.push(token(1, 2, "/"));
-		tokens.push(token(1, 4, "("));
-		tokens.push(token(1, 6, "-"));
-		tokens.push(token(1, 5, "1"));
-		tokens.push(token(1, 7, "2"));
-		tokens.push(token(1, 1, "3"));
-		tokens.push(token(1, 2, ")"));
-		tokens.push(token(1, 3, "("));
-		tokens.push(token(1, 4, "-"));
-		tokens.push(token(1, 4, "("));
-		tokens.push(token(1, 5, "+"));
-		tokens.push(token(1, 6, "1"));
-		tokens.push(token(1, 7, "2"));
-		tokens.push(token(1, 8, ")"));
-		tokens.push(token(1, 9, "3"));
-		tokens.push(token(1, 10, ")"));
-		tokens.push(token(1, 11, ")"));
-		tokens.push(token(1, 12, "END"));*/
+		
+		// will want to add something like: 
+		// Lexer lex;
+		// Parser parser(lex.lexTokens);
 
 		Parser parser(tokens);
 		TreeNode* ASThead = parser.getHead();

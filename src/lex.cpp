@@ -20,8 +20,8 @@ token maketoken(std::string text, int line, int column){
 std::queue<token> lex() {
     char i;
     std::queue<token> output;
-    int line = 1; // TODO: iterate this at every new line
-    int column = 1; // TODO: iterate this for each new char
+    int line = 1;
+    int column = 1;
     std::string placeholder = "/0";
     std::set<char> valid {
         ')',
@@ -47,12 +47,13 @@ std::queue<token> lex() {
                 bool decimal = false;
                 placeholder += i;
                 column++;
+                //concat the string of numbers
                 while (std::cin >> i && (isdigit(i) || i == '.')){
                     if (i == '.') {
                         if (decimal){
                             //print error
                             std::cout << "Syntax error on line " << line << "column " << column << ".";
-                            return; //TODO: throw a standard library error here and then in main we catch it by returning 1
+                            throw std::runtime_error("Syntax error");
                         }
                         else {
                             decimal = true;
@@ -61,21 +62,22 @@ std::queue<token> lex() {
                     placeholder += i;
                     column++;
                 }
-
                 output.push(maketoken(placeholder,line,column));
-
+                //if next token valid make another token
                 if (valid.find(i)!=valid.end()){
                     placeholder = i;
                     output.push(maketoken(placeholder,line,column));
                 }
+                //if space break
                 else if (isspace(i)){
+                    column++;
                     break;
                 }
             }
             //not valid!
             else {
                 std::cout << "Syntax error on line " << line << "column " << column << ".";
-                return; //TODO: throw a standard library error here and then in main we catch it by returning 1
+                throw std::runtime_error("Syntax error");
             }
         }
 
@@ -88,4 +90,14 @@ std::queue<token> lex() {
 
     createend(output);
     printtokens(output);
+}
+
+int main(){
+    try{
+
+    }
+    catch(const std::runtime_error& e){
+        return 1;
+    }
+    return 0;
 }

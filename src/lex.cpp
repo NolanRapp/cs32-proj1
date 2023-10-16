@@ -11,8 +11,8 @@ void Lexer::createEnd(std::queue<token>& inputq, int line, int column) {
 void Lexer::printTokens() {
     while (!lexTokens.empty()) {
         token printToken = lexTokens.front();
-        std::cout << std::setw(4) << printToken.line << std::setw(4) << 
-        printToken.column << std::setw(4) << printToken.text << std::endl;
+        std::cout << std::setw(4) << printToken.line << std::setw(5) << 
+        printToken.column << std::setw(5) << printToken.text << std::endl;
         // using example from  https://cplusplus.com/reference/iomanip/setw/ 
         
         lexTokens.pop();

@@ -1,4 +1,5 @@
 # cs32
+<<<<<<< HEAD
 
 Part 1: Calculator
     The purpose of the first checkpoint of this project is to build a calculator. The calculator is split into two parts: the lexer (which reads in raw text and translates it to a sequence of tokens), and the parser (which builds an abstract syntax tree, and calculates the input S-Expression).
@@ -29,3 +30,5 @@ Part 1: Calculator
                     Returns if children vector is empty.
                 
                 
+=======
+>>>>>>> 41320212d03411d4604b587788af617baf0471a1

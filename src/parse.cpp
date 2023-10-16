@@ -2,7 +2,8 @@
 #include "lib/lex.h"
 
 TreeLeaf::TreeLeaf (double val) {
-    value = val; // initializing one numerical
+    // initializing one numerical value
+	value = val;
 }
 
 double TreeLeaf::evaluateNode() const{
@@ -15,13 +16,6 @@ void TreeLeaf::printInfix() const {
 
 
 
-/*~TreeOperator {   
-	for (TreeNode* child : children) {
-		delete child;
-	}
-	children.clear();
-}*/
-
 TreeOperator::TreeOperator(char operation) {
     this->operation = operation;
 
@@ -33,9 +27,7 @@ void TreeOperator::addChild(TreeNode* child){
 }
 
 double TreeOperator::evaluateNode() const{
-    // the purpose of this function is to return the evaluated operation
-    // from all children of this operation in the AST
-	
+    // the purpose of this function is to return the evaluated S-Expression	
 	// we can assume children vector is nonempty
 
 	double result = children[0]->evaluateNode();
@@ -87,26 +79,25 @@ void TreeOperator::printInfix() const {
 
 
 Parser::Parser(std::queue<token> originalInput) {
-    // initialize and return the head of the created AST 
+    // initialize the head of the created AST 
 
     if (originalInput.front().text != "(") {
-        std::cout << "Unexpected token at line" << originalInput.front().line << "column"
-		<< originalInput.front().column << ": " << originalInput.front().text << std::endl;
-		exit(2);
+        parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
 		// Parse Error (Expects "()" for S expression)
     }
     else {
         originalInput.pop();
 		if(operators.find(originalInput.front().text) == operators.end()){
-			std::cout << "Unexpected token at line" << originalInput.front().line << "column"
-			<< originalInput.front().column << ": " << originalInput.front().text << std::endl;
-			exit(2);
+			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
 			// Parse Error (Expects Operator)
 		}
         mHead = createTree(originalInput);
-    }
 
-	// ADD Parse Error here to check input doesn't contain multiple (or no) top-level S expressions
+		if (originalInput.front().text != "END") {
+			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
+			// Parse Error (checking input doesn't contain multiple (or no) top-level S expressions)
+		}
+    }
 }
 
 TreeNode* Parser::createTree(std::queue<token>& input) {
@@ -125,20 +116,16 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
         while (input.front().text != ")") {
 			
 			// Makes sure only numbers or new expressions are registered
-	        if(operators.find(input.front().text) != operators.end() || input.front().text == "END"){
-				std::cout << "Unexpected token at line" << input.front().line << "column"
-				<< input.front().column << ": " << input.front().text << std::endl;
-				exit(2);
+	        if (operators.find(input.front().text) != operators.end() || input.front().text == "END") {
+				parseError(input.front().line, input.front().column, input.front().text);
 				// Parse Error (Expects only numbers and new S expressions)
 			}
 
 			// Checks for new expression
 			if(input.front().text == "(") {
 				input.pop();
-				if(operators.find(input.front().text) == operators.end()){
-					std::cout << "Unexpected token at line" << input.front().line << "column"
-					<< input.front().column << ": " << input.front().text << std::endl;
-					exit(2);
+				if (operators.find(input.front().text) == operators.end()) {
+					parseError(input.front().line, input.front().column, input.front().text);
 					// Parse Error (Expects Operator)
 				}
 			}
@@ -149,7 +136,7 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
         input.pop();
 		return head;
 	}
-	// Ideally speaking the only alternative case is a number
+	// (ideally) the only alternative case is a number
     else {
         leaf = new TreeLeaf(std::stold(input.front().text));
         input.pop();
@@ -163,60 +150,54 @@ TreeNode* Parser::getHead() {
 	return mHead;
 }
 
+void Parser::parseError(int col, int line, std::string text) {
+	std::cout << "Unexpected token at line " << line << " column "
+	<< col << ": " << text << std::endl;
+	exit(2);
+}
+
 
 
 int main() {
     
 	try {
-		/*
-		TO IMPLEMENT WHEN LEXER IS READY: 
-
-		std::string sExpression;
-		char ch;
-		while (std::cin.get(ch) && ch != '\n') {
-			sExpression.push_back(ch);
-		}
-		Lexer lexer(sExpression);
-		*/
-
 		std::queue<token> tokens;
+			//= lex();
 			// eventually want to SET TOKENS EQUAL TO lexer function that fills this queue
 
-		// manual token push for parser testing:
-			tokens.push(token(1, 1, "("));
-        	tokens.push(token(1, 2, "*"));
-			tokens.push(token(1, 3, "("));
-			tokens.push(token(1, 4, "+"));
-			tokens.push(token(1, 5, "1"));
-			tokens.push(token(1, 6, "2"));
-			tokens.push(token(1, 7, ")"));
-			tokens.push(token(1, 1, "3"));
-			tokens.push(token(1, 2, "("));
-			tokens.push(token(1, 3, "/"));
-			tokens.push(token(1, 4, "4"));
-			tokens.push(token(1, 5, "5"));
-			tokens.push(token(1, 6, "("));
-			tokens.push(token(1, 7, "-"));
-			tokens.push(token(1, 8, "6"));
-			tokens.push(token(1, 9, "7"));
-			tokens.push(token(1, 10, ")"));
-			tokens.push(token(1, 11, ")"));
-			tokens.push(token(1, 12, ")"));
-		
+		/*tokens.push(token(1, 1, "("));
+		tokens.push(token(1, 2, "/"));
+		tokens.push(token(1, 4, "("));
+		tokens.push(token(1, 6, "-"));
+		tokens.push(token(1, 5, "1"));
+		tokens.push(token(1, 7, "2"));
+		tokens.push(token(1, 1, "3"));
+		tokens.push(token(1, 2, ")"));
+		tokens.push(token(1, 3, "("));
+		tokens.push(token(1, 4, "-"));
+		tokens.push(token(1, 4, "("));
+		tokens.push(token(1, 5, "+"));
+		tokens.push(token(1, 6, "1"));
+		tokens.push(token(1, 7, "2"));
+		tokens.push(token(1, 8, ")"));
+		tokens.push(token(1, 9, "3"));
+		tokens.push(token(1, 10, ")"));
+		tokens.push(token(1, 11, ")"));
+		tokens.push(token(1, 12, "END"));*/
+
 		Parser parser(tokens);
 		TreeNode* ASThead = parser.getHead();
 		ASThead->printInfix();
 		std::cout << std::endl;
-		// Parse Error here? if "no / multiple top level s-expressions" found
-		// TODO: print in infix form
 		double calculation = ASThead->evaluateNode();
+		delete ASThead;
 		std::cout << calculation << std::endl;
 
 	}
 
 	catch (const std::runtime_error& e) {
 		std::cout << e.what() << std::endl;
-		exit(3);
+		exit (3);
 	}
 
    return 0;
@@ -226,7 +207,5 @@ int main() {
  /* 
 TODO:
 	- lexer error: print the same error message as the lex program
-	- delete AST TreeNode* variable to keep memory clean
-	- TreeOperator destructor? getting weird errors with that
-	- run tests and make sure we handle cases properly
+	- destructor shenanigans
 */

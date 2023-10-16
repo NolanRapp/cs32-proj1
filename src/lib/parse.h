@@ -58,7 +58,12 @@ class TreeOperator : public TreeNode {
         virtual double evaluateNode() const;
         void addChild(TreeNode* child);
         virtual void printInfix() const;
-		// ~TreeOperator();
+		~TreeOperator() {
+            for (TreeNode* child : children) {
+		        delete child;
+	        }
+	        children.clear();
+        };
 
     private:
         char operation;
@@ -87,6 +92,7 @@ class Parser {
 			"+",
 			"-"
 		};
+        void parseError(int col, int line, std::string text);
 };
 
 

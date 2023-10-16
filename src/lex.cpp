@@ -67,7 +67,7 @@ void Lexer::lex() {
 
                 // checking for leading decimal
                 if (i == '.' && !(isdigit(placeholder.back()))) {
-                    std::cout << "Syntax error on line " << line << " column " << column << ".";
+                    std::cout << "Syntax error on line " << line << " column " << column << ".\n";
                     exit(1);
                 }
 
@@ -79,7 +79,7 @@ void Lexer::lex() {
                     if (std::cin.peek() == '.') {
                         // checking for multiple decimals
                         if (decimal) {
-                            std::cout << "Syntax error on line " << line << " column " << column + 1 << ".";
+                            std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
                             exit(1);
                         }
                         else {
@@ -94,7 +94,7 @@ void Lexer::lex() {
 
                 // checking for trailing decimal
                 if (placeholder.back() == '.') {
-                    std::cout << "Syntax error on line " << line << " column " << column + 1 << ".";
+                    std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
                     exit(1);
                 }
 
@@ -102,7 +102,7 @@ void Lexer::lex() {
             }
             // if not space, valid operator, or valid number, print error:
             else {
-                std::cout << "Syntax error on line " << line << " column " << column << ".";
+                std::cout << "Syntax error on line " << line << " column " << column << ".\n";
                 exit(1);
             }
         }
@@ -115,15 +115,10 @@ void Lexer::lex() {
 
 
 int main() {
-    try {
-        Lexer lexer;
-        lexer.lex();
-        lexer.printTokens();
-    }
 
-    catch(const std::exception& e) {
-        return 1;
-    }
+	Lexer lexer;
+	lexer.lex();
+	lexer.printTokens();
 
     return 0;
 }

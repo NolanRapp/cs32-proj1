@@ -20,6 +20,7 @@ void Lexer::printTokens() {
 }
 
 
+
 std::queue<token> Lexer::getLexQueue() {
     return lexTokens;
 }
@@ -47,7 +48,8 @@ void Lexer::lex() {
 
         if (i == '\n') {
             line++;
-            column = 0;
+            column = 1;
+            continue;
         }
 
         if (!isspace(i)) {
@@ -57,10 +59,17 @@ void Lexer::lex() {
                 lexTokens.push(token(line,column, std::string(1, i)));
             }
 
-            //if number input, check validity:
-            else if (isdigit(i)) {
-                bool decimal = false;
+            //if number input or decimal input, check validity:
+            else if (isdigit(i) || i == '.') {
+                bool decimal = (i == '.'); // sets boolean equal to true if i == '.'
                 std::string placeholder(1, i); // this converts a char (1) to a string
+                int startingColumn = column;
+
+                // checking for leading decimal
+                if (i == '.' && !isdigit(std::cin.peek())) {
+                    std::cout << "Syntax error on line " << line << " column " << column << ".";
+                    exit(1);
+                }
 
                 // if number is a decimal:
                 while ((isdigit(std::cin.peek()) || std::cin.peek() == '.')) {
@@ -80,12 +89,17 @@ void Lexer::lex() {
                     char nextChar;
                     std::cin.get(nextChar);
                     placeholder += nextChar;
-
                     column++;
                 }
-                lexTokens.push(token(line,column, placeholder));
-            }
 
+                // checking for trailing decimal
+                if (placeholder.back() == '.') {
+                    std::cout << "Syntax error on line " << line << " column " << column << ".";
+                    exit(1);
+                }
+
+                lexTokens.push(token(line,startingColumn, placeholder));
+            }
             // if not space, valid operator, or valid number, print error:
             else {
                 std::cout << "Syntax error on line " << line << " column " << column << ".";

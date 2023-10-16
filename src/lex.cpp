@@ -67,7 +67,7 @@ void Lexer::lex() {
 
                 // checking for leading decimal
                 if (i == '.' && !(isdigit(placeholder.back()))) {
-                    std::cout << "Syntax error on line " << line << " column " << column + 1 << ".";
+                    std::cout << "Syntax error on line " << line << " column " << column << ".";
                     exit(1);
                 }
 

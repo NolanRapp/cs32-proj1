@@ -66,7 +66,7 @@ void Lexer::lex() {
                 int startingColumn = column;
 
                 // checking for leading decimal
-                if (i == '.' && !isdigit(std::cin.peek())) {
+                if (i == '.' && !(isdigit(placeholder.back()))) {
                     std::cout << "Syntax error on line " << line << " column " << column << ".";
                     exit(1);
                 }
@@ -79,7 +79,7 @@ void Lexer::lex() {
                     if (std::cin.peek() == '.') {
                         if (decimal) {
                             //print error
-                            std::cout << "Syntax error on line " << line << " column " << column << ".";
+                            std::cout << "Syntax error on line " << line << " column " << column + 1 << ".";
                             exit(1);
                         }
                         else {
@@ -94,7 +94,7 @@ void Lexer::lex() {
 
                 // checking for trailing decimal
                 if (placeholder.back() == '.') {
-                    std::cout << "Syntax error on line " << line << " column " << column << ".";
+                    std::cout << "Syntax error on line " << line << " column " << startingColumn + 1 << ".";
                     exit(1);
                 }
 

@@ -11,10 +11,6 @@ struct token {
     std::string text; // the text of the token exactly as it appears in the input
 
     token(int l, int c, const std::string &t) : line(l), column(c), text(t) {} // token constructor for testing
-<<<<<<< HEAD
-=======
-
->>>>>>> 41320212d03411d4604b587788af617baf0471a1
 };
 
 #endif

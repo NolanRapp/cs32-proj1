@@ -5,7 +5,7 @@
 int main() {
     
 	try {
-		std::queue<token> tokens;
+		std::queue<Token> tokens;
 		
 		Lexer lexer;
 		lexer.lex();
@@ -17,7 +17,6 @@ int main() {
 		double calculation = ASThead->evaluateNode();
 		delete ASThead;
 		std::cout << calculation << std::endl;
-
 	}
 
 	catch (const std::runtime_error& e) {

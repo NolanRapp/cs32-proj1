@@ -16,10 +16,10 @@ Lexer: lex.cpp Lexer.o
 	g++ $(CXXFLAGS) $+ -o $@
 
 Parser.o: lib/Parser.h lib/Parser.cpp
-	g++ $(CXXFLAGS) -c $+
+	g++ $(CXXFLAGS) -c $+ lib/Token.h
 
 Lexer.o: lib/Lexer.h lib/Lexer.cpp
-	g++ $(CXXFLAGS) -c $+
+	g++ $(CXXFLAGS) -c $+ lib/Token.h
 
 clean:
 	rm *.o lib/*.gch Parser Lexer

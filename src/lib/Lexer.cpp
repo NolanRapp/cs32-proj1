@@ -1,15 +1,15 @@
 #include "Lexer.h"
 
 
-void Lexer::createEnd(std::queue<token>& inputq, int line, int column) {
-    inputq.push(token(line, column, "END"));
+void Lexer::createEnd(std::queue<Token>& inputq, int line, int column) {
+    inputq.push(Token(line, column, "END"));
 }
 
 
 
 void Lexer::printTokens() {
     while (!lexTokens.empty()) {
-        token printToken = lexTokens.front();
+        Token printToken = lexTokens.front();
         std::cout << std::setfill(' ')  << std::setw(4) << std::right << printToken.line << std::setfill(' ')
         << std::setw(5) << std::right << printToken.column << "  " << printToken.text << std::endl;
         // using example from  https://cplusplus.com/reference/iomanip/setw/ 
@@ -20,7 +20,7 @@ void Lexer::printTokens() {
 
 
 
-std::queue<token> Lexer::getLexQueue() {
+std::queue<Token> Lexer::getLexQueue() {
     return lexTokens;
 }
 
@@ -55,7 +55,7 @@ void Lexer::lex() {
 
             //if valid operator/parenthesis input, add to output queue:
             if (valid.find(i) != valid.end()) {
-                lexTokens.push(token(line,column, std::string(1, i)));
+                lexTokens.push(Token(line,column, std::string(1, i)));
             }
 
             //if number, check validity:
@@ -91,7 +91,7 @@ void Lexer::lex() {
                     exit(1);
                 }
 
-                lexTokens.push(token(line,startingColumn, placeholder));
+                lexTokens.push(Token(line,startingColumn, placeholder));
             }
             // if not space, valid operator, or valid number, print error:
             else {

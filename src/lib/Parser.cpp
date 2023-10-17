@@ -78,28 +78,28 @@ void TreeOperator::printInfix() const {
 
 
 
-Parser::Parser(std::queue<token> originalInput) {
+Parser::Parser(std::queue<Token> originalInput) {
     // initialize the head of the created AST 
 
-    if (originalInput.front().text != "(") {
-        parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-		// Parse Error (Expects "()" for S expression)
-    }
-
-	originalInput.pop();
-	if(originalInput.front().text == ")" || originalInput.front().text == "END"){
-		parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-		// Parse Error (Expects Operator or Number)
+	contained = (originalInput.front().text == "("); // used to see if base expression was contianed by "()"	
+	
+	if(contained){
+		// Pops off "(" and begins reading	
+		originalInput.pop();
+		if(originalInput.front().text == ")" || originalInput.front().text == "END"){
+			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
+			// Parse Error (Expects Operator or Number)
+		}
 	}
 
 	if(operators.find(originalInput.front().text) == operators.end()){
-		token tempTok = originalInput.front();
+		Token tempTok = originalInput.front();
 		originalInput.pop();
 		
 		if(!isdigit(tempTok.text.at(0))){
 			parseError(tempTok.line, tempTok.column, tempTok.text);
 		}
-		if(originalInput.front().text != ")"){
+		if((originalInput.front().text != ")" && contained) || (originalInput.front().text != "END" && !contained)){
 			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
 			// Parse Error (Expects ")" after number is first in S expression)
 		}
@@ -111,13 +111,13 @@ Parser::Parser(std::queue<token> originalInput) {
 		mHead = createTree(originalInput);
 	}
 
-	if (originalInput.front().text != "END") {
+	if ((originalInput.front().text != "END" && contained) || (!originalInput.empty() && !contained)) {
 		parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
 		// Parse Error (checking input doesn't contain multiple (or no) top-level S expressions)
 	}
 }
 
-TreeNode* Parser::createTree(std::queue<token>& input) {
+TreeNode* Parser::createTree(std::queue<Token>& input) {
     /*
     The createTree function parses input tokens in a queue and constructs AST
     Recursion is used to simplify the tree build
@@ -130,10 +130,10 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
        	head = new TreeOperator(input.front().text.at(0));
         input.pop();
 
-        while (input.front().text != ")") {
+        while (input.front().text != ")" && input.front().text != "END") {
 			
 			// Makes sure only numbers or new expressions are registered
-	        if (operators.find(input.front().text) != operators.end() || input.front().text == "END") {
+	        if (operators.find(input.front().text) != operators.end()) {
 				parseError(input.front().line, input.front().column, input.front().text);
 				// Parse Error (Expects only numbers and new S expressions)
 			}
@@ -143,7 +143,7 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
 				input.pop();
 
 				if(operators.find(input.front().text) == operators.end()){
-					token tempTok = input.front();
+					Token tempTok = input.front();
 					input.pop();
 					
 					if(!isdigit(tempTok.text.at(0))){
@@ -163,11 +163,18 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
 			head->addChild(createTree(input));
 		}
 
+		// Checks for special case of no "()"
+		if(input.front().text == "END"){
+			if(contained){
+				parseError(input.front().line, input.front().column, input.front().text);
+			}
+		}
+
         input.pop();
 		return head;
 	}
 	// (ideally) the only alternative case is a number
-    else {
+    else {	
         leaf = new TreeLeaf(std::stold(input.front().text));
         input.pop();
 		return leaf;

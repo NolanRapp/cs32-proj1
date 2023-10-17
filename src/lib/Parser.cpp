@@ -46,6 +46,9 @@ double TreeOperator::evaluateNode() const{
     // the purpose of this function is to return the evaluated S-Expression	
 	// we can assume children vector is nonempty
 
+	if(children.empty()){
+		return 0.0;
+	}
 	double result = children[0]->evaluateNode();
 
 	switch(operation) {

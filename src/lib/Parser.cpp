@@ -6,13 +6,20 @@ TreeLeaf::TreeLeaf (double val) {
 	value = val;
 }
 
+
+
 double TreeLeaf::evaluateNode() const{
     return value;
 }
 
+
+
 void TreeLeaf::printInfix() const {
 	std::cout << value;
 }
+
+
+
 
 
 
@@ -22,9 +29,13 @@ TreeOperator::TreeOperator(char operation) {
     // initializing operation used and vector for its operands and child operators
 }
 
+
+
 void TreeOperator::addChild(TreeNode* child){
 	children.push_back(child);
 }
+
+
 
 double TreeOperator::evaluateNode() const{
     // the purpose of this function is to return the evaluated S-Expression	
@@ -62,6 +73,8 @@ double TreeOperator::evaluateNode() const{
     return result;
 }
 
+
+
 void TreeOperator::printInfix() const {
 	if (children.empty()) {
 		return;
@@ -78,119 +91,124 @@ void TreeOperator::printInfix() const {
 
 
 
-Parser::Parser(std::queue<Token> originalInput) {
-    // initialize the head of the created AST 
 
-	contained = (originalInput.front().text == "("); // used to see if base expression was contianed by "()"	
-	
-	if(contained){
-		// Pops off "(" and begins reading	
-		originalInput.pop();
-		if(originalInput.front().text == ")" || originalInput.front().text == "END"){
-			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-			// Parse Error (Expects Operator or Number)
-		}
+
+
+Parser::Parser(std::queue<Token> oInput) {
+	if(oInput.front().text == "("){
+		mHead = closedTree(oInput);
 	}
-
-	if(operators.find(originalInput.front().text) == operators.end()){
-		Token tempTok = originalInput.front();
-		originalInput.pop();
-		
-		if(!isdigit(tempTok.text.at(0))){
-			parseError(tempTok.line, tempTok.column, tempTok.text);
-		}
-		if((originalInput.front().text != ")" && contained) || (originalInput.front().text != "END" && !contained)){
-			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-			// Parse Error (Expects ")" after number is first in S expression)
-		}
-		
-		mHead = new TreeLeaf(std::stold(tempTok.text));
-		originalInput.pop();
+	else if(isOp(oInput.front().text)){
+		mHead = opTree(oInput);
+	}
+	else if(isdigit(oInput.front().text.at(0))){
+		mHead = numTree(oInput);
 	}
 	else{
-		mHead = createTree(originalInput);
+		parseError(oInput.front().line, oInput.front().column, oInput.front().text);
+		// Parse Error (First element should not be ")" or "END")
 	}
 
-	if ((originalInput.front().text != "END" && contained) || (!originalInput.empty() && !contained)) {
-		parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-		// Parse Error (checking input doesn't contain multiple (or no) top-level S expressions)
+	if(oInput.front().text != "END"){
+		parseError(oInput.front().line, oInput.front().column, oInput.front().text);
+		// Parse Error (Initial expression should always end in "END")
 	}
 }
 
-TreeNode* Parser::createTree(std::queue<Token>& input) {
-    /*
-    The createTree function parses input tokens in a queue and constructs AST
-    Recursion is used to simplify the tree build
-    */
 
-    TreeOperator* head;
-	TreeLeaf* leaf;
 
-    if (operators.find(input.front().text) != operators.end()) {
-       	head = new TreeOperator(input.front().text.at(0));
-        input.pop();
+TreeNode* Parser::closedTree(std::queue<Token>& input){
+	input.pop();
+	TreeNode* head;
 
-        while (input.front().text != ")" && input.front().text != "END") {
-			
-			// Makes sure only numbers or new expressions are registered
-	        if (operators.find(input.front().text) != operators.end()) {
-				parseError(input.front().line, input.front().column, input.front().text);
-				// Parse Error (Expects only numbers and new S expressions)
-			}
+	if(input.front().text == "("){
+		head = closedTree(input);
+	}
+	else if(isOp(input.front().text)){
+		head = opTree(input);
+	}
+	else if(isdigit(input.front().text.at(0))){
+		head = numTree(input);
+	}
+	else{	
+		parseError(input.front().line, input.front().column, input.front().text);
+		// Parse Error (Invalid start for closed tree)
+	}
 
-			// Checks for new expression
-			if(input.front().text == "(") {
-				input.pop();
+	if(input.front().text != ")"){	
+		parseError(input.front().line, input.front().column, input.front().text);
+		// Parse Error (Closed trees should end in ")")
+	}
+	input.pop();
 
-				if(operators.find(input.front().text) == operators.end()){
-					Token tempTok = input.front();
-					input.pop();
-					
-					if(!isdigit(tempTok.text.at(0))){
-						parseError(tempTok.line, tempTok.column, tempTok.text);
-					}
-					if(input.front().text != ")"){
-						parseError(input.front().line, input.front().column, input.front().text);
-					}
-					
-					TreeLeaf* tempLeaf = new TreeLeaf(std::stold(tempTok.text));
-					head->addChild(tempLeaf);
-					
-					input.pop();
-					continue;	
-				}
-			}
-			head->addChild(createTree(input));
+	return head;
+}
+
+
+
+TreeNode* Parser::opTree(std::queue<Token>& input){
+
+	TreeOperator* op = new TreeOperator(input.front().text.at(0));
+	TreeNode* tempExp;
+	TreeLeaf* tempLeaf;
+	input.pop();
+
+	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
+		if(input.front().text == "("){
+			// Makes a child expression
+			tempExp = closedTree(input);
+			op->addChild(tempExp);
+		}
+		else{
+			// Creates and adds a child number of the operator
+			tempLeaf = new TreeLeaf(std::stold(input.front().text));
+			op->addChild(tempLeaf);
+
+			input.pop();
 		}
 
-		// Checks for special case of no "()"
 		if(input.front().text == "END"){
-			if(contained){
-				parseError(input.front().line, input.front().column, input.front().text);
-			}
+			break;
 		}
-
-        input.pop();
-		return head;
 	}
-	// (ideally) the only alternative case is a number
-    else {	
-        leaf = new TreeLeaf(std::stold(input.front().text));
-        input.pop();
-		return leaf;
-    }
 
-    return nullptr;
+	return op;
 }
+
+
+
+// Makes sure any expression starting with a number only has 1 number
+TreeNode* Parser::numTree(std::queue<Token>& input){
+
+	TreeLeaf* leaf = new TreeLeaf(std::stold(input.front().text));
+	input.pop();
+
+	if(isdigit(input.front().text.at(0))){
+		parseError(input.front().line, input.front().column, input.front().text);
+		// Parse Error (Num tree can only have one number)
+	}
+
+	return leaf;
+}
+
+
 
 TreeNode* Parser::getHead() {
 	return mHead;
 }
 
-void Parser::parseError(int line, int col, std::string text) {
+
+
+void Parser::parseError(int line, int col, std::string text) const {
 	std::cout << "Unexpected token at line " << line << " column "
 	<< col << ": " << text << std::endl;
 	exit(2);
+}
+
+
+
+bool Parser::isOp(std::string str) const{
+	return (operators.find(str) != operators.end());
 }
 
 

@@ -81,7 +81,7 @@ class Parser {
 
     public:
         Parser(std::queue<Token> originalInput);
-        TreeNode* createTree(std::queue<Token>& input); // recursively constructs AST
+        //TreeNode* createTree(std::queue<Token>& input); // recursively constructs AST
         TreeNode* getHead();
 	
 	private:
@@ -92,8 +92,12 @@ class Parser {
 			"+",
 			"-"
 		};
-        void parseError(int line, int col, std::string text);
-		bool contained;
+        void parseError(int line, int col, std::string text) const;
+		bool isOp(std::string str) const;
+		
+		TreeNode* closedTree(std::queue<Token>& input);
+		TreeNode* opTree(std::queue<Token>& input);
+		TreeNode* numTree(std::queue<Token>& input);
 };
 
 

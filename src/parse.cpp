@@ -3,25 +3,29 @@
 
 
 int main() {
-    
-	try {
-		std::queue<Token> tokens;
-		
-		Lexer lexer;
-		lexer.lex();
-		Parser parser(lexer.getLexQueue());
+	
+	std::queue<Token> tokens;
 
-		TreeNode* ASThead = parser.getHead();
-		ASThead->printInfix();
-		std::cout << std::endl;
+	// Creates queue by reading user input
+	Lexer lexer;
+	lexer.lex();
+	Parser parser(lexer.getLexQueue());
+
+	// Retrieves tree and evaluates
+	TreeNode* ASThead = parser.getHead();
+	ASThead->printInfix();
+	std::cout << std::endl;
+
+	try {
 		double calculation = ASThead->evaluateNode();
 		delete ASThead;
 		std::cout << calculation << std::endl;
 	}
 
 	catch (const std::runtime_error& e) {
+		delete ASThead;
 		std::cout << e.what() << std::endl;
-		exit (3);
+		return 3;
 	}
 
    return 0;

@@ -1,5 +1,5 @@
 #include "lib/Lexer.h"
-#include "lib/token.h"
+#include "lib/Token.h"
 
 
 int main() {

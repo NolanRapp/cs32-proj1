@@ -5,18 +5,28 @@ Part 1: Calculator
 
 
     The Lexer:
-        ADD INFO ABOUT LEXER HERE
-
+        The Lexer collects standard input in its construction and forms a queue of Token objects that are restricted to being any of the following strings: "(", ")", "+", "-", "/", "*", and a valid number. These are collected to later be used by a class such as the Parser that will evaluate them.
+            
+            Important Functions:
+                Lexer::createEnd():
+                    Creates an "END" token for formatting.
+                Lexer::printTokens():
+                    Prints all tokens from the queue in easy to read column format.
+                Lexer::Lexer():
+                    Creates a queue of Tokens from standard input. 
 
     The Parser:
-        The parser collects a queue of tokens (token line, token column, and token text) from the Lexer, and builds an abstract syntax tree using the Parser::parse() function. It is then able to easily calculate the desired S-Expression using the virtual function evaluateNode(). It also constructs and prints the original S-Expression in infix form using the virtual function printInfix(). In main, we run a try-catch block for runtime errors (exit code 3). Otherwise, parse errors (exit code 2) are thrown as they come up in AST building and calculating.
+        The Parser collects a queue of tokens (token line, token column, and token text) from the Lexer, and builds an abstract syntax tree using the Parser::parse() function. It is then able to easily calculate the desired S-Expression using the virtual function evaluateNode(). It also constructs and prints the original S-Expression in infix form using the virtual function printInfix(). In main, we run a try-catch block for runtime errors (exit code 3). Otherwise, parse errors (exit code 2) are thrown as they come up in AST building and calculating.
             
             Important Functions:
                 Parser::Parser(): 
                     Constructor that initializes the token vector. It checks for initial Parse Errors, then calls createTree() to begin constructing the AST. The head of this tree is assinged to a variable.
-                Parser::createTree():
-                    Utilizes recursion to create AST. As tree is constructed, items are popped off the queue. Checks for Parse Errors along the way.
-                    Returns an AST of type TreeNode*.
+                Parser::closedTree():
+                    A function that evaluates a given S expression in the context of opening and closing parenthesis.
+                Parser::opTree():
+                    A function that evaluates a given S expression from the head of it (the Operator).
+                Parser::numTree():
+                    A function that confirms an S expression starting with a number only consists of that number.
                 Parser::parseError():
                     Prints a parse error with corresponding line, column, and text. Exits with exit code 2. 
                 

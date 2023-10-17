@@ -1,12 +1,14 @@
 #include "Lexer.h"
 
 
+// Creates "END" token, prevents the queue from being empty
 void Lexer::createEnd(std::queue<Token>& inputq, int line, int column) {
     inputq.push(Token(line, column, "END"));
 }
 
 
 
+// Prints the queue, for debugging purposes
 void Lexer::printTokens() {
     while (!lexTokens.empty()) {
         Token printToken = lexTokens.front();
@@ -20,12 +22,14 @@ void Lexer::printTokens() {
 
 
 
+// Used to retrieve queue for classes using the Tokens
 std::queue<Token> Lexer::getLexQueue() {
     return lexTokens;
 }
 
 
 
+// Constructs the queue based on standard output, stores it in member variable
 void Lexer::lex() {
     int line = 1;
     int column = 1;

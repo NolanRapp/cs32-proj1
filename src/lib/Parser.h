@@ -64,6 +64,7 @@ class TreeOperator : public TreeNode {
 	        }
 	        children.clear();
         };
+		int childNum();
 
     private:
         char operation;

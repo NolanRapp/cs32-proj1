@@ -19,7 +19,7 @@ class Lexer {
     public: 
         void createEnd(std::queue<Token>& inputq, int line, int column);
         void printTokens();
-        void lex();
+        void lex(std::string& inputString);
         std::queue<Token> getLexQueue();
 
     private:

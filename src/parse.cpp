@@ -3,12 +3,18 @@
 
 
 int main() {
+
+	char tempChar;
+	std::string totalString = "\0";
+	while(std::cin.get(tempChar)){
+		totalString += tempChar;
+	}
 	
 	std::queue<Token> tokens;
 
 	// Creates queue by reading user input
 	Lexer lexer;
-	lexer.lex();
+	lexer.lex(totalString);
 	Parser parser(lexer.getLexQueue());
 
 	// Retrieves tree and evaluates

@@ -6,10 +6,12 @@ int main() {
 	
 	std::queue<Token> tokens;
 
+	// Creates queue by reading user input
 	Lexer lexer;
 	lexer.lex();
 	Parser parser(lexer.getLexQueue());
 
+	// Retrieves tree and evaluates
 	TreeNode* ASThead = parser.getHead();
 	ASThead->printInfix();
 	std::cout << std::endl;

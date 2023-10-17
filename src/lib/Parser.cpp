@@ -173,7 +173,7 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 			break;
 		}
 
-		childNum = 0;
+		childNum++;
 	}
 
 	if(childNum < 2){

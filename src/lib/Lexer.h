@@ -1,6 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+
 #include "Token.h"
 #include <vector>
 #include <queue>
@@ -18,12 +19,13 @@ class Lexer {
     public: 
         void createEnd(std::queue<Token>& inputq, int line, int column);
         void printTokens();
-        void lex();
+        void lex(std::string& inputString);
         std::queue<Token> getLexQueue();
 
     private:
         std::queue<Token> lexTokens;
 
 };
+
 
 #endif

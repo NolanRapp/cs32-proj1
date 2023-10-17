@@ -30,7 +30,8 @@ std::queue<Token> Lexer::getLexQueue() {
 
 
 // Constructs the queue based on standard output, stores it in member variable
-void Lexer::lex() {
+void Lexer::lex(std::string& inputString) {
+	std::istringstream stream(inputString);
     int line = 1;
     int column = 1;
     char i;
@@ -45,8 +46,8 @@ void Lexer::lex() {
         '/'
     };
 
-    while (std::cin.get(i)) { 
-        //std::cin.get(i) reads input, whitespace, and newlines
+    while (stream.get(i)) { 
+        //std::stream.get(i) reads input, whitespace, and newlines
         // https://cplusplus.com/reference/istream/istream/get/
 
         if (i == '\n') {
@@ -69,11 +70,11 @@ void Lexer::lex() {
                 int startingColumn = column;
 
                 // if number is a decimal:
-                while ((isdigit(std::cin.peek()) || std::cin.peek() == '.')) {
+                while ((isdigit(stream.peek()) || stream.peek() == '.')) {
                     // peek returns next character in the input sequence, without extracting it
                     // https://cplusplus.com/reference/istream/istream/peek/
 
-                    if (std::cin.peek() == '.') {
+                    if (stream.peek() == '.') {
                         // checking for multiple decimals
                         if (decimal) {
                             std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
@@ -84,7 +85,7 @@ void Lexer::lex() {
                         }
                     }
                     char nextChar;
-                    std::cin.get(nextChar);
+                    stream.get(nextChar);
                     placeholder += nextChar;
                     column++;
                 }

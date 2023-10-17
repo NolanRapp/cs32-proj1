@@ -6,3 +6,5 @@
 *.nfs*
 output
 *._.
+.vscode/*
+.vscode

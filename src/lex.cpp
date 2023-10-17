@@ -4,8 +4,14 @@
 
 int main() {
 
+	char inChar;
+	std::string totalString = "\0";
+	while(std::cin.get(inChar)){
+		totalString += inChar;
+	}
+
     Lexer lexer;
-    lexer.lex();
+    lexer.lex(totalString);
     lexer.printTokens();
 
     return 0;

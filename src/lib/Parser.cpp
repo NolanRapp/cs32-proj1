@@ -85,19 +85,36 @@ Parser::Parser(std::queue<token> originalInput) {
         parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
 		// Parse Error (Expects "()" for S expression)
     }
-    else {
-        originalInput.pop();
-		if(operators.find(originalInput.front().text) == operators.end()){
-			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-			// Parse Error (Expects Operator)
-		}
-        mHead = createTree(originalInput);
 
-		if (originalInput.front().text != "END") {
-			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
-			// Parse Error (checking input doesn't contain multiple (or no) top-level S expressions)
+	originalInput.pop();
+	if(originalInput.front().text == ")" || originalInput.front().text == "END"){
+		parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
+		// Parse Error (Expects Operator or Number)
+	}
+
+	if(operators.find(originalInput.front().text) == operators.end()){
+		token tempTok = originalInput.front();
+		originalInput.pop();
+		
+		if(!isdigit(tempTok.text.at(0))){
+			parseError(tempTok.line, tempTok.column, tempTok.text);
 		}
-    }
+		if(originalInput.front().text != ")"){
+			parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
+			// Parse Error (Expects ")" after number is first in S expression)
+		}
+		
+		mHead = new TreeLeaf(std::stold(tempTok.text));
+		originalInput.pop();
+	}
+	else{
+		mHead = createTree(originalInput);
+	}
+
+	if (originalInput.front().text != "END") {
+		parseError(originalInput.front().line, originalInput.front().column, originalInput.front().text);
+		// Parse Error (checking input doesn't contain multiple (or no) top-level S expressions)
+	}
 }
 
 TreeNode* Parser::createTree(std::queue<token>& input) {
@@ -124,14 +141,27 @@ TreeNode* Parser::createTree(std::queue<token>& input) {
 			// Checks for new expression
 			if(input.front().text == "(") {
 				input.pop();
-				if (operators.find(input.front().text) == operators.end()) {
-					parseError(input.front().line, input.front().column, input.front().text);
-					// Parse Error (Expects Operator)
+
+				if(operators.find(input.front().text) == operators.end()){
+					token tempTok = input.front();
+					input.pop();
+					
+					if(!isdigit(tempTok.text.at(0))){
+						parseError(tempTok.line, tempTok.column, tempTok.text);
+					}
+					if(input.front().text != ")"){
+						parseError(input.front().line, input.front().column, input.front().text);
+					}
+					
+					TreeLeaf* tempLeaf = new TreeLeaf(std::stold(tempTok.text));
+					head->addChild(tempLeaf);
+					
+					input.pop();
+					continue;	
 				}
 			}
-
 			head->addChild(createTree(input));
-        }
+		}
 
         input.pop();
 		return head;

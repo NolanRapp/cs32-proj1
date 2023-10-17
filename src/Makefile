@@ -20,7 +20,7 @@ Lexer: lex.cpp Lexer.o
 
 
 
-New_Parser.o: lib/New_Parser.cpp lib/New_Parser.h lib/Token
+New_Parser.o: lib/New_Parser.cpp lib/New_Parser.h lib/Token.h
 	g++ $(CXXFLAGS) -c $<
 
 Parser.o: lib/Parser.cpp lib/Parser.h lib/Token.h

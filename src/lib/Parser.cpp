@@ -121,10 +121,10 @@ TreeNode* Parser::closedTree(std::queue<Token>& input){
 	input.pop();
 	TreeNode* head;
 
-	if(input.front().text == "("){
+	/*if(input.front().text == "("){ // comment out if "(())" is not allowed
 		head = closedTree(input);
-	}
-	else if(isOp(input.front().text)){
+	}*/
+	if(isOp(input.front().text)){
 		head = opTree(input);
 	}
 	else if(isdigit(input.front().text.at(0))){

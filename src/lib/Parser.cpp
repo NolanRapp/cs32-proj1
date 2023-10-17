@@ -156,7 +156,6 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 	input.pop();
 
 	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
-		std::cout << "Tried\n";
 		if(input.front().text == "("){
 			// Makes a child expression
 			tempExp = closedTree(input);

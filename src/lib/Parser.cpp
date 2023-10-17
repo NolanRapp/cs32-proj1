@@ -91,12 +91,6 @@ void TreeOperator::printInfix() const {
 
 
 
-int TreeOperator::childNum(){
-	return children.size();
-}
-
-
-
 
 
 
@@ -157,10 +151,12 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 	TreeOperator* op = new TreeOperator(input.front().text.at(0));
 	TreeNode* tempExp;
 	TreeLeaf* tempLeaf;
-	// Token tempTok = input.front();
+	Token tempTok = input.front();
+	int childNum = 0;
 	input.pop();
 
 	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
+		std::cout << "Tried\n";
 		if(input.front().text == "("){
 			// Makes a child expression
 			tempExp = closedTree(input);
@@ -177,12 +173,14 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 		if(input.front().text == "END"){
 			break;
 		}
+
+		childNum = 0;
 	}
 
-	/*if(op->childNum() < 2){
+	if(childNum < 2){
 		parseError(tempTok.line, tempTok.column, tempTok.text);
 		// Parse Error (Operation tree needs atleast 2 children)
-	}*/
+	}
 
 	return op;
 }

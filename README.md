@@ -1,5 +1,8 @@
 # cs32
 
+Authors:
+    Jesse Cobb, Chloe Andersen, Nolan Rapp, Christy Yu
+
 Part 1: Calculator
     The purpose of the first checkpoint of this project is to build a calculator. The calculator is split into two parts: the lexer (which reads in raw text and translates it to a sequence of tokens), and the parser (which builds an abstract syntax tree, and calculates the input S-Expression).
 

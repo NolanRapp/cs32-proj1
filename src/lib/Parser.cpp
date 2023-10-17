@@ -98,15 +98,15 @@ Parser::Parser(std::queue<Token> oInput) {
 	if(oInput.front().text == "("){
 		mHead = closedTree(oInput);
 	}
-	else if(isOp(oInput.front().text)){
+	/*else if(isOp(oInput.front().text)){
 		mHead = opTree(oInput);
-	}
+	}*/
 	else if(isdigit(oInput.front().text.at(0))){
 		mHead = numTree(oInput);
 	}
 	else{
 		parseError(oInput.front().line, oInput.front().column, oInput.front().text);
-		// Parse Error (First element should not be ")" or "END")
+		// Parse Error (First element should not be ")" or "END" or operation)
 	}
 
 	if(oInput.front().text != "END"){
@@ -127,9 +127,9 @@ TreeNode* Parser::closedTree(std::queue<Token>& input){
 	if(isOp(input.front().text)){
 		head = opTree(input);
 	}
-	else if(isdigit(input.front().text.at(0))){
+	/*if(isdigit(input.front().text.at(0))){
 		head = numTree(input);
-	}
+	}*/
 	else{	
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Invalid start for closed tree)

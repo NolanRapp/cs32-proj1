@@ -25,7 +25,7 @@ void TreeLeaf::printInfix() const {
 
 
 
-// Stores single char in Operator
+// Stores single char holding one of the 4 operators (+,-,/,*) in Operator
 TreeOperator::TreeOperator(char operation) {
     this->operation = operation;
 
@@ -41,7 +41,7 @@ void TreeOperator::addChild(TreeNode* child){
 
 
 
-// Returns the evaluated value of an Operator using its children and its respective operation (recursive)
+// Evaluates Operator and children (recursive)
 double TreeOperator::evaluateNode() const{
     // the purpose of this function is to return the evaluated S-Expression	
 	// we can assume children vector is nonempty
@@ -178,7 +178,7 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 
 	if(childNum < 1){
 		parseError(input.front().line, input.front().column, input.front().text);
-		// Parse Error (Operation tree needs atleast 2 children)
+		// Parse Error (Operation tree needs atleast 1 children)
 	}
 
 	return op;
@@ -218,7 +218,7 @@ void Parser::parseError(int line, int col, std::string text) const {
 
 
 
-// Helper to make logic more intuitive to work with
+// Helper to make code more readable
 bool Parser::isOp(std::string str) const{
 	return (operators.find(str) != operators.end());
 }

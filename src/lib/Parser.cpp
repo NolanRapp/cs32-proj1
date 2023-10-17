@@ -45,10 +45,7 @@ void TreeOperator::addChild(TreeNode* child){
 double TreeOperator::evaluateNode() const{
     // the purpose of this function is to return the evaluated S-Expression	
 	// we can assume children vector is nonempty
-
-	if(children.empty()){
-		return 0.0;
-	}
+	
 	double result = children[0]->evaluateNode();
 
 	switch(operation) {
@@ -155,7 +152,7 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 	TreeOperator* op = new TreeOperator(input.front().text.at(0));
 	TreeNode* tempExp;
 	TreeLeaf* tempLeaf;
-	//int childNum = 0; // Counter for operands
+	int childNum = 0; // Counter for operands
 	input.pop();
 
 	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
@@ -176,13 +173,13 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 			break;
 		}
 
-		//childNum++;
+		childNum++;
 	}
 
-	/*if(childNum < 2){
+	if(childNum < 1){
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Operation tree needs atleast 2 children)
-	}*/
+	}
 
 	return op;
 }

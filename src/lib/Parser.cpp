@@ -157,7 +157,7 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 	TreeOperator* op = new TreeOperator(input.front().text.at(0));
 	TreeNode* tempExp;
 	TreeLeaf* tempLeaf;
-	Token tempTok = input.front();
+	// Token tempTok = input.front();
 	input.pop();
 
 	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
@@ -179,10 +179,10 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 		}
 	}
 
-	if(op->childNum() < 2){
+	/*if(op->childNum() < 2){
 		parseError(tempTok.line, tempTok.column, tempTok.text);
 		// Parse Error (Operation tree needs atleast 2 children)
-	}
+	}*/
 
 	return op;
 }

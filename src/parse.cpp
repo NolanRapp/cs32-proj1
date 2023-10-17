@@ -3,7 +3,9 @@
 
 
 int main() {
-    
+	
+	TreeNode* ASThead;
+ 
 	try {
 		std::queue<Token> tokens;
 		
@@ -11,7 +13,7 @@ int main() {
 		lexer.lex();
 		Parser parser(lexer.getLexQueue());
 
-		TreeNode* ASThead = parser.getHead();
+		ASThead = parser.getHead();
 		ASThead->printInfix();
 		std::cout << std::endl;
 		double calculation = ASThead->evaluateNode();
@@ -20,6 +22,7 @@ int main() {
 	}
 
 	catch (const std::runtime_error& e) {
+		delete ASThead;
 		std::cout << e.what() << std::endl;
 		exit (3);
 	}

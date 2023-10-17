@@ -4,10 +4,10 @@
 
 int main() {
 
-	char tempChar;
+	char inChar;
 	std::string totalString = "\0";
-	while(std::cin.get(tempChar)){
-		totalString += tempChar;
+	while(std::cin.get(inChar)){
+		totalString += inChar;
 	}
 	
 	std::queue<Token> tokens;

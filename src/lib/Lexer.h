@@ -1,6 +1,7 @@
 #ifndef LEXER_H
 #define LEXER_H
 
+
 #include "Token.h"
 #include <vector>
 #include <queue>
@@ -25,5 +26,6 @@ class Lexer {
         std::queue<Token> lexTokens;
 
 };
+
 
 #endif

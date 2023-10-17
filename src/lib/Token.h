@@ -1,10 +1,11 @@
 #ifndef TOKEN_H
 #define TOKEN_H
 
+
 #include <string>
 
-// this is the token struct containing information about one token
 
+// this is the token struct containing information about one token
 struct Token {
     int line; // the line number of the first character of the token
     int column; // the column number of the first character of the token
@@ -12,5 +13,6 @@ struct Token {
 
     Token(int l, int c, const std::string &t) : line(l), column(c), text(t) {} // token constructor for testing
 };
+
 
 #endif

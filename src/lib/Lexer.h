@@ -9,6 +9,7 @@
 #include <iostream>
 #include <iomanip>
 #include <cstdlib>
+#include <sstream> //might be redundant???
 
 
 class Lexer {

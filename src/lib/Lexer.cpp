@@ -43,7 +43,8 @@ void Lexer::lex(std::string& inputString) {
         '+',
         '-',
         '*',
-        '/'
+        '/',
+        '='
     };
 
     while (stream.get(i)) { 
@@ -62,6 +63,20 @@ void Lexer::lex(std::string& inputString) {
             if (valid.find(i) != valid.end()) {
                 lexTokens.push(Token(line,column, std::string(1, i)));
             }
+
+            //if is an identifier (starts with alphanum or _)
+            else if (isalpha(i) or i == '_'){
+                std::string placeholder(1, i); // this converts a char (1) to a string
+                int startingColumn = column;
+                while((isalnum(stream.peek()) || stream.peek() == '_')){
+                    char nextChar;
+                    stream.get(nextChar);
+                    placeholder += nextChar;
+                    column++;
+                }
+                lexTokens.push(Token(line,startingColumn, placeholder));
+            }
+            
 
             //if number, check validity:
             else if (isdigit(i)) {

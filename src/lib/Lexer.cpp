@@ -65,7 +65,7 @@ void Lexer::lex(std::string& inputString) {
             }
 
             //if is an identifier (starts with alphanum or _)
-            else if (isalpha(i) or i == '_'){
+            else if (isalpha(i) || i == '_'){
                 std::string placeholder(1, i); // this converts a char (1) to a string
                 int startingColumn = column;
                 while((isalnum(stream.peek()) || stream.peek() == '_')){

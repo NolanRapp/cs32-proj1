@@ -24,59 +24,64 @@ class TreeNode {
 class Add : public TreeNode {
 
     public:
-        Add(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
+        Add(TreeNode* left, TreeNode* right);
+        ~Add();
         virtual double eval() const;
-        virtual void print() const;
+        void print() const override;
 
     private:
-        std::unique_ptr<TreeNode> left;
-        std::unique_ptr<TreeNode> right;
+        TreeNode* left;
+        TreeNode* right;
 };
 
 class Subtract : public TreeNode {
 
     public:
-        Subtract(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
+        Subtract(TreeNode* left, TreeNode* right);
+        ~Subtract();
         virtual double eval() const;
-        virtual void print() const;
+        void print() const override;
 
     private:
-        std::unique_ptr<TreeNode> left;
-        std::unique_ptr<TreeNode> right;
+        TreeNode* left;
+        TreeNode* right;
 };
 
 class Mult : public TreeNode {
 
     public:
-        Mult(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
+        Mult(TreeNode* left, TreeNode* right);
+        ~Mult();
         virtual double eval() const;
-        virtual void print() const;
+        void print() const override;
 
     private:
-        std::unique_ptr<TreeNode> left;
-        std::unique_ptr<TreeNode> right;
+        TreeNode* left;
+        TreeNode* right;
 };
 
 class Div : public TreeNode {
 
     public:
-        Div(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
+        Div(TreeNode* left, TreeNode* right);
+        ~Div();
         virtual double eval() const;
-        virtual void print() const;
+        void print() const override;
 
     private:
-        std::unique_ptr<TreeNode> left;
-        std::unique_ptr<TreeNode> right;
+        TreeNode* left;
+        TreeNode* right;
 };
 
 class Negate : public TreeNode {
 
     public:
-        Negate(std::unique_ptr<TreeNode> arg);
+        Negate(TreeNode* arg);
+        ~Negate();
         virtual double eval() const; // return -(arg.eval())
-        virtual void print() const;
+        void print() const override;
     private:
-        std::unique_ptr<TreeNode> arg;
+        TreeNode* arg;
 };
 
 /*class ID : public TreeNode {
@@ -95,11 +100,14 @@ class Integer : public TreeNode {
 
     public:
         Integer(double val);
+        ~Integer();
         virtual double eval() const; // return val;
-        virtual void print() const;
+        void print() const override;
 
     private:
         double val;
+
+// how do I clean up memory for this class?
 };
 
 class New_Parser {
@@ -112,17 +120,19 @@ class New_Parser {
         New_Parser(std::queue<Token> tokenizedQ); // constructor that begins parsing
         ~New_Parser(); // TODO: DESTRUCTOR
         
-        std::unique_ptr<TreeNode> parseE(); // parsing and expression
-        std::unique_ptr<TreeNode> parseT(); // parsing a term
-        std::unique_ptr<TreeNode> parseF(); // parsing a factor
+        TreeNode* parseE(); // parsing and expression
+        TreeNode* parseT(); // parsing a term
+        TreeNode* parseF(); // parsing a factor
 
         void scanToken(); // sets nextToken to point to the newly scanned token
 
-        std::unique_ptr<TreeNode> getHead();
+        TreeNode* getHead();
+
+        void printInfix();
 
     private:
         std::string nextToken; // this will be, at any point, the next unscanned token from the Token Queue.
-        std::unique_ptr<TreeNode> resultTree;
+        TreeNode* resultTree;
         std::queue<Token> lexQueue;
 };
 

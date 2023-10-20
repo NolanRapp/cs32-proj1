@@ -20,21 +20,21 @@ void New_Parser::scanToken() {
 
 
 
-std::unique_ptr<TreeNode> New_Parser::parseT() {
+TreeNode* New_Parser::parseT() {
 // this function parses TERMS: expressions seperated by multiplication or division
     
-    std::unique_ptr<TreeNode> a = parseF();
+    TreeNode* a = parseF();
     while (true) {
         if (nextToken == "*") {
             scanToken();
-            std::unique_ptr<TreeNode> b = parseF();
-            a = std::make_unique<Mult>(a,b);
+            TreeNode* b = parseF();
+            a = new Mult(a,b);
             // TODO: check for errors here
         }
         else if (nextToken == "/") {
             scanToken();
-            std::unique_ptr<TreeNode> b = parseF();
-            a = std::make_unique<Div>(a,b);
+            TreeNode* b = parseF();
+            a = new Div(a,b);
             // TODO: check for errors here
         }
         else {
@@ -47,19 +47,19 @@ std::unique_ptr<TreeNode> New_Parser::parseT() {
 
 
 
-std::unique_ptr<TreeNode> New_Parser::parseF() {
+TreeNode* New_Parser::parseF() {
 // this function parses a FACTOR: an integer, identifier, or entire expression
 
     if (isdigit(nextToken.at(0))) { // does this correctly check if token is an integer?
-        std::unique_ptr<TreeNode> integer;
-        integer = std::make_unique<Integer>(std::stold(nextToken));
+        TreeNode* integer;
+        integer = new Integer(std::stold(nextToken));
         scanToken();
         return integer;
         // we want nextToken to be the OBJECT that represents the ID or the integer
     }
     /*else if (isalpha(nextToken.at(0))) {
         
-        std::unique_ptr<TreeNode> ID;
+        TreeNode* ID;
         ID = std::make_unique<ID>(nextToken);
         scanToken();
         return ID;
@@ -67,7 +67,7 @@ std::unique_ptr<TreeNode> New_Parser::parseF() {
     }*/
     else if (nextToken == "(") {
         scanToken(); // consume non-terminal token
-        std::unique_ptr<TreeNode> a = parseE();
+        TreeNode* a = parseE();
         if (a == NULL) {
             return NULL;
             // TODO: CORRECT ERROR 
@@ -82,8 +82,8 @@ std::unique_ptr<TreeNode> New_Parser::parseF() {
         }
     }
     else if (nextToken == "-") {
-        std::unique_ptr<TreeNode> negate;
-        negate = std::make_unique<Negate>(parseF()); 
+        TreeNode* negate;
+        negate = new Negate (parseF()); 
         scanToken();
         return negate;
         // building a new negate object who points to the object we just parsed
@@ -96,19 +96,19 @@ std::unique_ptr<TreeNode> New_Parser::parseF() {
 
 
 
-std::unique_ptr<TreeNode> New_Parser::parseE() {
-    std::unique_ptr<TreeNode> a = parseT();
+TreeNode* New_Parser::parseE() {
+    TreeNode* a = parseT();
     while (true) { 
         if (nextToken == "+") {
             scanToken();
-            std::unique_ptr<TreeNode> b = parseT();
-            a = std::make_unique<Add>(a, b);
+            TreeNode* b = parseT();
+            a = new Add(a, b);
             // check for errors here
         }
         else if (nextToken == "-") {
             scanToken();
-            std::unique_ptr<TreeNode> b = parseT();
-            a = std::make_unique<Subtract>(a, b);
+            TreeNode* b = parseT();
+            a = new Subtract(a, b);
             // check for errors here
         }
         else {
@@ -120,36 +120,103 @@ std::unique_ptr<TreeNode> New_Parser::parseE() {
 
 
 
-std::unique_ptr<TreeNode> New_Parser::getHead() {
+TreeNode* New_Parser::getHead() {
     return std::move(resultTree);
     // this totally transfers ownership of resultTree
     // we could alternativly return a "raw pointer" to resultTree, and deal w memory with that
 }
 
+void New_Parser::printInfix() {
+    resultTree->print();
+}
 
 
-Add::Add(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right) {
+
+Add::Add(TreeNode* left, TreeNode* right) {
     this->left = std::move(left);
     this->right = std::move(right);
 }
+void Add::print() const {
+    std::cout << "(";
+    left->print();
+    std::cout << " + ";
+    right->print(); 
+    std::cout << ")";
+}
 
-Subtract::Subtract(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right) {
+Add::~Add() {
+    delete right;
+    delete left;
+}
+
+
+
+Subtract::Subtract(TreeNode* left, TreeNode* right) {
     this->left = std::move(left);
     this->right = std::move(right);
 }
+void Subtract::print() const {
+    std::cout << "(";
+    left->print();
+    std::cout << " - ";
+    right->print(); 
+    std::cout << ")";
+}
 
-Mult::Mult(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right) {
+Subtract::~Subtract() {
+    delete right;
+    delete left;
+}
+
+
+
+Mult::Mult(TreeNode* left, TreeNode* right) {
     this->left = std::move(left);
     this->right = std::move(right);
 }
+void Mult::print() const {
+    std::cout << "(";
+    left->print();
+    std::cout << " * ";
+    right->print(); 
+    std::cout << ")";
+}
 
-Div::Div(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right) {
+Mult::~Mult() {
+    delete right;
+    delete left;
+}
+
+
+
+Div::Div(TreeNode* left, TreeNode* right) {
     this->left = std::move(left);
     this->right = std::move(right);
 }
+void Div::print() const {
+    std::cout << "(";
+    left->print();
+    std::cout << " / ";
+    right->print(); 
+    std::cout << ")";
+}
+Div::~Div() {
+    delete right;
+    delete left;
+}
 
-Negate::Negate(std::unique_ptr<TreeNode> arg) {
+
+
+Negate::Negate(TreeNode* arg) {
     this->arg = std::move(arg);
+}
+void Negate::print() const {
+    std::cout << "(-";
+    arg->print();
+    std::cout << ")";
+}
+Negate::~Negate() {
+    delete arg;
 }
 
 /*ID::ID(std::string variable) {
@@ -158,4 +225,7 @@ Negate::Negate(std::unique_ptr<TreeNode> arg) {
 
 Integer::Integer(double val) {
     this->val = val;
+}
+void Integer::print() const {
+    std::cout << val;
 }

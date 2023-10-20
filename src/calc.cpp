@@ -31,10 +31,11 @@ When it reaches the end of its input, it should exit with exit code zero.
 	lexer.lex(totalString);
 	New_Parser new_parser(lexer.getLexQueue());
 
-    std::unique_ptr<TreeNode> ast = new_parser.getHead();
+    TreeNode* ast = new_parser.getHead();
+	new_parser.printInfix();
 
 
-    // std::unique_ptr<TreeNode> TreeHead = new_parser.getHead(); ----> haven't implemented this helper function yet
+    // TreeNode* TreeHead = new_parser.getHead(); ----> haven't implemented this helper function yet
 
 
 };

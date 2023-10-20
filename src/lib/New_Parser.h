@@ -3,6 +3,7 @@
 
 #include "Lexer.h"
 #include "Token.h"
+#include <memory>
 
 /* New_Parser implements Recursive Descent Parsing - a top down AST parsing method
         sources: https://en.wikipedia.org/wiki/Recursive_descent_parser
@@ -15,6 +16,7 @@ class TreeNode {
     public:
         virtual double eval() const = 0;
         virtual void print() const = 0;
+        virtual ~TreeNode();
         
     private:
 };
@@ -22,70 +24,72 @@ class TreeNode {
 class Add : public TreeNode {
 
     public:
-        Add(TreeNode* left, TreeNode* right);
+        Add(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
         virtual double eval() const;
         virtual void print() const;
 
     private:
-        TreeNode* left;
-        TreeNode* right;
+        std::unique_ptr<TreeNode> left;
+        std::unique_ptr<TreeNode> right;
 };
 
 class Subtract : public TreeNode {
 
     public:
-        Subtract(TreeNode* left, TreeNode* right);
+        Subtract(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
         virtual double eval() const;
         virtual void print() const;
 
     private:
-        TreeNode* left;
-        TreeNode* right;
+        std::unique_ptr<TreeNode> left;
+        std::unique_ptr<TreeNode> right;
 };
 
 class Mult : public TreeNode {
 
     public:
-        Mult(TreeNode* left, TreeNode* right);
+        Mult(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
         virtual double eval() const;
         virtual void print() const;
 
     private:
-        TreeNode* left;
-        TreeNode* right;
+        std::unique_ptr<TreeNode> left;
+        std::unique_ptr<TreeNode> right;
 };
 
 class Div : public TreeNode {
 
     public:
-        Div(TreeNode* left, TreeNode* right);
+        Div(std::unique_ptr<TreeNode> left, std::unique_ptr<TreeNode> right);
         virtual double eval() const;
         virtual void print() const;
 
     private:
-        TreeNode* left;
-        TreeNode* right;
+        std::unique_ptr<TreeNode> left;
+        std::unique_ptr<TreeNode> right;
 };
 
 class Negate : public TreeNode {
 
     public:
-        Negate(TreeNode* arg);
+        Negate(std::unique_ptr<TreeNode> arg);
         virtual double eval() const; // return -(arg.eval())
         virtual void print() const;
     private:
-        TreeNode* arg;
+        std::unique_ptr<TreeNode> arg;
 };
 
-class ID : public TreeNode {
+/*class ID : public TreeNode {
     
     public:
+        ID(std::string variable);
         virtual double eval() const; // return variable .. not sure about this one yet
         virtual void print() const;
 
     private:
+        std::string variable:
 
-};
+};*/
 
 class Integer : public TreeNode {
 
@@ -106,16 +110,20 @@ class New_Parser {
 
     public:
         New_Parser(std::queue<Token> tokenizedQ); // constructor that begins parsing
+        ~New_Parser(); // TODO: DESTRUCTOR
         
-        TreeNode* parseE(); // parsing and expression
-        TreeNode* parseT(); // parsing a term
-        TreeNode* parseF(); // parsing a factor
+        std::unique_ptr<TreeNode> parseE(); // parsing and expression
+        std::unique_ptr<TreeNode> parseT(); // parsing a term
+        std::unique_ptr<TreeNode> parseF(); // parsing a factor
 
-        void scanToken(std::string tokenText); // sets nextToken to point to the newly scanned token
+        void scanToken(); // sets nextToken to point to the newly scanned token
+
+        std::unique_ptr<TreeNode> getHead();
 
     private:
         std::string nextToken; // this will be, at any point, the next unscanned token from the Token Queue.
-        TreeNode* resultTree;
+        std::unique_ptr<TreeNode> resultTree;
+        std::queue<Token> lexQueue;
 };
 
 #endif

@@ -19,16 +19,20 @@ void Parser::createTree(std::queue<Token>& input) {
 		head = closedTree(input);
 	}
 	else if(isdigit(input.front().text.at(0))){
-		head = numTree(input);
+		TreeLeaf* numTree = new TreeLeaf(std::stold(input.front().text));
+		head = numTree;
+
+		input.pop();
+	}
+	else if(isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
+		TreeIdentifier* idTree = new TreeIdentifier(input.front().text);
+		head = idTree;
+
+		input.pop();
 	}
 	else{
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (First element should not be ")" or "END" or operation)
-	}
-
-	if(input.front().text != "END"){
-		parseError(input.front().line, input.front().column, input.front().text);
-		// Parse Error (Initial expression should always end in "END")
 	}
 
 	mHeads.push(head);
@@ -69,14 +73,21 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 	TreeOperator* op = new TreeOperator(input.front().text.at(0));
 	TreeNode* tempExp;
 	TreeLeaf* tempLeaf;
+	TreeIdentifier* tempID;
 	int childNum = 0; // Counter for operands
 	input.pop();
 
-	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
+	while(isdigit(input.front().text.at(0)) || input.front().text == "(" || isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
 		if(input.front().text == "("){
 			// Makes a child expression
 			tempExp = closedTree(input);
 			op->addChild(tempExp);
+		}
+		else if (isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
+			tempID = new TreeIdentifier(input.front().text);
+			op->addChild(tempID);
+
+			input.pop();
 		}
 		else{
 			// Creates and adds a child number of the operator
@@ -112,7 +123,7 @@ TreeNode* Parser::assignTree(std::queue<Token>& input){
 	input.pop();
 
 	while(isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
-		tempID = new TreeIdentifier(input.front());
+		tempID = new TreeIdentifier(input.front().text);
 		assign->addChild(tempID);
 		input.pop();
 
@@ -127,6 +138,8 @@ TreeNode* Parser::assignTree(std::queue<Token>& input){
 	if(isdigit(input.front().text.at(0))){ // Checks for trailing number
 		TreeLeaf* tempLeaf = new TreeLeaf(std::stold(input.front().text));
 		assign->addChild(tempLeaf);
+
+		input.pop();
 	}
 	else if(input.front().text == "("){ // Checks for tailing expression
 		TreeNode* tempExp = closedTree(input);
@@ -143,22 +156,6 @@ TreeNode* Parser::assignTree(std::queue<Token>& input){
 	}
 
 	return assign;
-}
-
-
-
-// Makes sure any expression starting with a number only has 1 number
-TreeNode* Parser::numTree(std::queue<Token>& input){
-
-	TreeLeaf* leaf = new TreeLeaf(std::stold(input.front().text));
-	input.pop();
-
-	if(isdigit(input.front().text.at(0))){
-		parseError(input.front().line, input.front().column, input.front().text);
-		// Parse Error (Num tree can only have one number)
-	}
-
-	return leaf;
 }
 
 
@@ -189,3 +186,7 @@ bool Parser::isOp(std::string str) const{
 
 
 
+//
+bool Parser::isEmpty() const{
+	return mHeads.empty();
+}

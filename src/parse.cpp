@@ -10,7 +10,8 @@ int main() {
 		totalString += inChar;
 	}
 	
-	std::queue<Token> tokens;
+	std::queue<Token> tokens;	
+	std::unordered_map<std::string, double> variables;
 
 	// Creates queue by reading user input
 	Lexer lexer;
@@ -18,21 +19,24 @@ int main() {
 	Parser parser(lexer.getLexQueue());
 
 	// Retrieves tree and evaluates
-	TreeNode* ASThead = parser.popHead();
-	ASThead->printInfix();
-	std::cout << std::endl;
+	while(!parser.isEmpty()){
+		TreeNode* ASThead = parser.popHead();
+		ASThead->printInfix();
+		std::cout << std::endl;
 
-	try {
-		double calculation = ASThead->evaluateNode();
-		delete ASThead;
-		std::cout << calculation << std::endl;
+		try {
+			double calculation = ASThead->evaluateNode(variables);
+			delete ASThead;
+			std::cout << calculation << std::endl;
+		}
+		catch (const std::runtime_error& e) {
+			delete ASThead;
+			std::cout << e.what() << std::endl;
+			return 3;
+		}
 	}
-
-	catch (const std::runtime_error& e) {
-		delete ASThead;
-		std::cout << e.what() << std::endl;
-		return 3;
-	}
+	
+	
 
    return 0;
 };

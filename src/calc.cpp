@@ -18,16 +18,28 @@ It should then evaluate the AST and print the result.
 When it reaches the end of its input, it should exit with exit code zero.
 
 */
+
+try{
 	std::string line;
 	
 	while(getline(std::cin, line)) {
 		Lexer lexer;
 		lexer.lex(line);
-		lexer.printTokens();
 		New_Parser new_parser(lexer.getLexQueue());
 		new_parser.getHead();
+		if (new_parser.getHead() != nullptr) {
+    		new_parser.printInfix();
+		} 		
+		else {
+    		std::cerr << "Tree head is nullptr, something went wrong in parsing." << std::endl;
+    		exit(3);
+}
 		new_parser.printInfix();
 	}
+}
+catch(const std::exception& e) {
+    std::cerr << e.what() << std::endl;
+}
 
     // TreeNode* TreeHead = new_parser.getHead(); ----> haven't implemented this helper function yet
 

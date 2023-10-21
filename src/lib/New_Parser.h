@@ -118,13 +118,13 @@ class New_Parser {
 
     public:
         New_Parser(std::queue<Token> tokenizedQ); // constructor that begins parsing
-        //~New_Parser(); // TODO: DESTRUCTOR
+        ~New_Parser();
         
-        TreeNode* parseE(); // parsing and expression
-        TreeNode* parseT(); // parsing a term
-        TreeNode* parseF(); // parsing a factor
+        TreeNode* parseE(std::queue<Token>& tokenizedQ); // parsing and expression
+        TreeNode* parseT(std::queue<Token>& tokenizedQ); // parsing a term
+        TreeNode* parseF(std::queue<Token>& tokenizedQ); // parsing a factor
 
-        void scanToken(); // sets nextToken to point to the newly scanned token
+        void scanToken(std::queue<Token>& tokenizedQ); // sets nextToken to point to the newly scanned token
 
         TreeNode* getHead();
 
@@ -133,7 +133,6 @@ class New_Parser {
     private:
         std::string nextToken; // this will be, at any point, the next unscanned token from the Token Queue.
         TreeNode* resultTree;
-        std::queue<Token> lexQueue;
 };
 
 #endif

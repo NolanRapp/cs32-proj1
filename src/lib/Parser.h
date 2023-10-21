@@ -16,11 +16,12 @@ class Parser {
     */
 
     public:
-        Parser(std::queue<Token> originalInput);
-        TreeNode* getHead();
+        Parser(std::queue<Token> oInput);
+		void createTree(std::queue<Token>& input);
+        TreeNode* popHead();
 	
 	private:
-		TreeNode* mHead;
+		std::queue<TreeNode*> mHeads;
 		std::set<std::string> operators = {
 			"*",
 			"/",
@@ -32,6 +33,7 @@ class Parser {
 		
 		TreeNode* closedTree(std::queue<Token>& input);
 		TreeNode* opTree(std::queue<Token>& input);
+		TreeNode* assignTree(std::queue<Token>& input);
 		TreeNode* numTree(std::queue<Token>& input);
 };
 

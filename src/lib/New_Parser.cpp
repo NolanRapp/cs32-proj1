@@ -121,9 +121,7 @@ TreeNode* New_Parser::parseE() {
 
 
 TreeNode* New_Parser::getHead() {
-    return std::move(resultTree);
-    // this totally transfers ownership of resultTree
-    // we could alternativly return a "raw pointer" to resultTree, and deal w memory with that
+    return (resultTree);
 }
 
 void New_Parser::printInfix() {
@@ -133,8 +131,8 @@ void New_Parser::printInfix() {
 
 
 Add::Add(TreeNode* left, TreeNode* right) {
-    this->left = std::move(left);
-    this->right = std::move(right);
+    this->left = (left);
+    this->right = (right);
 }
 void Add::print() const {
     std::cout << "(";
@@ -152,8 +150,8 @@ Add::~Add() {
 
 
 Subtract::Subtract(TreeNode* left, TreeNode* right) {
-    this->left = std::move(left);
-    this->right = std::move(right);
+    this->left = (left);
+    this->right = (right);
 }
 void Subtract::print() const {
     std::cout << "(";
@@ -171,8 +169,8 @@ Subtract::~Subtract() {
 
 
 Mult::Mult(TreeNode* left, TreeNode* right) {
-    this->left = std::move(left);
-    this->right = std::move(right);
+    this->left = (left);
+    this->right = (right);
 }
 void Mult::print() const {
     std::cout << "(";
@@ -190,8 +188,8 @@ Mult::~Mult() {
 
 
 Div::Div(TreeNode* left, TreeNode* right) {
-    this->left = std::move(left);
-    this->right = std::move(right);
+    this->left = (left);
+    this->right = (right);
 }
 void Div::print() const {
     std::cout << "(";
@@ -208,7 +206,7 @@ Div::~Div() {
 
 
 Negate::Negate(TreeNode* arg) {
-    this->arg = std::move(arg);
+    this->arg = (arg);
 }
 void Negate::print() const {
     std::cout << "(-";

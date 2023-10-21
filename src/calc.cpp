@@ -18,22 +18,16 @@ It should then evaluate the AST and print the result.
 When it reaches the end of its input, it should exit with exit code zero.
 
 */
-    char inChar;
-	std::string totalString = "\0";
-	while(std::cin.get(inChar)){
-		totalString += inChar;
-	}
+	std::string line;
 	
-	std::queue<Token> tokens;
-
-	// Creates queue by reading user input
-	Lexer lexer;
-	lexer.lex(totalString);
-	New_Parser new_parser(lexer.getLexQueue());
-
-    TreeNode* ast = new_parser.getHead();
-	new_parser.printInfix();
-
+	while(getline(std::cin, line)) {
+		Lexer lexer;
+		lexer.lex(line);
+		lexer.printTokens();
+		New_Parser new_parser(lexer.getLexQueue());
+		new_parser.getHead();
+		new_parser.printInfix();
+	}
 
     // TreeNode* TreeHead = new_parser.getHead(); ----> haven't implemented this helper function yet
 

@@ -14,9 +14,9 @@ class TreeNode {
     // this is our base class for our new AST - parsing infix expressions
 
     public:
-        virtual double eval() const = 0;
+        //virtual double eval() const = 0;
         virtual void print() const = 0;
-        virtual ~TreeNode();
+        virtual ~TreeNode() {}
         
     private:
 };
@@ -26,7 +26,7 @@ class Add : public TreeNode {
     public:
         Add(TreeNode* left, TreeNode* right);
         ~Add();
-        virtual double eval() const;
+        //double eval() const override;
         void print() const override;
 
     private:
@@ -39,7 +39,7 @@ class Subtract : public TreeNode {
     public:
         Subtract(TreeNode* left, TreeNode* right);
         ~Subtract();
-        virtual double eval() const;
+        //double eval() const override;
         void print() const override;
 
     private:
@@ -52,7 +52,7 @@ class Mult : public TreeNode {
     public:
         Mult(TreeNode* left, TreeNode* right);
         ~Mult();
-        virtual double eval() const;
+        //double eval() const override;
         void print() const override;
 
     private:
@@ -65,7 +65,7 @@ class Div : public TreeNode {
     public:
         Div(TreeNode* left, TreeNode* right);
         ~Div();
-        virtual double eval() const;
+        //double eval() const override;
         void print() const override;
 
     private:
@@ -78,7 +78,7 @@ class Negate : public TreeNode {
     public:
         Negate(TreeNode* arg);
         ~Negate();
-        virtual double eval() const; // return -(arg.eval())
+        //double eval() const override; // return -(arg.eval())
         void print() const override;
     private:
         TreeNode* arg;
@@ -100,8 +100,8 @@ class Integer : public TreeNode {
 
     public:
         Integer(double val);
-        ~Integer();
-        virtual double eval() const; // return val;
+        ~Integer() {}
+        //double eval() const override; // return val;
         void print() const override;
 
     private:
@@ -118,7 +118,7 @@ class New_Parser {
 
     public:
         New_Parser(std::queue<Token> tokenizedQ); // constructor that begins parsing
-        ~New_Parser(); // TODO: DESTRUCTOR
+        //~New_Parser(); // TODO: DESTRUCTOR
         
         TreeNode* parseE(); // parsing and expression
         TreeNode* parseT(); // parsing a term

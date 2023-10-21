@@ -18,8 +18,8 @@ class TreeNode {
     */
 
     public:
-        virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const = 0;
-        virtual void printInfix() const = 0;
+        virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const = 0;
+        virtual void 		printInfix() const = 0;
 		virtual std::string getID() = 0; // Should only be called on TreeIdentifiers
         virtual ~TreeNode() {};
 };
@@ -35,8 +35,8 @@ class TreeLeaf : public TreeNode {
 
     public:
         TreeLeaf(double val);
-        virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const;
-        virtual void printInfix() const;
+        virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
+        virtual void 		printInfix() const;
 		virtual std::string getID() { // Should only be called on TreeIdentifiers
 			throw std::runtime_error("Runtime error: getID() called on Leaf");
 			return "";
@@ -56,19 +56,19 @@ class TreeOperator : public TreeNode {
 
     public:
         TreeOperator(char operation);
-        virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const;
-        void addChild(TreeNode* child);
-        virtual void printInfix() const;
+        virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
+        virtual void 		printInfix() const;	
+        		void 		addChild(TreeNode* child);
+		virtual std::string getID() { // Should only be called on TreeIdentifiers
+			throw std::runtime_error("Runtime error: getID() called on Operator");
+			return "";
+		}; 
 		~TreeOperator() {
             for (TreeNode* child : children) {
 		        delete child;
 	        }
 	        children.clear();
         };
-		virtual std::string getID() { // Should only be called on TreeIdentifiers
-			throw std::runtime_error("Runtime error: getID() called on Operator");
-			return "";
-		}; 
 
     private:
         char operation;
@@ -85,8 +85,8 @@ class TreeIdentifier : public TreeNode {
 
 	public:
 		TreeIdentifier(std::string name);
-		virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const;
-		virtual void printInfix() const;
+		virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
+		virtual void 		printInfix() const;
 		virtual std::string getID(); 
 
 	private:

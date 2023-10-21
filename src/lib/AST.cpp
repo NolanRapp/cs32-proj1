@@ -28,8 +28,6 @@ void TreeLeaf::printInfix() const {
 // Stores single char holding one of the 4 operators (+,-,/,*) in Operator
 TreeOperator::TreeOperator(char operation) {
     this->operation = operation;
-
-    // initializing operation used and vector for its operands and child operators
 }
 
 
@@ -44,11 +42,12 @@ void TreeOperator::addChild(TreeNode* child){
 // Evaluates Operator and children (recursive)
 double TreeOperator::evaluateNode(std::unordered_map<std::string, double>& vars) const{
     // the purpose of this function is to return the evaluated S-Expression	
-	// we can assume children vector is nonempty
+	// we can assume children vector is nonempty by Parser logic
 	
 	double result;
 
 	if(operation == '='){
+		// Sets result to final num/id which will return double or error
 		result = children[children.size() - 1]->evaluateNode(vars);
 
 		// Changes all child identifiers to the value of the final num/id
@@ -113,14 +112,14 @@ void TreeOperator::printInfix() const {
 
 
 
-//
+// Initializes with name of ID used for assigning and returning values
 TreeIdentifier::TreeIdentifier(std::string name) {
 	idName = name;
 }
 
 
 
-//
+// Attempts to find value and return, if no value exists throws error
 double TreeIdentifier::evaluateNode(std::unordered_map<std::string, double>& vars) const{
 	if(vars.find(idName) == vars.end()){
 		throw std::runtime_error("Runtime error: unknown identifier " + idName);
@@ -131,14 +130,14 @@ double TreeIdentifier::evaluateNode(std::unordered_map<std::string, double>& var
 
 
 
-//
+// Prints ID name
 void TreeIdentifier::printInfix() const{
 	std::cout << idName;
 }
 
 
 
-//
+// Important for assigning a value to the ID on the variables table
 std::string TreeIdentifier::getID(){
 	return idName;	
 }

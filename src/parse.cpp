@@ -18,7 +18,7 @@ int main() {
 	Parser parser(lexer.getLexQueue());
 
 	// Retrieves tree and evaluates
-	TreeNode* ASThead = parser.getHead();
+	TreeNode* ASThead = parser.popHead();
 	ASThead->printInfix();
 	std::cout << std::endl;
 
@@ -36,4 +36,6 @@ int main() {
 
    return 0;
 };
+
+
 

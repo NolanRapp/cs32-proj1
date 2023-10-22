@@ -2,23 +2,40 @@
 #include "AST.h" // redundant
 
 
-// Creates AST from the queue of Tokens that will be supplied by the Lexer
-Parser::Parser(std::queue<Token> oInput) {
-	if(oInput.front().text == "("){
-		mHead = closedTree(oInput);
+// Feeds an entire queue made from a single Lexer and outputs multiple ASTs
+Parser::Parser(std::queue<Token> oInput){
+	while(oInput.front().text != "END"){
+		createTree(oInput);
 	}
-	else if(isdigit(oInput.front().text.at(0))){
-		mHead = numTree(oInput);
+}
+
+
+
+// Creates AST from the queue of Tokens that will be supplied by the Lexer
+void Parser::createTree(std::queue<Token>& input) {
+	TreeNode* head;
+
+	if(input.front().text == "("){ // Checks for expression
+		head = closedTree(input);
+	}
+	else if(isdigit(input.front().text.at(0))){ // Checks for single number
+		TreeLeaf* numTree = new TreeLeaf(std::stold(input.front().text));
+		head = numTree;
+
+		input.pop();
+	}
+	else if(isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){ // Checks for single ID
+		TreeIdentifier* idTree = new TreeIdentifier(input.front().text);
+		head = idTree;
+
+		input.pop();
 	}
 	else{
-		parseError(oInput.front().line, oInput.front().column, oInput.front().text);
+		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (First element should not be ")" or "END" or operation)
 	}
 
-	if(oInput.front().text != "END"){
-		parseError(oInput.front().line, oInput.front().column, oInput.front().text);
-		// Parse Error (Initial expression should always end in "END")
-	}
+	mHeads.push(head);
 }
 
 
@@ -28,15 +45,18 @@ TreeNode* Parser::closedTree(std::queue<Token>& input){
 	input.pop();
 	TreeNode* head;
 
-	if(isOp(input.front().text)){
+	if(isOp(input.front().text)){ // Checks for conventional operator tree
 		head = opTree(input);
+	}
+	else if(input.front().text == "="){ // Checks for assignment tree
+		head = assignTree(input);
 	}
 	else{	
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Invalid start for closed tree: 0,"(",")", and "END")
 	}
 
-	if(input.front().text != ")"){	
+	if(input.front().text != ")"){
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Closed trees should end in ")")
 	}
@@ -51,16 +71,23 @@ TreeNode* Parser::closedTree(std::queue<Token>& input){
 TreeNode* Parser::opTree(std::queue<Token>& input){
 
 	TreeOperator* op = new TreeOperator(input.front().text.at(0));
-	TreeNode* tempExp;
-	TreeLeaf* tempLeaf;
+	TreeNode* 		tempExp;
+	TreeLeaf* 		tempLeaf;
+	TreeIdentifier* tempID;
 	int childNum = 0; // Counter for operands
 	input.pop();
 
-	while(isdigit(input.front().text.at(0)) || input.front().text == "("){
+	while(isdigit(input.front().text.at(0)) || input.front().text == "(" || isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
 		if(input.front().text == "("){
 			// Makes a child expression
 			tempExp = closedTree(input);
 			op->addChild(tempExp);
+		}
+		else if (isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
+			tempID = new TreeIdentifier(input.front().text);
+			op->addChild(tempID);
+
+			input.pop();
 		}
 		else{
 			// Creates and adds a child number of the operator
@@ -87,25 +114,59 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 
 
 
-// Makes sure any expression starting with a number only has 1 number
-TreeNode* Parser::numTree(std::queue<Token>& input){
-
-	TreeLeaf* leaf = new TreeLeaf(std::stold(input.front().text));
+// Evaluates an assignment expression, confirms conditions for valid expression
+TreeNode* Parser::assignTree(std::queue<Token>& input){
+	
+	TreeOperator* assign = new TreeOperator(input.front().text.at(0));
+	TreeIdentifier* tempID;
+	int childNum = 0;
 	input.pop();
 
-	if(isdigit(input.front().text.at(0))){
-		parseError(input.front().line, input.front().column, input.front().text);
-		// Parse Error (Num tree can only have one number)
+	// Adds all IDs
+	while(isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
+		tempID = new TreeIdentifier(input.front().text);
+		assign->addChild(tempID);
+		input.pop();
+
+		childNum++;
 	}
 
-	return leaf;
+	if(childNum < 1){
+		parseError(input.front().line, input.front().column, input.front().text);
+		// Parse Error (Assign tree needs atleast 1 identifier)	
+	}
+
+	if(isdigit(input.front().text.at(0))){ // Checks for trailing number
+		TreeLeaf* tempLeaf = new TreeLeaf(std::stold(input.front().text));
+		assign->addChild(tempLeaf);
+
+		input.pop();
+	}
+	else if(input.front().text == "("){ // Checks for tailing expression
+		TreeNode* tempExp = closedTree(input);
+		assign->addChild(tempExp);
+	}
+	else if(childNum < 2){
+		parseError(input.front().line, input.front().column, input.front().text);
+		// Parse Error (If no trailing number or expression there should be atleast 2 identifiers)
+	}
+
+	if(input.front().text != ")"){
+		parseError(input.front().line, input.front().column, input.front().text);
+		// Parse Error (Assign tree should only have ")" after number or expression)
+	}
+
+	return assign;
 }
 
 
 
 // Returns head of the AST
-TreeNode* Parser::getHead() {
-	return mHead;
+TreeNode* Parser::popHead() {
+	TreeNode* tempHead = mHeads.front();
+	mHeads.pop();
+
+	return tempHead;
 }
 
 
@@ -122,6 +183,13 @@ void Parser::parseError(int line, int col, std::string text) const {
 // Helper to make code more readable
 bool Parser::isOp(std::string str) const{
 	return (operators.find(str) != operators.end());
+}
+
+
+
+// Returns true when there are no ASTs in the Parser
+bool Parser::isEmpty() const{
+	return mHeads.empty();
 }
 
 

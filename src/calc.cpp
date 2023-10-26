@@ -8,24 +8,30 @@ int main() {
 	std::unordered_map<std::string, double> variables; // holds all currently assigned variables
 	std::string line;
 	New_Parser infix;
-	
 
-try {	
 	while(getline(std::cin, line)) {
 		Lexer lexer;
 		lexer.lex(line);
-		std::queue<Token> tokenizedQ = lexer.getLexQueue();
-		TreeNode* rootTree = infix.parse(tokenizedQ);
 
-		rootTree->printInfix();
+		infix.addTree(lexer.getLexQueue());
+	}
+
+	while(!infix.isEmpty()){
+		TreeNode* ASThead = infix.popHead();
+		ASThead->printInfix();
 		std::cout << std::endl;
 
-		double result = rootTree->evaluateNode(variables);
-		std::cout << result << std::endl;
-		delete rootTree;
+		try{
+			double result = ASThead->evaluateNode(variables);
+			std::cout << result << std::endl;
+			delete ASThead;
+		}
+		catch(const std::exception& e){
+			delete ASThead;
+			std::cout << e.what() << std::endl;
+			return 3;
+		}
 	}
+
+	return 0;
 }
-catch(const std::exception& e) {
-    std::cerr << e.what() << std::endl;
-}
-};

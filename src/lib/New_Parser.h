@@ -23,6 +23,9 @@ class New_Parser {
     public:
         New_Parser();
         ~New_Parser();
+		void addTree(std::queue<Token> oInput);
+		TreeNode* popHead();
+		bool isEmpty();
         
         TreeNode* parse(std::queue<Token>& tokenizedQ); // begins parse, and identifies when to end parse
         TreeNode* parseE(std::queue<Token>& tokenizedQ); // parsing and expression
@@ -31,6 +34,7 @@ class New_Parser {
         TreeNode* parseA(TreeIdentifier* root, std::queue<Token>& tokenizedQ); // parsing an assignment tree
 
     private:
+		std::queue<TreeNode*> mHeads;
         std::string nextToken; // this is, at any point, the next unscanned token from the Token Queue.
         void scanToken(std::queue<Token>& tokenizedQ); // sets nextToken to point to the newly scanned token
 };

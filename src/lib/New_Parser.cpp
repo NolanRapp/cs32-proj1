@@ -4,22 +4,8 @@ New_Parser::New_Parser() {
     // nothing to see here...
 }
 New_Parser::~New_Parser() {
-    // nothing to see here... 
-}
-
-void New_Parser::addTree(std::queue<Token> oInput){
-	mHeads.push(parse(oInput));
-}
-
-TreeNode* New_Parser::popHead(){
-	TreeNode* tempHead = mHeads.front();
-	mHeads.pop();
-
-	return tempHead;
-}
-
-bool New_Parser::isEmpty(){
-	return mHeads.empty();
+    // nothing to see here...
+    
 }
 
 

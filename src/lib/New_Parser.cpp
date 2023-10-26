@@ -93,6 +93,10 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
         }
     }
     // HERE: handle identifiers and other assignments?
+    else {
+        std::cerr << "Error: Unexpected Token" << std::endl;
+        exit(3);
+    }
 }
 
 TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {

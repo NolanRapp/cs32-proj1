@@ -22,10 +22,10 @@ try {
 
 		double result = rootTree->evaluateNode(variables);
 		std::cout << result << std::endl;
+		delete rootTree;
 	}
 }
 catch(const std::exception& e) {
     std::cerr << e.what() << std::endl;
 }
-
 };

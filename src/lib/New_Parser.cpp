@@ -32,6 +32,7 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
     TreeNode* node = parseT(tokenizedQ);
     if (node == nullptr) {
         throw std::runtime_error("Invalid expression");
+        delete node;
         exit(3);
     }
 
@@ -99,6 +100,7 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
 
         else {
             std::cerr << "Error: Missing closing parenthesis" << std::endl;
+            delete node;
             exit(3);
         }
     }
@@ -141,6 +143,7 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
     
     if (nextToken.empty()) {
     std::cerr << "Error: Unexpected end of expression." << std::endl;
+    delete rootTree;
     exit(3);
     }
 
@@ -152,6 +155,7 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
         }
         else {
             std::cerr << "Error: Expects equal sign after identifier" << std::endl;
+            delete rootTree;
             exit(3);
         }
     }

@@ -28,6 +28,7 @@ class New_Parser {
         TreeNode* parseE(std::queue<Token>& tokenizedQ); // parsing and expression
         TreeNode* parseT(std::queue<Token>& tokenizedQ); // parsing a term
         TreeNode* parseF(std::queue<Token>& tokenizedQ); // parsing a factor
+        TreeNode* parseA(TreeIdentifier* root, std::queue<Token>& tokenizedQ); // parsing an assignment tree
 
     private:
         std::string nextToken; // this is, at any point, the next unscanned token from the Token Queue.

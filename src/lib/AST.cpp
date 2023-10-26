@@ -142,5 +142,3 @@ std::string TreeIdentifier::getID(){
 	return idName;	
 }
 
-
-

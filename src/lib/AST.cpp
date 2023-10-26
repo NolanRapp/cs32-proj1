@@ -2,14 +2,14 @@
 
 
 // Stores single number in Leaf
-TreeLeaf::TreeLeaf (double val) {
+TreeLeaf::TreeLeaf(double val) {
 	value = val;
 }
 
 
 
 // Returns number in Leaf
-double TreeLeaf::evaluateNode() const{
+double TreeLeaf::evaluateNode(std::unordered_map<std::string, double>& vars) const{
     return value;
 }
 
@@ -28,8 +28,6 @@ void TreeLeaf::printInfix() const {
 // Stores single char holding one of the 4 operators (+,-,/,*) in Operator
 TreeOperator::TreeOperator(char operation) {
     this->operation = operation;
-
-    // initializing operation used and vector for its operands and child operators
 }
 
 
@@ -42,38 +40,51 @@ void TreeOperator::addChild(TreeNode* child){
 
 
 // Evaluates Operator and children (recursive)
-double TreeOperator::evaluateNode() const{
+double TreeOperator::evaluateNode(std::unordered_map<std::string, double>& vars) const{
     // the purpose of this function is to return the evaluated S-Expression	
-	// we can assume children vector is nonempty
+	// we can assume children vector is nonempty by Parser logic
 	
-	double result = children[0]->evaluateNode();
+	double result;
+
+	if(operation == '='){
+		// Sets result to final num/id which will return double or error
+		result = children[children.size() - 1]->evaluateNode(vars);
+
+		// Changes all child identifiers to the value of the final num/id
+		for(unsigned int i = 0; i < children.size() - 1; i++) {
+			vars[children[i]->getID()] = result;
+		}
+
+		return result;
+	}
+
+	result = children[0]->evaluateNode(vars);
 
 	switch(operation) {
 	case '*':
 		for (unsigned int i = 1; i < children.size(); i++) {
-			result *= children[i]->evaluateNode();
+			result *= children[i]->evaluateNode(vars);
 		}
 		break;
 	case '/':
 		for (unsigned int i = 1; i < children.size(); i++) {
 			// Special case of dividing by 0
-			if (children[i]->evaluateNode() == 0){
+			if (children[i]->evaluateNode(vars) == 0){
 				throw std::runtime_error("Runtime error: division by zero.");	
 			}
 
-			result /= children[i]->evaluateNode();
+			result /= children[i]->evaluateNode(vars);
 		}
 		break;
 	case '+':
 		for (unsigned int i = 1; i < children.size(); i++) {
-			result += children[i]->evaluateNode();
+			result += children[i]->evaluateNode(vars);
 		}
 		break;
 	case '-':
 		for (unsigned int i = 1; i < children.size(); i++) {
-			result -= children[i]->evaluateNode();
+			result -= children[i]->evaluateNode(vars);
 		}
-		break;
 	}
 
     return result;
@@ -94,6 +105,41 @@ void TreeOperator::printInfix() const {
 		children[i]->printInfix();
 	}
 	std::cout << ')';
+}
+
+
+
+
+
+
+// Initializes with name of ID used for assigning and returning values
+TreeIdentifier::TreeIdentifier(std::string name) {
+	idName = name;
+}
+
+
+
+// Attempts to find value and return, if no value exists throws error
+double TreeIdentifier::evaluateNode(std::unordered_map<std::string, double>& vars) const{
+	if(vars.find(idName) == vars.end()){
+		throw std::runtime_error("Runtime error: unknown identifier " + idName);
+	}
+
+	return vars[idName];
+}
+
+
+
+// Prints ID name
+void TreeIdentifier::printInfix() const{
+	std::cout << idName;
+}
+
+
+
+// Important for assigning a value to the ID on the variables table
+std::string TreeIdentifier::getID(){
+	return idName;	
 }
 
 

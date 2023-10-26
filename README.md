@@ -3,13 +3,16 @@
 Authors:
     Jesse Cobb, Chloe Andersen, Nolan Rapp, Christy Yu
 
+Make Commands:
+    Lexer Parser New_Parser clean
+
+
 Part 1: Calculator
     The purpose of the first checkpoint of this project is to build a calculator. The calculator is split into two parts: the lexer (which reads in raw text and translates it to a sequence of tokens), and the parser (which builds an abstract syntax tree, and calculates the input S-Expression).
 
-
     The Lexer:
-        The Lexer collects standard input in its construction and forms a queue of Token objects that are restricted to being any of the following strings: "(", ")", "+", "-", "/", "*", and a valid number. These are collected to later be used by a class such as the Parser that will evaluate them.
-            
+        The Lexer collects standard input in its construction and forms a queue of Token objects that are restricted to being any of the following strings: "(", ")", "+", "-", "/", "*", and a valid number. These are collected to later be used by a class such as the Parser that will evaluate them.          
+
             Important Functions:
                 Lexer::createEnd():
                     Creates an "END" token for formatting.
@@ -40,3 +43,23 @@ Part 1: Calculator
                 TreeOperator::printInfix():
                     Virtual function that prints the input S-Expression as infix form. Implements recursion to iterate through children vector to aquire values. Keeps parenthesis in original places.
                     Returns if children vector is empty.
+
+
+Part 2: Persistence
+    The purpose of the second checkpoint for this project is to integrate variables and infix input for the previously constructed calculator. This will allow for assignment and use of variables as well as the capability for either S expressions or infix expressions to be deciphered by the program. This checkpoint will also tackle the ability to evaluate multiple expression at once.
+
+    Variables:
+        The Lexer now supports a new operation, "=", which when incorporated into ASTs will assign a numerical value to variables. Variables are also supported in the Parser and Lexer with the only restriction that the variable names are limited to letters or underscores ("_"). The ability to now create multiple expressions and remember variables across them has also been integrated.
+
+            Important Additions:
+                TreeIdentifier:
+                    This new class inherits from TreeNode similar to TreeOperator and TreeLeaf but carries an important new version of evaluateNode() which will check if a value has been assigned to the current ID.
+                evaluateNode():
+                    This function now takes a hash map of variables so that variables can easily be assigned values through this map or checked to see if an ID has been mapped to a value.
+                Parser::assignTree():
+                    This function works similarly to Parser::opTree() with some unique logic requiring all IDs aside from the final child which can be an expression, ID, or number.
+                Parser::numTree() removed:
+                    This function was only required when only single expression were allowed. Now with multiple expressions the logic is simpler for handling single numbers so it was removed.           
+
+    Infix Notation:
+        

@@ -4,44 +4,27 @@
 
 int main() {
 
-	/* use parse.cpp as an example 
-
-    FROM DIRECTIONS:
-    
-    Then create a new main() function in src/calc.cpp:
-
-This program should read standard input one line at a time. Each line should contain exactly one infix expression.
-After reading a line, your program should lex it into tokens.
-It should then parse those tokens into an AST.
-It should then print the AST in infix form, as in Part 1 (print parentheses around every operation).
-It should then evaluate the AST and print the result.
-When it reaches the end of its input, it should exit with exit code zero.
-
-*/
-
-try{
+	std::queue<Token> tokens; // holds all standard input
+	std::unordered_map<std::string, double> variables; // holds all currently assigned variables
 	std::string line;
-	
+	New_Parser infix;
+
+try {	
 	while(getline(std::cin, line)) {
 		Lexer lexer;
 		lexer.lex(line);
-		New_Parser new_parser(lexer.getLexQueue());
-		new_parser.getHead();
-		if (new_parser.getHead() != nullptr) {
-    		new_parser.printInfix();
-		} 		
-		else {
-    		std::cerr << "Tree head is nullptr, something went wrong in parsing." << std::endl;
-    		exit(3);
-}
-		new_parser.printInfix();
+		std::queue<Token> tokenizedQ = lexer.getLexQueue();
+		TreeNode* rootTree = infix.parse(tokenizedQ);
+
+		rootTree->printInfix();
+		std::cout << std::endl;
+
+		double result = rootTree->evaluateNode(variables);
+		std::cout << result << std::endl;
 	}
 }
 catch(const std::exception& e) {
     std::cerr << e.what() << std::endl;
 }
-
-    // TreeNode* TreeHead = new_parser.getHead(); ----> haven't implemented this helper function yet
-
 
 };

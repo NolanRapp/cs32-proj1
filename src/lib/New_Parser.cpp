@@ -1,29 +1,22 @@
 #include "New_Parser.h"
 
-New_Parser::New_Parser(std::queue<Token> tokenizedQ) {
-
-    // TODO: account for END character 
-
-
-    if (!tokenizedQ.empty()) {
-        nextToken = tokenizedQ.front().text; // initializing nextToken
-    } 
-    else {
-        std::cerr << "Error: Unexpected end of expression. New Parser constructor" << std::endl;
-        exit(3);
-    }
-    resultTree = parseE(tokenizedQ);
+New_Parser::New_Parser() {
+    // nothing to see here...
 }
 New_Parser::~New_Parser() {
-    delete resultTree;
+    // nothing to see here...
 }
+
 
 
 void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
+    // function to "consume" current token, moving nextToken to next value on the queue
+
     if (!tokenizedQ.empty()) {
         nextToken = tokenizedQ.front().text;
         tokenizedQ.pop();
     }
+
     else {
         std::cerr << "Error: Unexpected end of expression. scanToken" << std::endl;
         exit(3);
@@ -32,231 +25,83 @@ void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
-// this function parses TERMS: expressions seperated by multiplication or division
-    
-    TreeNode* a = parseF(tokenizedQ);
-    while (true) {
-        if (!tokenizedQ.empty() && nextToken == "*") {
-            scanToken(tokenizedQ);
-            TreeNode* b = parseF(tokenizedQ);
-            a = new Mult(a,b);
+TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
+    // function to process 3rd order operations (expressions): "+" and "-" 
 
-            if (a == nullptr || b == nullptr) {
-                std::cerr << "Error: Invalid operands for the operation." << std::endl;
-                exit(3);
-            }
-        }
-        else if (!tokenizedQ.empty() && nextToken == "/") {
-            scanToken(tokenizedQ);
-            TreeNode* b = parseF(tokenizedQ);
-            a = new Div(a,b);
-
-            if (a == nullptr || b == nullptr) {
-                std::cerr << "Error: Invalid operands for the operation." << std::endl;
-                exit(3);
-            }
-        }
-        else {
-            return a;
-        }
+    TreeNode* node = parseT(tokenizedQ);
+    if (node == nullptr) {
+        throw std::runtime_error("Invalid expression");
+        exit(3);
     }
-    // needs to return something here?
 
+    while (nextToken == "+" || nextToken == "-") {
+        TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
+        operatorNode->addChild(node);
+        scanToken(tokenizedQ);
+        TreeNode* right = parseT(tokenizedQ);
+        operatorNode->addChild(right);
+        node = operatorNode;
+    }
+    return node;
+}
+
+
+
+TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
+    // function to process 2nd order operations (terms): "*" and "/"
+    
+    TreeNode* node = parseF(tokenizedQ);
+    while (nextToken == "*" || nextToken == "/") {
+        TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
+        operatorNode->addChild(node);
+        scanToken(tokenizedQ);
+        TreeNode* right = parseF(tokenizedQ);
+        operatorNode->addChild(right);
+        node = operatorNode;
+    }
+    return node;
 }
 
 
 
 TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
-// this function parses a FACTOR: an integer, identifier, or entire expression
+    // function to process 4th order operators (factors): integer, identifier
+    // todo: handle identifiers and assignments
 
-    if ((!nextToken.empty()) && (isdigit(nextToken.at(0)))) { // does this correctly check if token is an integer?
-        TreeNode* integer;
-        integer = new Integer(std::stold(nextToken));
+    if (isdigit(nextToken.at(0)) || nextToken.at(0 == '_')) {
+        TreeLeaf* leaf = new TreeLeaf(std::stod(nextToken));
         scanToken(tokenizedQ);
-        return integer;
+        return leaf;
     }
-    /*else if (isalpha(nextToken.at(0))) {
-        
-        TreeNode* ID;
-        ID = std::make_unique<ID>(nextToken);
-        scanToken();
+    else if (isalpha(nextToken.at(0))) {
+        TreeIdentifier* ID = new TreeIdentifier(nextToken);
+        scanToken(tokenizedQ);
         return ID;
-        // we want nextToken to be the OBJECT that represents the ID/variable
-    }*/
-    else if (!tokenizedQ.empty() && nextToken == "(") {
-        scanToken(tokenizedQ); // consume non-terminal token
-        TreeNode* a = parseE(tokenizedQ);
-        if (a == nullptr) {
-            throw std::runtime_error("Invalid expression");
-            exit(3);
-        }
+    }
+
+    else if (nextToken == "(") {
+        scanToken(tokenizedQ); // consume open parenthesis, move onto next
+        TreeNode* node = parseE(tokenizedQ); // parse expression, until closing parenthesis reached
         if (nextToken == ")") {
-            scanToken(tokenizedQ);
-            return a;
+            scanToken(tokenizedQ); // consume closing parenthesis
+            return node;
         }
         else {
-            std::cerr << "Error: Missing closing parenthesis." << std::endl;
+            std::cerr << "Error: Missing closing parenthesis" << std::endl;
             exit(3);
         }
     }
-    else if (!tokenizedQ.empty() && nextToken == "-") {
-        TreeNode* negate;
-        negate = new Negate (parseF(tokenizedQ)); 
-        scanToken(tokenizedQ);
-        return negate;
-        // building a new negate object who points to the object we just parsed
-    }
-    else {
-        std::cerr << "Error: Unexpected token encountered while parsing a factor." << std::endl;
+    // HERE: handle identifiers and other assignments?
+}
+
+TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
+    // function to parse entire input, and end when "END" token is reached
+
+    scanToken(tokenizedQ); //consume first token
+    TreeNode* rootTree = parseE(tokenizedQ);
+    if (nextToken != "END") {
+        std::cerr << "Error: Unexpected end token. Recieved this instead: " << nextToken << "." << std::endl;
         exit(3);
     }
-}
-
-
-
-TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
-    TreeNode* a = parseT(tokenizedQ);
-    if (a == nullptr) {
-        throw std::runtime_error("Invalid expression");
-        exit(3);
-    }
-
-    while (true) { 
-        if (!tokenizedQ.empty() && nextToken == "+") {
-            scanToken(tokenizedQ);
-            TreeNode* b = parseT(tokenizedQ);
-            a = new Add(a, b);
-
-            if (a == nullptr || b == nullptr) {
-                std::cerr << "Error: Invalid operands for the operation." << std::endl;
-                exit(3);
-            }
-        }
-        else if (!tokenizedQ.empty() && nextToken == "-") {
-            scanToken(tokenizedQ);
-            TreeNode* b = parseT(tokenizedQ);
-            a = new Subtract(a, b);
-
-            if (a == nullptr || b == nullptr) {
-                std::cerr << "Error: Invalid operands for the operation." << std::endl;
-                exit(3);
-            }
-        }
-        else {
-            return a;
-        }
-    }
-}
-
-
-
-TreeNode* New_Parser::getHead() {
-    return (resultTree);
-}
-
-
-
-void New_Parser::printInfix() {
-    resultTree->print();
-}
-
-
-
-Add::Add(TreeNode* left, TreeNode* right) {
-    this->left = (left);
-    this->right = (right);
-}
-void Add::print() const {
-    std::cout << "(";
-    left->print();
-    std::cout << " + ";
-    right->print(); 
-    std::cout << ")";
-}
-
-Add::~Add() {
-    delete right;
-    delete left;
-}
-
-
-
-Subtract::Subtract(TreeNode* left, TreeNode* right) {
-    this->left = (left);
-    this->right = (right);
-}
-void Subtract::print() const {
-    std::cout << "(";
-    left->print();
-    std::cout << " - ";
-    right->print(); 
-    std::cout << ")";
-}
-
-Subtract::~Subtract() {
-    delete right;
-    delete left;
-}
-
-
-
-Mult::Mult(TreeNode* left, TreeNode* right) {
-    this->left = (left);
-    this->right = (right);
-}
-void Mult::print() const {
-    std::cout << "(";
-    left->print();
-    std::cout << " * ";
-    right->print(); 
-    std::cout << ")";
-}
-
-Mult::~Mult() {
-    delete right;
-    delete left;
-}
-
-
-
-Div::Div(TreeNode* left, TreeNode* right) {
-    this->left = (left);
-    this->right = (right);
-}
-void Div::print() const {
-    std::cout << "(";
-    left->print();
-    std::cout << " / ";
-    right->print(); 
-    std::cout << ")";
-}
-Div::~Div() {
-    delete right;
-    delete left;
-}
-
-
-
-Negate::Negate(TreeNode* arg) {
-    this->arg = (arg);
-}
-void Negate::print() const {
-    std::cout << "(-";
-    arg->print();
-    std::cout << ")";
-}
-Negate::~Negate() {
-    delete arg;
-}
-
-/*ID::ID(std::string variable) {
-    this->variable = variable;
-}*/
-
-Integer::Integer(double val) {
-    this->val = val;
-}
-void Integer::print() const {
-    std::cout << val;
+    return rootTree;
 }

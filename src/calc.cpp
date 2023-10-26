@@ -8,6 +8,7 @@ int main() {
 	std::unordered_map<std::string, double> variables; // holds all currently assigned variables
 	std::string line;
 	New_Parser infix;
+	
 
 try {	
 	while(getline(std::cin, line)) {

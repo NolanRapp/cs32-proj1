@@ -63,7 +63,6 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
         operatorNode->addChild(right);
         node = operatorNode;
     }
-
     return node;
 }
 
@@ -104,6 +103,7 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
         }
     }
     else {
+        std::cout << "HERE!" << nextToken << std::endl;
         newParseError(currentLine, currentColumn, nextToken);
     }
     return 0; // should never reach here
@@ -119,10 +119,19 @@ TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ) 
     TreeOperator* assignmentNode = new TreeOperator('=');
     assignmentNode->addChild(id);
 
+    // checking next token type 
     if (nextToken == "=") {
-        TreeIdentifier* ID = new TreeIdentifier(nextToken);
+        TreeIdentifier* nextID = nullptr;
         scanToken(tokenizedQ);
-        assignmentNode->addChild(parseA(ID, tokenizedQ));
+        if (isalpha(nextToken.at(0))) {
+            nextID = new TreeIdentifier(nextToken);
+             
+        }
+        else {
+            newParseError(currentLine, currentColumn, nextToken);
+        }
+
+        assignmentNode->addChild(parseA(nextID, tokenizedQ));
     }
 
     else {
@@ -137,40 +146,43 @@ TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ) 
 TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
     // function to parse entire input, and end when "END" token is reached
     scanToken(tokenizedQ); // initial consumption
-
     TreeNode* rootTree = nullptr;
-    
+
     if (nextToken.empty()) {
         delete rootTree;
         newParseError(currentLine, currentColumn, nextToken);
     }
 
-    if (isalpha(nextToken.at(0))) {
-        TreeIdentifier* ID = new TreeIdentifier(nextToken);
-        scanToken(tokenizedQ); // consume token
-        if (nextToken == "=") {
-            rootTree = parseA(ID, tokenizedQ);
+    std::string errorToken = nextToken;
+
+    while (!tokenizedQ.empty()) {
+        if (isalpha(nextToken.at(0))) {
+            TreeIdentifier* ID = new TreeIdentifier(nextToken);
+            scanToken(tokenizedQ);
+
+            if (nextToken == "=") {
+                rootTree = parseA(ID, tokenizedQ);
+            }
+            else {
+                delete rootTree;
+                newParseError(currentLine, currentColumn, errorToken);
+            }
         }
         else {
-            delete rootTree;
-            newParseError(currentLine, currentColumn, nextToken);
+            std::cout << "parse nextToken: " << nextToken << std::endl;
+            rootTree = parseE(tokenizedQ);
+            
+            if (rootTree == nullptr) {
+                newParseError(currentLine, currentColumn, errorToken);
+            }
         }
     }
-    
-    else {
-        rootTree = parseE(tokenizedQ);
-    }
-
     return rootTree;
-
-    /*if (nextToken != "END") {
-        std::cerr << "Error: Unexpected end token. Recieved this instead: " << nextToken << "." << std::endl;
-        exit(3);
-    }
-    return rootTree;*/
 }
 
+
+
 void New_Parser::newParseError(int line, int col, std::string text) const {
-	throw std::runtime_error("Unexpected end of expression at line " +
-    std::to_string(currentLine) + " and column " + std::to_string(currentColumn));
+	throw std::runtime_error("Unexpected token at line " +
+    std::to_string(currentLine) + " and column " + std::to_string(currentColumn) + ": " + text);
 }

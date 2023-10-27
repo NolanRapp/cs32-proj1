@@ -8,24 +8,22 @@ int main() {
 	std::unordered_map<std::string, double> variables; // holds all currently assigned variables
 	std::string line;
 	New_Parser infix;
-	
-
-try {	
+		
 	while(getline(std::cin, line)) {
-		Lexer lexer;
-		lexer.lex(line);
-		std::queue<Token> tokenizedQ = lexer.getLexQueue();
-		TreeNode* rootTree = infix.parse(tokenizedQ);
+		try{
+			Lexer lexer;
+			lexer.lex(line);
+			std::queue<Token> tokenizedQ = lexer.getLexQueue();
+			TreeNode* rootTree = infix.parse(tokenizedQ);
 
-		rootTree->printInfix();
-		std::cout << std::endl;
+			rootTree->printInfix();
+			std::cout << std::endl;
 
-		double result = rootTree->evaluateNode(variables);
-		std::cout << result << std::endl;
-		delete rootTree;
-	}
-}
-catch(const std::runtime_error& e) {
-    std::cerr << e.what() << std::endl;
-}
+			double result = rootTree->evaluateNode(variables);
+			std::cout << result << std::endl;
+			delete rootTree;
+		}
+		catch(const std::exception& e) {
+			std::cerr << e.what() << std::endl;
+		}
 };

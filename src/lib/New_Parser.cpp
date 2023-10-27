@@ -31,16 +31,26 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
     // function to process 3rd order operations (expressions): "+" and "-" 
 
     TreeNode* node = parseT(tokenizedQ);
+    
     if (node == nullptr) {
         delete node;
-        newParseError(currentLine, currentColumn, nextToken);
+        newParseError (currentLine, currentColumn, nextToken);
     }
 
     while (nextToken == "+" || nextToken == "-") {
+        std::string errorToken = nextToken; 
+        int errorColumn = currentColumn;
+
+
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
         operatorNode->addChild(node);
         scanToken(tokenizedQ);
         TreeNode* right = parseT(tokenizedQ);
+
+        if (right == nullptr) {
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+
         operatorNode->addChild(right);
         node = operatorNode;
     }
@@ -56,13 +66,23 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
     TreeNode* node = parseF(tokenizedQ);
 
     while (nextToken == "*" || nextToken == "/") {
+        std::string errorToken = nextToken; 
+        int errorColumn = currentColumn;
+
+
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
         operatorNode->addChild(node);
         scanToken(tokenizedQ);
         TreeNode* right = parseF(tokenizedQ);
+
+        if (right == nullptr) {
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+
         operatorNode->addChild(right);
         node = operatorNode;
     }
+
     return node;
 }
 
@@ -70,20 +90,32 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
 
 TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
     // function to process 4th order operators (factors): integer, identifier
+    std::string errorToken = nextToken; 
+    int errorColumn = currentColumn;
 
     if (nextToken.empty()) {
         newParseError(currentLine, currentColumn, nextToken);
-    }  
-
+    }
 
     if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
+
         TreeLeaf* leaf = new TreeLeaf(std::stod(nextToken));
+
+        if (leaf == nullptr) {
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+
         scanToken(tokenizedQ);
         return leaf;
     }
 
     else if (isalpha(nextToken.at(0))) {
         TreeIdentifier* ID = new TreeIdentifier(nextToken);
+
+        if (ID == nullptr) {
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+
         scanToken(tokenizedQ);
         return ID;
     }
@@ -99,13 +131,15 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
 
         else {
             delete node;
-            newParseError(currentLine, currentColumn, nextToken);
+            newParseError(currentLine, errorColumn, errorToken);
         }
     }
+
     else {
-        newParseError(currentLine, currentColumn, nextToken);
+        newParseError(currentLine, errorColumn, errorToken);
     }
-    return 0; // should never reach here
+
+    return nullptr; // should never reach here
 }
 
 
@@ -114,30 +148,43 @@ TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ) 
     // function to parse assignments
     // recursively calls itself if there are many instances of "="
 
-    scanToken(tokenizedQ); // consuming the "="
+    std::string errorToken = nextToken; 
+    int errorColumn = currentColumn;
+
     TreeOperator* assignmentNode = new TreeOperator('=');
     assignmentNode->addChild(id);
+    scanToken(tokenizedQ); // consume the "=" here
 
-    // checking next token type 
-    if (nextToken == "=") {
-        TreeIdentifier* nextID = nullptr;
-        scanToken(tokenizedQ);
-        if (isalpha(nextToken.at(0))) {
-            nextID = new TreeIdentifier(nextToken);
-             
+    if (nextToken == "END") {
+        delete assignmentNode;
+        newParseError(currentLine, errorColumn, errorToken);
+    }
+
+    if (isalpha(nextToken.at(0))) {
+        TreeIdentifier* nextID = new TreeIdentifier(nextToken);
+        scanToken(tokenizedQ); // moving to the next token
+
+        if (nextToken == "=") {
+            assignmentNode->addChild(parseA(nextID, tokenizedQ)); // recursively calling parseA for assignment operators
         }
         else {
-            newParseError(currentLine, currentColumn, nextToken);
+            delete assignmentNode;
+            newParseError(currentLine, errorColumn, errorToken);
         }
-
-        assignmentNode->addChild(parseA(nextID, tokenizedQ));
     }
 
     else {
-        assignmentNode->addChild(parseE(tokenizedQ));
+        TreeNode* expressionTree = parseE(tokenizedQ);
+
+        if (expressionTree == nullptr) {
+            delete assignmentNode;
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+        assignmentNode->addChild(expressionTree);
     }
 
     return assignmentNode;
+
 }
 
 
@@ -152,9 +199,10 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
         newParseError(currentLine, currentColumn, nextToken);
     }
 
-    std::string errorToken = nextToken;
-
     while (!tokenizedQ.empty()) {
+        std::string errorToken = nextToken; 
+        int errorColumn = currentColumn;
+
         if (isalpha(nextToken.at(0))) {
             TreeIdentifier* ID = new TreeIdentifier(nextToken);
             scanToken(tokenizedQ);
@@ -164,14 +212,14 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
             }
             else {
                 delete rootTree;
-                newParseError(currentLine, currentColumn, errorToken);
+                newParseError(currentLine, errorColumn, errorToken);
             }
         }
         else {
             rootTree = parseE(tokenizedQ);
             
             if (rootTree == nullptr) {
-                newParseError(currentLine, currentColumn, errorToken);
+                newParseError(currentLine, errorColumn, errorToken);
             }
         }
     }

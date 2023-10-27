@@ -39,12 +39,17 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
 
     while (nextToken == "+" || nextToken == "-") {
         std::string errorToken = nextToken; 
-        int errorColumn = currentColumn;
+        int errorColumn = currentColumn - 1;
 
 
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
         operatorNode->addChild(node);
         scanToken(tokenizedQ);
+
+        if (nextToken == "END") {
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+
         TreeNode* right = parseT(tokenizedQ);
 
         if (right == nullptr) {
@@ -69,10 +74,14 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
         std::string errorToken = nextToken; 
         int errorColumn = currentColumn;
 
-
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
         operatorNode->addChild(node);
         scanToken(tokenizedQ);
+
+        if (nextToken == "END") {
+            newParseError(currentLine, errorColumn, errorToken);
+        }
+
         TreeNode* right = parseF(tokenizedQ);
 
         if (right == nullptr) {
@@ -96,6 +105,7 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
     if (nextToken.empty()) {
         newParseError(currentLine, currentColumn, nextToken);
     }
+    // ^^ might not need this if previous checks work as intended
 
     if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
 
@@ -128,10 +138,9 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
             scanToken(tokenizedQ); // consume closing parenthesis
             return node;
         }
-
         else {
             delete node;
-            newParseError(currentLine, errorColumn, errorToken);
+            newParseError(currentLine, currentColumn, nextToken); // throws error corresponding to "END" token, missing closing parenthesis
         }
     }
 
@@ -230,5 +239,5 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
 
 void New_Parser::newParseError(int line, int col, std::string text) const {
 	throw std::runtime_error("Unexpected token at line " +
-    std::to_string(currentLine) + " and column " + std::to_string(currentColumn) + ": " + text);
+    std::to_string(line) + " and column " + std::to_string(col) + ": " + text);
 }

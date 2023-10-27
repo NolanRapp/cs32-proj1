@@ -106,6 +106,7 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
     else {
         newParseError(currentLine, currentColumn, nextToken);
     }
+    return 0; // should never reach here
 }
 
 

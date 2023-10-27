@@ -15,12 +15,13 @@ void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
 
     if (!tokenizedQ.empty()) {
         nextToken = tokenizedQ.front().text;
+        currentLine = tokenizedQ.front().line;
+        currentColumn = tokenizedQ.front().column;
         tokenizedQ.pop();
     }
 
     else {
-        std::cerr << "Error: Unexpected end of expression. scanToken" << std::endl;
-        exit(3);
+        newParseError(currentLine, currentColumn, nextToken);
     }
 }
 
@@ -31,9 +32,8 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
 
     TreeNode* node = parseT(tokenizedQ);
     if (node == nullptr) {
-        throw std::runtime_error("Invalid expression");
         delete node;
-        exit(3);
+        newParseError(currentLine, currentColumn, nextToken);
     }
 
     while (nextToken == "+" || nextToken == "-") {
@@ -73,9 +73,9 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
     // function to process 4th order operators (factors): integer, identifier
 
     if (nextToken.empty()) {
-    std::cerr << "Error: Unexpected end of expression." << std::endl;
-    exit(3);
+        newParseError(currentLine, currentColumn, nextToken);
     }  
+
 
     if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
         TreeLeaf* leaf = new TreeLeaf(std::stod(nextToken));
@@ -99,15 +99,12 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
         }
 
         else {
-            std::cerr << "Error: Missing closing parenthesis" << std::endl;
             delete node;
-            exit(3);
+            newParseError(currentLine, currentColumn, nextToken);
         }
     }
-
     else {
-        std::cerr << "Error: Unexpected Token" << std::endl;
-        exit(3);
+        newParseError(currentLine, currentColumn, nextToken);
     }
 }
 
@@ -123,6 +120,7 @@ TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ) 
 
     if (nextToken == "=") {
         TreeIdentifier* ID = new TreeIdentifier(nextToken);
+        scanToken(tokenizedQ);
         assignmentNode->addChild(parseA(ID, tokenizedQ));
     }
 
@@ -142,9 +140,8 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
     TreeNode* rootTree = nullptr;
     
     if (nextToken.empty()) {
-    std::cerr << "Error: Unexpected end of expression." << std::endl;
-    delete rootTree;
-    exit(3);
+        delete rootTree;
+        newParseError(currentLine, currentColumn, nextToken);
     }
 
     if (isalpha(nextToken.at(0))) {
@@ -154,9 +151,8 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
             rootTree = parseA(ID, tokenizedQ);
         }
         else {
-            std::cerr << "Error: Expects equal sign after identifier" << std::endl;
             delete rootTree;
-            exit(3);
+            newParseError(currentLine, currentColumn, nextToken);
         }
     }
     
@@ -171,4 +167,9 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
         exit(3);
     }
     return rootTree;*/
+}
+
+void New_Parser::newParseError(int line, int col, std::string text) const {
+	throw std::runtime_error("Unexpected end of expression at line " +
+    std::to_string(currentLine) + " and column " + std::to_string(currentColumn));
 }

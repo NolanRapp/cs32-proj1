@@ -103,7 +103,6 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
         }
     }
     else {
-        std::cout << "HERE!" << nextToken << std::endl;
         newParseError(currentLine, currentColumn, nextToken);
     }
     return 0; // should never reach here
@@ -169,7 +168,6 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
             }
         }
         else {
-            std::cout << "parse nextToken: " << nextToken << std::endl;
             rootTree = parseE(tokenizedQ);
             
             if (rootTree == nullptr) {

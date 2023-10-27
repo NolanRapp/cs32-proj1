@@ -23,7 +23,8 @@ int main() {
 			std::cout << result << std::endl;
 			delete rootTree;
 		}
-		catch(const std::exception& e) {
+		catch(const std::runtime_error& e) {
 			std::cerr << e.what() << std::endl;
 		}
+	}
 };

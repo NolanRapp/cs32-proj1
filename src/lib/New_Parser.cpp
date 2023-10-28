@@ -239,5 +239,5 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
 
 void New_Parser::newParseError(int line, int col, std::string text) const {
 	throw std::runtime_error("Unexpected token at line " +
-    std::to_string(line) + " and column " + std::to_string(col) + ": " + text);
+    std::to_string(line) + " column " + std::to_string(col) + ": " + text);
 }

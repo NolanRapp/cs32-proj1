@@ -27,14 +27,14 @@ void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
+TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 3rd order operations (expressions): "+" and "-" 
 
-    TreeNode* node = parseT(tokenizedQ);
+    TreeNode* node = parseT(tokenizedQ, variables);
     
     if (node == nullptr) {
         delete node;
-        newParseError (currentLine, currentColumn, nextToken);
+        newParseError(currentLine, currentColumn, nextToken);
     }
 
     while (nextToken == "+" || nextToken == "-") {
@@ -47,12 +47,17 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
+            delete node;
+            delete operatorNode;
             newParseError(currentLine, errorColumn, errorToken);
         }
 
-        TreeNode* right = parseT(tokenizedQ);
+        TreeNode* right = parseT(tokenizedQ, variables);
 
         if (right == nullptr) {
+            delete node;
+            delete operatorNode;
+            delete right;
             newParseError(currentLine, errorColumn, errorToken);
         }
 
@@ -65,10 +70,10 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
+TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 2nd order operations (terms): "*" and "/"
     
-    TreeNode* node = parseF(tokenizedQ);
+    TreeNode* node = parseF(tokenizedQ, variables);
 
     while (nextToken == "*" || nextToken == "/") {
         std::string errorToken = nextToken; 
@@ -79,12 +84,15 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
+            delete node;
             newParseError(currentLine, errorColumn, errorToken);
         }
 
-        TreeNode* right = parseF(tokenizedQ);
+        TreeNode* right = parseF(tokenizedQ, variables);
 
         if (right == nullptr) {
+            delete node;
+            delete right;
             newParseError(currentLine, errorColumn, errorToken);
         }
 
@@ -97,7 +105,7 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
+TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 4th order operators (factors): integer, identifier
     std::string errorToken = nextToken; 
     int errorColumn = currentColumn;
@@ -108,10 +116,10 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
     // ^^ might not need this if previous checks work as intended
 
     if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
-
         TreeLeaf* leaf = new TreeLeaf(std::stod(nextToken));
 
         if (leaf == nullptr) {
+            delete leaf;
             newParseError(currentLine, errorColumn, errorToken);
         }
 
@@ -120,19 +128,24 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
     }
 
     else if (isalpha(nextToken.at(0))) {
-        TreeIdentifier* ID = new TreeIdentifier(nextToken);
+        std::string varName = nextToken;
 
-        if (ID == nullptr) {
-            newParseError(currentLine, errorColumn, errorToken);
+        // checking if variables exist in map        
+        if (variables.find(varName) != variables.end()) {
+            double val = variables[varName];
+            TreeLeaf* leaf = new TreeLeaf(val);
+            scanToken(tokenizedQ);
+            return leaf;
         }
-
-        scanToken(tokenizedQ);
-        return ID;
+        else {
+            newParseError(currentLine, currentColumn, nextToken);
+            // Variable not found in map
+        }
     }
 
     else if (nextToken == "(") {
         scanToken(tokenizedQ); // consume open parenthesis, move onto next
-        TreeNode* node = parseE(tokenizedQ); // parse expression, until closing parenthesis reached
+        TreeNode* node = parseE(tokenizedQ, variables); // parse expression, until closing parenthesis reached
 
         if (nextToken == ")") {
             scanToken(tokenizedQ); // consume closing parenthesis
@@ -153,7 +166,7 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ) {
+TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to parse assignments
     // recursively calls itself if there are many instances of "="
 
@@ -165,40 +178,56 @@ TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ) 
     scanToken(tokenizedQ); // consume the "=" here
 
     if (nextToken == "END") {
+        delete id;
         delete assignmentNode;
         newParseError(currentLine, errorColumn, errorToken);
     }
 
     if (isalpha(nextToken.at(0))) {
-        TreeIdentifier* nextID = new TreeIdentifier(nextToken);
-        scanToken(tokenizedQ); // moving to the next token
+        std::string varName = nextToken;
+        scanToken(tokenizedQ);
 
         if (nextToken == "=") {
-            assignmentNode->addChild(parseA(nextID, tokenizedQ)); // recursively calling parseA for assignment operators
+            TreeNode* assignedVal = parseA(id, tokenizedQ, variables);
+
+            if (assignedVal) {
+                // updating variables map with assigned resulting value
+                double val = assignedVal->evaluateNode(variables);
+                variables[varName] = val;
+                
+                TreeLeaf* leaf = new TreeLeaf(val);
+                return leaf;
+            } 
+            else {
+                delete assignmentNode;
+                delete assignedVal;
+                delete id;
+                newParseError(currentLine, errorColumn, varName);
+            }
         }
         else {
+            delete id;
             delete assignmentNode;
             newParseError(currentLine, errorColumn, errorToken);
         }
     }
 
     else {
-        TreeNode* expressionTree = parseE(tokenizedQ);
+        TreeNode* expressionTree = parseE(tokenizedQ, variables);
 
         if (expressionTree == nullptr) {
+            delete id;
             delete assignmentNode;
             newParseError(currentLine, errorColumn, errorToken);
         }
         assignmentNode->addChild(expressionTree);
     }
-
     return assignmentNode;
-
 }
 
 
 
-TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
+TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to parse entire input, and end when "END" token is reached
     scanToken(tokenizedQ); // initial consumption
     TreeNode* rootTree = nullptr;
@@ -217,17 +246,31 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ) {
             scanToken(tokenizedQ);
 
             if (nextToken == "=") {
-                rootTree = parseA(ID, tokenizedQ);
+                rootTree = parseA(ID, tokenizedQ, variables);
             }
+        
+            else if ((nextToken == "+") || (nextToken == "-") || (nextToken == "/") || (nextToken == "*")) {
+                scanToken(tokenizedQ);
+                rootTree = parseE(tokenizedQ, variables);
+
+                if (rootTree == nullptr) {
+                    delete rootTree;
+                    newParseError(currentLine, errorColumn, errorToken);
+                }
+            }
+
             else {
+                delete ID;
                 delete rootTree;
                 newParseError(currentLine, errorColumn, errorToken);
             }
+
         }
         else {
-            rootTree = parseE(tokenizedQ);
+            rootTree = parseE(tokenizedQ, variables);
             
             if (rootTree == nullptr) {
+                delete rootTree;
                 newParseError(currentLine, errorColumn, errorToken);
             }
         }

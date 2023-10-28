@@ -10,11 +10,11 @@ int main() {
 	New_Parser infix;
 		
 	while(getline(std::cin, line)) {
-		try{
+		try {
 			Lexer lexer;
 			lexer.lex(line);
 			std::queue<Token> tokenizedQ = lexer.getLexQueue();
-			TreeNode* rootTree = infix.parse(tokenizedQ);
+			TreeNode* rootTree = infix.parse(tokenizedQ, variables);
 
 			rootTree->printInfix();
 			std::cout << std::endl;

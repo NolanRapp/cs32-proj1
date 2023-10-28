@@ -24,11 +24,11 @@ class New_Parser {
         New_Parser();
         ~New_Parser();
         
-        TreeNode* parse(std::queue<Token>& tokenizedQ); // begins parse, and identifies when to end parse
-        TreeNode* parseE(std::queue<Token>& tokenizedQ); // parsing and expression
-        TreeNode* parseT(std::queue<Token>& tokenizedQ); // parsing a term
-        TreeNode* parseF(std::queue<Token>& tokenizedQ); // parsing a factor
-        TreeNode* parseA(TreeIdentifier* root, std::queue<Token>& tokenizedQ); // parsing an assignment tree
+        TreeNode* parse(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // begins parse, and identifies when to end parse
+        TreeNode* parseE(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing and expression
+        TreeNode* parseT(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing a term
+        TreeNode* parseF(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing a factor
+        TreeNode* parseA(TreeIdentifier* root, std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing an assignment tree
 
     private:
         std::string nextToken; // this is, at any point, the next unscanned token from the Token Queue.
@@ -37,6 +37,8 @@ class New_Parser {
 
         int currentLine;
         int currentColumn;
+
+        std::unordered_map<std::string, double> variables;
 };
 
 #endif

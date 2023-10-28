@@ -33,7 +33,6 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<s
     TreeNode* node = parseT(tokenizedQ, variables);
     
     if (node == nullptr) {
-        delete node;
         newParseError(currentLine, currentColumn, nextToken);
     }
 
@@ -47,7 +46,6 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
-            delete node;
             delete operatorNode;
             newParseError(currentLine, errorColumn, errorToken);
         }
@@ -55,7 +53,6 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<s
         TreeNode* right = parseT(tokenizedQ, variables);
 
         if (right == nullptr) {
-            delete node;
             delete operatorNode;
             newParseError(currentLine, errorColumn, errorToken);
         }
@@ -243,7 +240,6 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<st
                 rootTree = parseE(tokenizedQ, variables);
 
                 if (rootTree == nullptr) {
-                    delete rootTree;
                     delete ID;
                     newParseError(currentLine, errorColumn, errorToken);
                 }
@@ -260,7 +256,6 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<st
             rootTree = parseE(tokenizedQ, variables);
             
             if (rootTree == nullptr) {
-                delete rootTree;
                 newParseError(currentLine, errorColumn, errorToken);
             }
         }

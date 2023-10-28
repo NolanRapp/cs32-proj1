@@ -229,6 +229,8 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<st
 
         if (isalpha(nextToken.at(0))) {
             TreeIdentifier* ID = new TreeIdentifier(nextToken);
+            std::string varName = nextToken;
+
             scanToken(tokenizedQ);
 
             if (nextToken == "=") {

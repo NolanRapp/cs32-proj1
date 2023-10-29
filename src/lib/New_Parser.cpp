@@ -29,7 +29,6 @@ void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
 
 TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 3rd order operations (expressions): "+" and "-" 
-
     TreeNode* node = parseT(tokenizedQ, variables);
     
     if (node == nullptr) {
@@ -68,7 +67,6 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<s
 
 TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 2nd order operations (terms): "*" and "/"
-    
     TreeNode* node = parseF(tokenizedQ, variables);
 
     while (nextToken == "*" || nextToken == "/") {
@@ -120,25 +118,24 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ, std::unordered_map<s
         return leaf;
     }
 
-    else if (isalpha(nextToken.at(0))) {
-        std::string varName = nextToken;
-
-        // checking if variables exist in map        
-        if (variables.find(varName) != variables.end()) {
-            double val = variables[varName];
-            TreeLeaf* leaf = new TreeLeaf(val);
-            scanToken(tokenizedQ);
-            return leaf;
-        }
-        else {
-            newParseError(currentLine, currentColumn, nextToken);
-            // Variable not found in map
-        }
+    else if (isalpha(nextToken.at(0)) && (variables.find(varName) != variables.end())) {
+        double val = variables[varName];
+        TreeLeaf* leaf = new TreeLeaf(val);
+        scanToken(tokenizedQ);
+        return leaf;
     }
 
     else if (nextToken == "(") {
         scanToken(tokenizedQ); // consume open parenthesis, move onto next
-        TreeNode* node = parseE(tokenizedQ, variables); // parse expression, until closing parenthesis reached
+        TreeNode* node = nullptr;
+
+        if (isalpha(nextToken.at(0))) {
+            TreeIdentifier* ID = new TreeIdentifier(nextToken);
+            node = parseA(ID, tokenizedQ, variables); // if next token is a variable assignment in parenthesis
+        }
+        else {
+            node = parseE(tokenizedQ, variables);
+        }
 
         if (nextToken == ")") {
             scanToken(tokenizedQ); // consume closing parenthesis
@@ -162,53 +159,33 @@ TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ, 
     // function to parse assignments
     // recursively calls itself if there are many instances of "="
 
-    std::string errorToken = nextToken; 
-    int errorColumn = currentColumn;
+    varName = nextToken;
+    scanToken(tokenizedQ);
+
+    if (nextToken != "=") {
+        /* TODO:
+        okay what's going on here is that the input "x" gets consumed above ^^
+        so nextToken is set to "END". This is fine but when going through parseF, 
+        the parser has no way to tell what the variable was to properly find it in 
+        the variable map... 
+        I was thinking of storing a memeber variable "varName" and setting it equal to
+        the token before consuming it above? Not sure if there's a better way though
+        */
+        return parseE(tokenizedQ, variables);
+    }
+
+    scanToken(tokenizedQ); // consume the "="
 
     TreeOperator* assignmentNode = new TreeOperator('=');
+
     assignmentNode->addChild(id);
-    scanToken(tokenizedQ); // consume the "=" here
 
-    if (nextToken == "END") {
-        delete assignmentNode;
-        newParseError(currentLine, errorColumn, errorToken);
-    }
+    TreeNode* assignVal = parseE(tokenizedQ, variables);
+    assignmentNode->addChild(assignVal);
 
-    if (isalpha(nextToken.at(0))) {
-        std::string varName = nextToken;
-        scanToken(tokenizedQ);
+    double val = assignmentNode->evaluateNode(variables);
+    variables[varName] = val;
 
-        if (nextToken == "=") {
-            TreeNode* assignedVal = parseA(id, tokenizedQ, variables);
-
-            if (assignedVal) {
-                // updating variables map with assigned resulting value
-                double val = assignedVal->evaluateNode(variables);
-                variables[varName] = val;
-                
-                TreeLeaf* leaf = new TreeLeaf(val);
-                return leaf;
-            } 
-            else {
-                delete assignmentNode;
-                newParseError(currentLine, errorColumn, varName);
-            }
-        }
-        else {
-            delete assignmentNode;
-            newParseError(currentLine, errorColumn, errorToken);
-        }
-    }
-
-    else {
-        TreeNode* expressionTree = parseE(tokenizedQ, variables);
-
-        if (expressionTree == nullptr) {
-            delete assignmentNode;
-            newParseError(currentLine, errorColumn, errorToken);
-        }
-        assignmentNode->addChild(expressionTree);
-    }
     return assignmentNode;
 }
 
@@ -223,43 +200,21 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<st
         newParseError(currentLine, currentColumn, nextToken);
     }
 
-    while (!tokenizedQ.empty()) {
-        std::string errorToken = nextToken; 
-        int errorColumn = currentColumn;
+    std::string errorToken = nextToken; 
+    int errorColumn = currentColumn;
 
-        if (isalpha(nextToken.at(0))) {
-            TreeIdentifier* ID = new TreeIdentifier(nextToken);
-            std::string varName = nextToken;
-
-            scanToken(tokenizedQ);
-
-            if (nextToken == "=") {
-                rootTree = parseA(ID, tokenizedQ, variables);
-            }
-        
-            else if ((nextToken == "+") || (nextToken == "-") || (nextToken == "/") || (nextToken == "*")) {
-                scanToken(tokenizedQ);
-                rootTree = parseE(tokenizedQ, variables);
-
-                if (rootTree == nullptr) {
-                    delete ID;
-                    newParseError(currentLine, errorColumn, errorToken);
-                }
-            }
-
-            else {
-                delete ID;
-                delete rootTree;
-                newParseError(currentLine, errorColumn, errorToken);
-            }
-
+    if (isalpha(nextToken.at(0))) {
+        TreeIdentifier* ID = new TreeIdentifier(nextToken);
+        rootTree = parseA(ID, tokenizedQ, variables);
+        if (rootTree == nullptr) {
+            newParseError(currentLine, errorColumn, errorToken);
         }
-        else {
-            rootTree = parseE(tokenizedQ, variables);
-            
-            if (rootTree == nullptr) {
-                newParseError(currentLine, errorColumn, errorToken);
-            }
+    }
+    else {
+        rootTree = parseE(tokenizedQ, variables);
+
+        if (rootTree == nullptr) {
+            newParseError(currentLine, errorColumn, errorToken);
         }
     }
     return rootTree;

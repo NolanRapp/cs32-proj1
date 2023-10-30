@@ -3,7 +3,7 @@
 
 
 // Feeds an entire queue made from a single Lexer and outputs multiple ASTs
-Parser::Parser(std::queue<Token> oInput){
+Parser::Parser(std::deque<Token> oInput){
 	while(oInput.front().text != "END"){
 		createTree(oInput);
 	}
@@ -12,7 +12,7 @@ Parser::Parser(std::queue<Token> oInput){
 
 
 // Creates AST from the queue of Tokens that will be supplied by the Lexer
-void Parser::createTree(std::queue<Token>& input) {
+void Parser::createTree(std::deque<Token>& input) {
 	TreeNode* head;
 
 	if(input.front().text == "("){ // Checks for expression
@@ -22,27 +22,27 @@ void Parser::createTree(std::queue<Token>& input) {
 		TreeLeaf* numTree = new TreeLeaf(std::stold(input.front().text));
 		head = numTree;
 
-		input.pop();
+		input.pop_front();
 	}
 	else if(isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){ // Checks for single ID
 		TreeIdentifier* idTree = new TreeIdentifier(input.front().text);
 		head = idTree;
 
-		input.pop();
+		input.pop_front();
 	}
 	else{
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (First element should not be ")" or "END" or operation)
 	}
 
-	mHeads.push(head);
+	mHeads.push_back(head);
 }
 
 
 
 // Evaluates an S expression in the context of "(" and ")", make sure it starts with operator
-TreeNode* Parser::closedTree(std::queue<Token>& input){
-	input.pop();
+TreeNode* Parser::closedTree(std::deque<Token>& input){
+	input.pop_front();
 	TreeNode* head;
 
 	if(isOp(input.front().text)){ // Checks for conventional operator tree
@@ -60,7 +60,7 @@ TreeNode* Parser::closedTree(std::queue<Token>& input){
 		parseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Closed trees should end in ")")
 	}
-	input.pop();
+	input.pop_front();
 
 	return head;
 }
@@ -68,14 +68,14 @@ TreeNode* Parser::closedTree(std::queue<Token>& input){
 
 
 // Evaluates an S expression from its operator by adding valid children to it on the AST
-TreeNode* Parser::opTree(std::queue<Token>& input){
+TreeNode* Parser::opTree(std::deque<Token>& input){
 
 	TreeOperator* op = new TreeOperator(input.front().text.at(0));
 	TreeNode* 		tempExp;
 	TreeLeaf* 		tempLeaf;
 	TreeIdentifier* tempID;
 	int childNum = 0; // Counter for operands
-	input.pop();
+	input.pop_front();
 
 	while(isdigit(input.front().text.at(0)) || input.front().text == "(" || isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
 		if(input.front().text == "("){
@@ -87,14 +87,14 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 			tempID = new TreeIdentifier(input.front().text);
 			op->addChild(tempID);
 
-			input.pop();
+			input.pop_front();
 		}
 		else{
 			// Creates and adds a child number of the operator
 			tempLeaf = new TreeLeaf(std::stold(input.front().text));
 			op->addChild(tempLeaf);
 
-			input.pop();
+			input.pop_front();
 		}
 
 		if(input.front().text == "END"){
@@ -115,18 +115,18 @@ TreeNode* Parser::opTree(std::queue<Token>& input){
 
 
 // Evaluates an assignment expression, confirms conditions for valid expression
-TreeNode* Parser::assignTree(std::queue<Token>& input){
+TreeNode* Parser::assignTree(std::deque<Token>& input){
 	
 	TreeOperator* assign = new TreeOperator(input.front().text.at(0));
 	TreeIdentifier* tempID;
 	int childNum = 0;
-	input.pop();
+	input.pop_front();
 
 	// Adds all IDs
 	while(isalpha(input.front().text.at(0)) || input.front().text.at(0) == '_'){
 		tempID = new TreeIdentifier(input.front().text);
 		assign->addChild(tempID);
-		input.pop();
+		input.pop_front();
 
 		childNum++;
 	}
@@ -140,7 +140,7 @@ TreeNode* Parser::assignTree(std::queue<Token>& input){
 		TreeLeaf* tempLeaf = new TreeLeaf(std::stold(input.front().text));
 		assign->addChild(tempLeaf);
 
-		input.pop();
+		input.pop_front();
 	}
 	else if(input.front().text == "("){ // Checks for tailing expression
 		TreeNode* tempExp = closedTree(input);
@@ -164,7 +164,7 @@ TreeNode* Parser::assignTree(std::queue<Token>& input){
 // Returns head of the AST
 TreeNode* Parser::popHead() {
 	TreeNode* tempHead = mHeads.front();
-	mHeads.pop();
+	mHeads.pop_front();
 
 	return tempHead;
 }

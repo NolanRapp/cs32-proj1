@@ -11,10 +11,10 @@ int main() {
 		totalString += inChar;
 	}
 	
-	std::queue<Token> tokens; // Holds all standard input
+	std::deque<Token> tokens; // Holds all standard input
 	std::unordered_map<std::string, double> variables; // Holds all currently assigned variables
 
-	// Creates queue by reading user input and feeds into a parser
+	// Creates deque by reading user input and feeds into a parser
 	Lexer lexer;
 	lexer.lex(totalString);
 	Parser parser(lexer.getLexQueue());

@@ -127,7 +127,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
     else if (isalpha(nextToken.at(0)) && (variables.find(nextToken) != variables.end())) {
         double val = variables[nextToken];
-        TreeLeaf* leaf = new TreeLeaf(val);
+        TreeIdentifier* leaf = new TreeIdentifier(nextToken);
 
         scanToken(tokenizedQ); // consuming the variable 
 

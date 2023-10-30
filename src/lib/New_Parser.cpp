@@ -118,12 +118,15 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         return leaf;
     }
 
-    else if (isalpha(nextToken.at(0)) && (variables.find(nextToken) != variables.end())) {
-        TreeIdentifier* leaf = new TreeIdentifier(nextToken);
-
-        scanToken(tokenizedQ); // Consume the variable 
-
-        return leaf;
+    else if (isalpha(nextToken.at(0))) {
+        if ((variables.find(nextToken) != variables.end())) {
+            TreeIdentifier* leaf = new TreeIdentifier(nextToken);
+            scanToken(tokenizedQ); // Consume the variable 
+            return leaf;
+        }
+        else {
+            throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
+        }
     }
 
     else if (nextToken == "(") {
@@ -216,7 +219,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         delete assignmentNode;
         newParseError(currentLine, currentColumn, nextToken);
     }
-    
+
     assignmentNode->addChild(rhs);
     
     // Evaluate the expression and assign the value to the variable

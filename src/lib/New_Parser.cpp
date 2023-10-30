@@ -152,52 +152,6 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
     return nullptr; // should never reach here
 }
 
-
-
-/*TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
-    // function to parse assignments
-    // recursively calls itself if there are many instances of "="
-
-    TreeIdentifier* id = new TreeIdentifier(nextToken);
-
-    if (lookahead != "=") {
-        newParseError(currentLine, currentColumn, nextToken);
-    }
-
-    scanToken(tokenizedQ); // consume the variable 
-    scanToken(tokenizedQ); // consume the "="
-
-    TreeOperator* assignmentNode = new TreeOperator('=');
-    assignmentNode->addChild(id);
-
-    //dealing with nested assignments: (a=(b=3))
-    if ((!tokenizedQ.empty()) && (nextToken == "(") && (isalpha(lookahead.at(0)))) {
-        scanToken(tokenizedQ); // consume the "("
-        TreeNode* nestedParenthesis = parseA(tokenizedQ, variables);
-
-        if (tokenizedQ.empty() || nextToken != ")") {
-            newParseError(currentLine, currentColumn, nextToken);
-        }
-        scanToken(tokenizedQ); // consuming ")"
-        assignmentNode->addChild(nestedParenthesis);
-    }
-
-    // dealing with 
-    else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0)))) {
-        TreeNode* nestedAssignment = parseA(tokenizedQ, variables);
-        assignmentNode->addChild(nestedAssignment);
-    }
-
-    else {
-        TreeNode* expressionNode = parseE(tokenizedQ, variables);
-        assignmentNode->addChild(expressionNode);
-    }
-    
-    double val = assignmentNode->evaluateNode(variables);
-    variables[id->getID()] = val;
-    return assignmentNode;
-
-}*/
 TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to parse assignments
     // recursively calls itself if there are many instances of "="
@@ -223,6 +177,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
             rhs = parseE(tokenizedQ, variables);
             assignmentNode->addChild(rhs);
             return assignmentNode;
+            // Returns because we don't want to double evaluateNode
         }
 
         if (tokenizedQ.empty() || nextToken != ")") {
@@ -237,6 +192,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     }
 
     // If none of the above conditions are true, then parse it as an expression
+    // Returns because we don't want to double-evaluateNode 
     else {
         rhs = parseE(tokenizedQ, variables);
         assignmentNode->addChild(rhs);
@@ -247,9 +203,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     
     // Evaluate the expression and assign the value to the variable
     double val = assignmentNode->evaluateNode(variables);
-    std::cout << "val: " << val << std::endl;
     variables[id->getID()] = val;
-    std::cout << "variables map: " << variables[id->getID()] << std::endl;
 
     return assignmentNode;
 }

@@ -118,20 +118,13 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         return leaf;
     }
 
-    else if (isalpha(nextToken.at(0))) {
-        if ((variables.find(nextToken) != variables.end())) {
-            TreeIdentifier* leaf = new TreeIdentifier(nextToken);
-            scanToken(tokenizedQ); // Consume the variable 
-            return leaf;
-        }
-        else {
-            throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
-        }
-    }
-
     else if (nextToken == "(") {
         scanToken(tokenizedQ); // Consume open parenthesis, move onto next
         TreeNode* node = nullptr;
+
+        if (nextToken == "END") {
+            newParseError(currentLine, currentColumn, nextToken);
+        }
 
         if (isalpha(nextToken.at(0)) && (lookahead == "=")) {
             node = parseA(tokenizedQ, variables);
@@ -146,6 +139,18 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         }
         else {
             newParseError(currentLine, currentColumn, nextToken); // Throws error corresponding to "END" token, missing closing parenthesis
+        }
+    }
+
+    else if (isalpha(nextToken.at(0))) {
+        if ((variables.find(nextToken) != variables.end())) {
+            TreeIdentifier* leaf = new TreeIdentifier(nextToken);
+            scanToken(tokenizedQ); // Consume the variable 
+            return leaf;
+        }
+        else {
+            // TODO: have to print wrong expression infix still
+            throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
         }
     }
 

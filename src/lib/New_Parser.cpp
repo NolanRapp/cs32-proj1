@@ -137,7 +137,12 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ); // consume open parenthesis, move onto next
         TreeNode* node = nullptr;
 
-        node = parseE(tokenizedQ, variables);
+        if (isalpha(nextToken.at(0)) && (lookahead == "=")) {
+            node = parseA(tokenizedQ, variables);
+        }
+        else {
+            node = parseE(tokenizedQ, variables);
+        }
 
         if (nextToken == ")") {
             scanToken(tokenizedQ); // consume closing parenthesis

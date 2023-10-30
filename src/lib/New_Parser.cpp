@@ -126,7 +126,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
     }
 
     else if (isalpha(nextToken.at(0)) && (variables.find(nextToken) != variables.end())) {
-        double val = variables[nextToken];
+        //double val = variables[nextToken];
         TreeIdentifier* leaf = new TreeIdentifier(nextToken);
 
         scanToken(tokenizedQ); // consuming the variable 
@@ -167,10 +167,6 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     // function to parse assignments
     // recursively calls itself if there are many instances of "="
 
-    /*if ((isalpha(nextToken.at(0))) && (lookahead != "=")) {
-        parseE(tokenizedQ, variables);
-    }*/
-
     TreeIdentifier* id = new TreeIdentifier(nextToken);
 
     if (lookahead != "=") {
@@ -183,8 +179,8 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     TreeOperator* assignmentNode = new TreeOperator('=');
     assignmentNode->addChild(id);
 
-
-    if ((!tokenizedQ.empty()) && (nextToken == "(")) {
+    //dealing with nested assignments: (a=(b=3))
+    if ((!tokenizedQ.empty()) && (nextToken == "(") && (isalpha(lookahead.at(0)))) {
         scanToken(tokenizedQ); // consume the "("
         TreeNode* nestedParenthesis = parseA(tokenizedQ, variables);
 
@@ -195,6 +191,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         assignmentNode->addChild(nestedParenthesis);
     }
 
+    // dealing with 
     else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0)))) {
         TreeNode* nestedAssignment = parseA(tokenizedQ, variables);
         assignmentNode->addChild(nestedAssignment);

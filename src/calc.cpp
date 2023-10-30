@@ -18,7 +18,9 @@ int main() {
 
 			rootTree->printInfix();
 			std::cout << std::endl;
+
 			std::cout << rootTree->evaluateNode(variables) << std::endl;
+			
 			delete rootTree;
 		}
 		catch(const std::runtime_error& e) {

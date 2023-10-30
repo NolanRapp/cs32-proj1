@@ -143,15 +143,15 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
     }
 
     else if (isalpha(nextToken.at(0))) {
-        if ((variables.find(nextToken) != variables.end())) {
+        //if ((variables.find(nextToken) != variables.end())) {
             TreeIdentifier* leaf = new TreeIdentifier(nextToken);
             scanToken(tokenizedQ); // Consume the variable 
             return leaf;
-        }
+        /*}
         else {
             // TODO: have to print wrong expression infix still
             throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
-        }
+        }*/
     }
 
     else {

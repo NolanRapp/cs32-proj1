@@ -141,4 +141,3 @@ void TreeIdentifier::printInfix() const{
 std::string TreeIdentifier::getID(){
 	return idName;	
 }
-

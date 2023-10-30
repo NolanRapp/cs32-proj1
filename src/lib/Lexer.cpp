@@ -2,8 +2,8 @@
 
 
 // Creates "END" token, prevents the queue from being empty
-void Lexer::createEnd(std::queue<Token>& inputq, int line, int column) {
-    inputq.push(Token(line, column, "END"));
+void Lexer::createEnd(std::deque<Token>& inputq, int line, int column) {
+    inputq.push_back(Token(line, column, "END"));
 }
 
 
@@ -16,20 +16,20 @@ void Lexer::printTokens() {
         << std::setw(5) << std::right << printToken.column << "  " << printToken.text << std::endl;
         // using example from  https://cplusplus.com/reference/iomanip/setw/ 
         
-        lexTokens.pop();
+        lexTokens.pop_front();
     }
 }
 
 
 
-// Used to retrieve queue for classes using the Tokens
-std::queue<Token> Lexer::getLexQueue() {
+// Used to retrieve deque for classes using the Tokens
+std::deque<Token> Lexer::getLexQueue() {
     return lexTokens;
 }
 
 
 
-// Constructs the queue based on standard output, stores it in member variable
+// Constructs the deque based on standard output, stores it in member variable
 void Lexer::lex(std::string& inputString) {
 	std::istringstream stream(inputString);
     int line = 1;
@@ -59,9 +59,9 @@ void Lexer::lex(std::string& inputString) {
 
         if (!isspace(i)) {
 
-            //if valid operator/parenthesis input, add to output queue:
+            //if valid operator/parenthesis input, add to output deque:
             if (valid.find(i) != valid.end()) {
-                lexTokens.push(Token(line,column, std::string(1, i)));
+                lexTokens.push_back(Token(line,column, std::string(1, i)));
             }
 
             //if is an identifier (starts with alphanum or _)
@@ -74,7 +74,7 @@ void Lexer::lex(std::string& inputString) {
                     placeholder += nextChar;
                     column++;
                 }
-                lexTokens.push(Token(line,startingColumn, placeholder));
+                lexTokens.push_back(Token(line,startingColumn, placeholder));
             }
             
 
@@ -111,7 +111,7 @@ void Lexer::lex(std::string& inputString) {
                     exit(1);
                 }
 
-                lexTokens.push(Token(line,startingColumn, placeholder));
+                lexTokens.push_back(Token(line,startingColumn, placeholder));
             }
             // if not space, valid operator, or valid number, print error:
             else {
@@ -124,6 +124,3 @@ void Lexer::lex(std::string& inputString) {
     } 
     createEnd(lexTokens, line, column);
 }
-
-
-

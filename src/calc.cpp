@@ -4,7 +4,7 @@
 
 int main() {
 
-	std::queue<Token> tokens; // holds all standard input
+	std::deque<Token> tokens; // holds all standard input
 	std::unordered_map<std::string, double> variables; // holds all currently assigned variables
 	std::string line;
 	New_Parser infix;
@@ -13,14 +13,12 @@ int main() {
 		try {
 			Lexer lexer;
 			lexer.lex(line);
-			std::queue<Token> tokenizedQ = lexer.getLexQueue();
+			std::deque<Token> tokenizedQ = lexer.getLexQueue();
 			TreeNode* rootTree = infix.parse(tokenizedQ, variables);
 
 			rootTree->printInfix();
 			std::cout << std::endl;
-
-			double result = rootTree->evaluateNode(variables);
-			std::cout << result << std::endl;
+			std::cout << rootTree->evaluateNode(variables) << std::endl;
 			delete rootTree;
 		}
 		catch(const std::runtime_error& e) {

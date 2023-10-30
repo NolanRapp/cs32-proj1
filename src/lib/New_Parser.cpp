@@ -10,14 +10,21 @@ New_Parser::~New_Parser() {
 
 
 
-void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
+void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
     // function to "consume" current token, moving nextToken to next value on the queue
 
     if (!tokenizedQ.empty()) {
         nextToken = tokenizedQ.front().text;
+        if (nextToken == "END") {
+            lookahead = "END";
+        }
+        else {
+            lookahead = tokenizedQ[1].text;
+        }
+
         currentLine = tokenizedQ.front().line;
         currentColumn = tokenizedQ.front().column;
-        tokenizedQ.pop();
+        tokenizedQ.pop_front();
     }
 
     else {
@@ -27,10 +34,10 @@ void New_Parser::scanToken(std::queue<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 3rd order operations (expressions): "+" and "-" 
     TreeNode* node = parseT(tokenizedQ, variables);
-    
+
     if (node == nullptr) {
         newParseError(currentLine, currentColumn, nextToken);
     }
@@ -65,7 +72,7 @@ TreeNode* New_Parser::parseE(std::queue<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 2nd order operations (terms): "*" and "/"
     TreeNode* node = parseF(tokenizedQ, variables);
 
@@ -96,7 +103,7 @@ TreeNode* New_Parser::parseT(std::queue<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to process 4th order operators (factors): integer, identifier
     std::string errorToken = nextToken; 
     int errorColumn = currentColumn;
@@ -118,10 +125,12 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ, std::unordered_map<s
         return leaf;
     }
 
-    else if (isalpha(nextToken.at(0)) && (variables.find(varName) != variables.end())) {
-        double val = variables[varName];
+    else if (isalpha(nextToken.at(0)) && (variables.find(nextToken) != variables.end())) {
+        double val = variables[nextToken];
         TreeLeaf* leaf = new TreeLeaf(val);
-        scanToken(tokenizedQ);
+
+        scanToken(tokenizedQ); // consuming the variable 
+
         return leaf;
     }
 
@@ -130,8 +139,7 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ, std::unordered_map<s
         TreeNode* node = nullptr;
 
         if (isalpha(nextToken.at(0))) {
-            TreeIdentifier* ID = new TreeIdentifier(nextToken);
-            node = parseA(ID, tokenizedQ, variables); // if next token is a variable assignment in parenthesis
+            node = parseA(tokenizedQ, variables); // if next token is a variable assignment in parenthesis
         }
         else {
             node = parseE(tokenizedQ, variables);
@@ -155,43 +163,58 @@ TreeNode* New_Parser::parseF(std::queue<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parseA(TreeIdentifier* id, std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to parse assignments
     // recursively calls itself if there are many instances of "="
 
-    varName = nextToken;
-    scanToken(tokenizedQ);
+    /*if ((isalpha(nextToken.at(0))) && (lookahead != "=")) {
+        parseE(tokenizedQ, variables);
+    }*/
 
-    if (nextToken != "=") {
-        /* TODO:
-        okay what's going on here is that the input "x" gets consumed above ^^
-        so nextToken is set to "END". This is fine but when going through parseF, 
-        the parser has no way to tell what the variable was to properly find it in 
-        the variable map... 
-        I was thinking of storing a memeber variable "varName" and setting it equal to
-        the token before consuming it above? Not sure if there's a better way though
-        */
-        return parseE(tokenizedQ, variables);
+    TreeIdentifier* id = new TreeIdentifier(nextToken);
+
+    if (lookahead != "=") {
+        newParseError(currentLine, currentColumn, nextToken);
     }
 
+    scanToken(tokenizedQ); // consume the variable 
     scanToken(tokenizedQ); // consume the "="
 
     TreeOperator* assignmentNode = new TreeOperator('=');
-
     assignmentNode->addChild(id);
 
-    TreeNode* assignVal = parseE(tokenizedQ, variables);
-    assignmentNode->addChild(assignVal);
 
+    if ((!tokenizedQ.empty()) && (nextToken == "(")) {
+        scanToken(tokenizedQ); // consume the "("
+        TreeNode* nestedParenthesis = parseA(tokenizedQ, variables);
+
+        if (tokenizedQ.empty() || nextToken != ")") {
+            newParseError(currentLine, currentColumn, nextToken);
+        }
+        scanToken(tokenizedQ); // consuming ")"
+        assignmentNode->addChild(nestedParenthesis);
+    }
+
+    else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0)))) {
+        TreeNode* nestedAssignment = parseA(tokenizedQ, variables);
+        assignmentNode->addChild(nestedAssignment);
+    }
+
+    else {
+        TreeNode* expressionNode = parseE(tokenizedQ, variables);
+        assignmentNode->addChild(expressionNode);
+
+    }
+    
     double val = assignmentNode->evaluateNode(variables);
-    variables[varName] = val;
-
+    variables[id->getID()] = val;
     return assignmentNode;
+
 }
 
 
 
-TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
     // function to parse entire input, and end when "END" token is reached
     scanToken(tokenizedQ); // initial consumption
     TreeNode* rootTree = nullptr;
@@ -203,13 +226,20 @@ TreeNode* New_Parser::parse(std::queue<Token>& tokenizedQ, std::unordered_map<st
     std::string errorToken = nextToken; 
     int errorColumn = currentColumn;
 
-    if (isalpha(nextToken.at(0))) {
-        TreeIdentifier* ID = new TreeIdentifier(nextToken);
-        rootTree = parseA(ID, tokenizedQ, variables);
+    if ((isalpha(nextToken.at(0))) && (lookahead == "=")) {
+        rootTree = parseA(tokenizedQ, variables);
+
         if (rootTree == nullptr) {
             newParseError(currentLine, errorColumn, errorToken);
         }
+
     }
+
+    else if ((isalpha(nextToken.at(0))) && (lookahead != "=")) {
+        //TreeIdentifier* ID = new TreeIdentifier(nextToken);
+        rootTree = parseE(tokenizedQ, variables);
+    }
+
     else {
         rootTree = parseE(tokenizedQ, variables);
 

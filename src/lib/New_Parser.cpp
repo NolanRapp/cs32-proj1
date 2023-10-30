@@ -147,11 +147,12 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
             TreeIdentifier* leaf = new TreeIdentifier(nextToken);
             scanToken(tokenizedQ); // Consume the variable 
             return leaf;
-        /*}
-        else {
+        //}
+        //else {
             // TODO: have to print wrong expression infix still
-            throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
-        }*/
+            //throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
+
+        //}
     }
 
     else {
@@ -228,8 +229,8 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     assignmentNode->addChild(rhs);
     
     // Evaluate the expression and assign the value to the variable
-    double val = assignmentNode->evaluateNode(variables);
-    variables[id->getID()] = val;
+    //double val = assignmentNode->evaluateNode(variables);
+    //variables[id->getID()] = val;
 
     return assignmentNode;
 }

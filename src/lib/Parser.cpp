@@ -10,7 +10,8 @@ Parser::Parser(){}
 // 
 Parser::~Parser(){
 	while(!isEmpty()){
-		delete popHead();
+		TreeNode* tempHead = popHead();
+		delete tempHead;
 	}
 }
 

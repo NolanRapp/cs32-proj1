@@ -47,6 +47,12 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
     while (nextToken == "+" || nextToken == "-") {
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
 
+        if (operatorNode == nullptr) {
+            delete operatorNode;
+            newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
+        }
+
         operatorNode->addChild(node);
 
         scanToken(tokenizedQ);
@@ -88,6 +94,12 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
     while (nextToken == "*" || nextToken == "/") {
 
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
+
+        if (operatorNode == nullptr) {
+            delete operatorNode;
+            newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
+        }
 
         operatorNode->addChild(node);
 

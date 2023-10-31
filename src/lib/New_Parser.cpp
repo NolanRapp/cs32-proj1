@@ -79,14 +79,12 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
-            //delete operatorNode;
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
         std::unique_ptr<TreeNode> right(parseF(tokenizedQ, variables));
 
         if (right == nullptr) {
-            //delete operatorNode;
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
@@ -95,6 +93,7 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
     }
 
     return node.release();
+
 }
 
 

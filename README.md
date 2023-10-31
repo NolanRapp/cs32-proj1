@@ -66,7 +66,7 @@ Part 2: Persistence
             
             Important Additions:
                 Parse:
-                    This is the base function for parsing an expression or assignment. It looks at the current token and the token ahead of it to decide which parsing function to enter.
+                    This is the base function for parsing an expression or assignment. It looks at the current token and the token ahead of it to decide which parsing function to enter. It throws parse errors from Error.h.
                     
                     ParseE and ParseT:
                         Parses an expression (+ or -), or parses a term (* or /)

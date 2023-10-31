@@ -32,7 +32,9 @@ int main() {
 
 		catch(const std::runtime_error& e) {
 			std::cout << e.what() << std::endl;
-			delete rootTree;
+			if (rootTree == nullptr) {
+				delete rootTree;
+			}
 		}
 	}
 };

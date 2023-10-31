@@ -47,12 +47,6 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
     while (nextToken == "+" || nextToken == "-") {
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
 
-        if (operatorNode == nullptr) {
-            delete operatorNode;
-            newParseError(currentLine, currentColumn, nextToken);
-            return nullptr;
-        }
-
         operatorNode->addChild(node);
 
         scanToken(tokenizedQ);
@@ -94,12 +88,6 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
     while (nextToken == "*" || nextToken == "/") {
 
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
-
-        if (operatorNode == nullptr) {
-            delete operatorNode;
-            newParseError(currentLine, currentColumn, nextToken);
-            return nullptr;
-        }
 
         operatorNode->addChild(node);
 
@@ -166,7 +154,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
             node = parseE(tokenizedQ, variables);
         }
 
-        if (nextToken == ")") {
+        if ((nextToken == ")")) {
             scanToken(tokenizedQ); // consume closing parenthesis
             return node;
         }
@@ -316,7 +304,6 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
     if (nextToken == "END" && lookahead == "END") {
         return rootTree;
     }
-    
     else {
         newParseError(currentLine, currentColumn, nextToken);
         return nullptr;

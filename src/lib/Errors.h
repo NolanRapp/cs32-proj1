@@ -5,6 +5,7 @@
 #include <string>
 
 
+// Used for invalid characters
 class LexError: public std::runtime_error {
 	int mLine;
 	int mColumn;
@@ -15,6 +16,7 @@ public:
 	}
 };
 
+// Used for errors when parsing input
 class ParseError: public std::runtime_error {
 	int mLine;
 	int mColumn;

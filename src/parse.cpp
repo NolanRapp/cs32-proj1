@@ -17,7 +17,7 @@ int main() {
 	// Creates deque by reading user input and feeds into a parser
 	Lexer lexer;
 
-	try {
+	try { // Attempts to lex input
 		lexer.lex(totalString);
 	}
 	catch(const LexError& e){
@@ -26,7 +26,7 @@ int main() {
 	}
 
 	Parser parser;
-	try {
+	try { // Attempts to parse queue
 		parser.createForest(lexer.getLexQueue());
 	}
 	catch(const ParseError& e){
@@ -40,7 +40,7 @@ int main() {
 		ASThead->printInfix();
 		std::cout << std::endl;
 
-		try {
+		try { // Attempts to evaluate AST in forest
 			double calculation = ASThead->evaluateNode(variables);
 			delete ASThead;
 			std::cout << calculation << std::endl;

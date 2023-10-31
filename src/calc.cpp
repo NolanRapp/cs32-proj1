@@ -18,21 +18,16 @@ int main() {
 			std::deque<Token> tokenizedQ = lexer.getLexQueue();
 			rootTree = infix.parse(tokenizedQ, variables);
 
-			/*if (rootTree == nullptr) {
-				// precautionary... I dont think this will ever be entered
-				continue;
-			}*/
-
 			rootTree->printInfix();
 			std::cout << std::endl;
 
 			std::cout << rootTree->evaluateNode(variables) << std::endl;
 
 		}
-
+		
 		catch(const std::runtime_error& e) {
 			std::cout << e.what() << std::endl;
-			//delete rootTree;
+			delete rootTree;
 		}
 	}
 };

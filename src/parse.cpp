@@ -11,13 +11,28 @@ int main() {
 		totalString += inChar;
 	}
 	
-	std::queue<Token> tokens; // Holds all standard input
+	std::deque<Token> tokens; // Holds all standard input
 	std::unordered_map<std::string, double> variables; // Holds all currently assigned variables
 
-	// Creates queue by reading user input and feeds into a parser
+	// Creates deque by reading user input and feeds into a parser
 	Lexer lexer;
-	lexer.lex(totalString);
-	Parser parser(lexer.getLexQueue());
+
+	try { // Attempts to lex input
+		lexer.lex(totalString);
+	}
+	catch(const LexError& e){
+		std::cout << e.what() << std::endl;
+		return 1;
+	}
+
+	Parser parser;
+	try { // Attempts to parse queue
+		parser.createForest(lexer.getLexQueue());
+	}
+	catch(const ParseError& e){
+		std::cout << e.what() << std::endl;
+		return 2;
+	}
 
 	while(!parser.isEmpty()){
 		// Evaluates current AST
@@ -25,7 +40,7 @@ int main() {
 		ASThead->printInfix();
 		std::cout << std::endl;
 
-		try {
+		try { // Attempts to evaluate AST in forest
 			double calculation = ASThead->evaluateNode(variables);
 			delete ASThead;
 			std::cout << calculation << std::endl;
@@ -36,7 +51,6 @@ int main() {
 			return 3;
 		}
 	}
-	
 	return 0;
 };
 

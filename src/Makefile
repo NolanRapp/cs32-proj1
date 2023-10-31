@@ -35,4 +35,4 @@ Lexer.o: lib/Lexer.cpp lib/Lexer.h lib/Token.h
 
 
 clean:
-	rm *.o lib/*.gch Parser Lexer
+	rm *.o lib/*.gch Parser Lexer New_Parser

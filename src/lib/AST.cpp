@@ -25,7 +25,7 @@ void TreeLeaf::printInfix() const {
 
 
 
-// Stores single char holding one of the 4 operators (+,-,/,*) in Operator
+// Stores single char holding one of the 5 operators (+,-,/,*,=) in Operator
 TreeOperator::TreeOperator(char operation) {
     this->operation = operation;
 }

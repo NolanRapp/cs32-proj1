@@ -3,8 +3,9 @@
 
 
 #include "Token.h"
+#include "Errors.h"
 #include <vector>
-#include <queue>
+#include <deque>
 #include <set>
 #include <iostream>
 #include <iomanip>
@@ -14,17 +15,17 @@
 
 class Lexer {
 	/*
-	This class is used to construct a queue using standard input. This
-	queue will be made of Tokens which are readable by the Parser class.
+	This class is used to construct a de-queue using standard input. This
+	de queue will be made of Tokens which are readable by the Parser class.
 	*/
     public: 
-        void createEnd(std::queue<Token>& inputq, int line, int column);
+        void createEnd(std::deque<Token>& inputq, int line, int column);
         void printTokens();
         void lex(std::string& inputString);
-        std::queue<Token> getLexQueue();
+        std::deque<Token> getLexQueue();
 
     private:
-        std::queue<Token> lexTokens;
+        std::deque<Token> lexTokens;
 
 };
 

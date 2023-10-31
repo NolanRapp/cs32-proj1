@@ -64,7 +64,7 @@ class TreeOperator : public TreeNode {
 			return "";
 		}; 
 		~TreeOperator() {
-            for (TreeNode* child : children) {
+            for (auto child : children) {
 		        delete child;
 	        }
 	        children.clear();

@@ -9,7 +9,7 @@ class LexError: public std::runtime_error {
 	int mLine;
 	int mColumn;
 public:
-	LexError(int line, int col): std::runtime_error("Syntax error on line " + std::to_string(line) + " column " + std::to_string(col))  {
+	LexError(int line, int col): std::runtime_error("Syntax error on line " + std::to_string(line) + " column " + std::to_string(col) + ".")  {
 		mLine = line;
 		mColumn = col;
 	}

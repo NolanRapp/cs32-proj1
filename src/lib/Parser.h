@@ -18,6 +18,7 @@ class Parser {
 
     public:
         Parser();
+		~Parser();
 		void createForest(std::deque<Token> oInput);
 		void createTree(std::deque<Token>& input);
         TreeNode* popHead();

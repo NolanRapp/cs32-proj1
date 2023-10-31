@@ -2,12 +2,12 @@
 #include "AST.h" // redundant
 
 
-// Feeds an entire queue made from a single Lexer and outputs multiple ASTs
+// No Constructor
 Parser::Parser(){}
 
 
 
-//
+// Feeds an entire queue made from a single Lexer and outputs multiple ASTs
 void Parser::createForest(std::deque<Token> oInput){
 	while(oInput.front().text != "END"){
 		createTree(oInput);

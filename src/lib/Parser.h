@@ -5,6 +5,7 @@
 #include "Token.h"
 #include "AST.h"
 #include "Errors.h"
+#include <memory>
 #include <deque>
 #include <set>
 

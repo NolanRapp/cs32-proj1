@@ -58,13 +58,13 @@ void Parser::createTree(std::deque<Token>& input) {
 // Evaluates an S expression in the context of "(" and ")", make sure it starts with operator
 TreeNode* Parser::closedTree(std::deque<Token>& input){
 	input.pop_front();
-	TreeNode* head;
+	std::unique_ptr<TreeNode> head;
 
 	if(isOp(input.front().text)){ // Checks for conventional operator tree
-		head = opTree(input);
+		head.reset(opTree(input));
 	}
 	else if(input.front().text == "="){ // Checks for assignment tree
-		head = assignTree(input);
+		head.reset(assignTree(input));
 	}
 	else{	
 		throw ParseError(input.front().line, input.front().column, input.front().text);
@@ -72,13 +72,12 @@ TreeNode* Parser::closedTree(std::deque<Token>& input){
 	}
 
 	if(input.front().text != ")"){
-		delete head;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Closed trees should end in ")")
 	}
 	input.pop_front();
 
-	return head;
+	return head.release();
 }
 
 
@@ -86,7 +85,7 @@ TreeNode* Parser::closedTree(std::deque<Token>& input){
 // Evaluates an S expression from its operator by adding valid children to it on the AST
 TreeNode* Parser::opTree(std::deque<Token>& input){
 
-	TreeOperator* op = new TreeOperator(input.front().text.at(0));
+	std::unique_ptr<TreeOperator> op(new TreeOperator(input.front().text.at(0)));
 	TreeNode* 		tempExp;
 	TreeLeaf* 		tempLeaf;
 	TreeIdentifier* tempID;
@@ -121,12 +120,11 @@ TreeNode* Parser::opTree(std::deque<Token>& input){
 	}
 
 	if(childNum < 1){
-		delete op;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Operation tree needs atleast 1 children)
 	}
 
-	return op;
+	return op.release();
 }
 
 
@@ -134,7 +132,7 @@ TreeNode* Parser::opTree(std::deque<Token>& input){
 // Evaluates an assignment expression, confirms conditions for valid expression
 TreeNode* Parser::assignTree(std::deque<Token>& input){
 	
-	TreeOperator* assign = new TreeOperator(input.front().text.at(0));
+	std::unique_ptr<TreeOperator> assign(new TreeOperator(input.front().text.at(0)));
 	TreeIdentifier* tempID;
 	int childNum = 0;
 	input.pop_front();
@@ -149,7 +147,6 @@ TreeNode* Parser::assignTree(std::deque<Token>& input){
 	}
 
 	if(childNum < 1){
-		delete assign;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Assign tree needs atleast 1 identifier)	
 	}
@@ -165,18 +162,16 @@ TreeNode* Parser::assignTree(std::deque<Token>& input){
 		assign->addChild(tempExp);
 	}
 	else if(childNum < 2){
-		delete assign;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (If no trailing number or expression there should be atleast 2 identifiers)
 	}
 
 	if(input.front().text != ")"){
-		delete assign;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Assign tree should only have ")" after number or expression)
 	}
 
-	return assign;
+	return assign.release();
 }
 
 

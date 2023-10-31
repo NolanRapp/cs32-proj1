@@ -41,16 +41,20 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
     if (node == nullptr) {
         newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
     }
 
     while (nextToken == "+" || nextToken == "-") {
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
+
         operatorNode->addChild(node);
+
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
             delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
         TreeNode* right = parseT(tokenizedQ, variables);
@@ -58,9 +62,11 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
         if (right == nullptr) {
             delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
         operatorNode->addChild(right);
+
         node = operatorNode;
     }
 
@@ -74,15 +80,23 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
     TreeNode* node = parseF(tokenizedQ, variables);
 
+    if (node == nullptr) {
+        newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
+    }
+
     while (nextToken == "*" || nextToken == "/") {
 
         TreeOperator* operatorNode = new TreeOperator(nextToken.at(0));
+
         operatorNode->addChild(node);
+
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
             delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
         TreeNode* right = parseF(tokenizedQ, variables);
@@ -90,9 +104,11 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
         if (right == nullptr) {
             delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
         operatorNode->addChild(right);
+
         node = operatorNode;
     }
 
@@ -106,6 +122,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
     if (nextToken.empty()) {
         newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
     }
 
     if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
@@ -114,6 +131,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         if (leaf == nullptr) {
             delete leaf;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
         scanToken(tokenizedQ); // Consume digit
@@ -126,6 +144,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
         if (nextToken == "END") {
             newParseError(currentLine, currentColumn, nextToken); // missing closing parenthesis
+            return nullptr;
         }
 
         if (isalpha(nextToken.at(0)) && (lookahead == "=")) {
@@ -141,6 +160,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         }
         else {
             newParseError(currentLine, currentColumn, nextToken); // Throws error corresponding to "END" token, missing closing parenthesis
+            return nullptr;
         }
     }
 
@@ -152,6 +172,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
             if (leaf == nullptr) {
                 delete leaf;
                 newParseError(currentLine, currentColumn, nextToken);
+                return nullptr;
             }
 
             return leaf;
@@ -159,6 +180,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
     else {
         newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
     }
 
     return nullptr; // Should never reach here
@@ -192,6 +214,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
                 delete assignmentNode;
                 delete id;
                 newParseError(currentLine, currentColumn, nextToken);
+                return nullptr;
             }
 
             assignmentNode->addChild(rhs);
@@ -203,6 +226,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
             delete assignmentNode;
             delete id;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
         scanToken(tokenizedQ); // Consuming ")"
     }
@@ -221,6 +245,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
             delete assignmentNode;
             delete id;
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
         assignmentNode->addChild(rhs);
@@ -231,6 +256,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         delete assignmentNode;
         delete id;
         newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
     }
 
     assignmentNode->addChild(rhs);
@@ -247,6 +273,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
 
     if (nextToken.empty()) {
         newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
     }
 
     if ((isalpha(nextToken.at(0))) && (lookahead == "=")) {
@@ -254,6 +281,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
 
         if (rootTree == nullptr) {
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
 
     }
@@ -267,6 +295,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
 
         if (rootTree == nullptr) {
             newParseError(currentLine, currentColumn, nextToken);
+            return nullptr;
         }
     }
 
@@ -277,6 +306,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
     }
     else {
         newParseError(currentLine, currentColumn, nextToken);
+        return nullptr;
     }
 
     return nullptr;

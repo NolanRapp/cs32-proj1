@@ -72,6 +72,7 @@ TreeNode* Parser::closedTree(std::deque<Token>& input){
 	}
 
 	if(input.front().text != ")"){
+		delete head;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Closed trees should end in ")")
 	}
@@ -120,6 +121,7 @@ TreeNode* Parser::opTree(std::deque<Token>& input){
 	}
 
 	if(childNum < 1){
+		delete op;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Operation tree needs atleast 1 children)
 	}
@@ -147,6 +149,7 @@ TreeNode* Parser::assignTree(std::deque<Token>& input){
 	}
 
 	if(childNum < 1){
+		delete assign;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Assign tree needs atleast 1 identifier)	
 	}
@@ -162,11 +165,13 @@ TreeNode* Parser::assignTree(std::deque<Token>& input){
 		assign->addChild(tempExp);
 	}
 	else if(childNum < 2){
+		delete assign;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (If no trailing number or expression there should be atleast 2 identifiers)
 	}
 
 	if(input.front().text != ")"){
+		delete assign;
 		throw ParseError(input.front().line, input.front().column, input.front().text);
 		// Parse Error (Assign tree should only have ")" after number or expression)
 	}

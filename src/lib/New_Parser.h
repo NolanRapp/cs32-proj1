@@ -4,6 +4,7 @@
 #include "Lexer.h"
 #include "Token.h"
 #include "AST.h"
+#include "Errors.h"
 
 #include <deque>
 #include <memory>
@@ -35,7 +36,7 @@ class New_Parser {
         std::string lookahead; // this is, at any point, the token ahead of nextToken
 
         void scanToken(std::deque<Token>& tokenizedQ); // sets nextToken to point to the newly scanned token
-        void newParseError(int line, int col, std::string text) const;
+        //void throw ParseError(int line, int col, std::string text) const;
 
         int currentLine;
         int currentColumn;

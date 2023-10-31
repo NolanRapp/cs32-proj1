@@ -87,7 +87,7 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
         TreeNode* right = parseF(tokenizedQ, variables);
 
         if (right == nullptr) {
-            delete operatorNode
+            delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
 

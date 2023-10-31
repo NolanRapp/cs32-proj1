@@ -4,6 +4,7 @@
 
 #include "Token.h"
 #include "AST.h"
+#include "Errors.h"
 #include <deque>
 #include <set>
 
@@ -16,7 +17,8 @@ class Parser {
     */
 
     public:
-        Parser(std::deque<Token> oInput);
+        Parser();
+		void createForest(std::deque<Token> oInput);
 		void createTree(std::deque<Token>& input);
         TreeNode* popHead();
 		bool isEmpty() const;
@@ -29,7 +31,6 @@ class Parser {
 			"+",
 			"-"
 		};
-        void parseError(int line, int col, std::string text) const;
 		bool isOp(std::string str) const; // Used to make syntax more intuitive to the reader
 
 		TreeNode* closedTree(std::deque<Token>& input);

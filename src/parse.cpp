@@ -16,8 +16,23 @@ int main() {
 
 	// Creates deque by reading user input and feeds into a parser
 	Lexer lexer;
-	lexer.lex(totalString);
-	Parser parser(lexer.getLexQueue());
+
+	try {
+		lexer.lex(totalString);
+	}
+	catch(const LexError& e){
+		std::cout << e.what() << std::endl;
+		return 1;
+	}
+
+	Parser parser;
+	try {
+		parser.createForest(lexer.getLexQueue());
+	}
+	catch(const ParseError& e){
+		std::cout << e.what() << std::endl;
+		return 2;
+	}
 
 	while(!parser.isEmpty()){
 		// Evaluates current AST
@@ -36,7 +51,6 @@ int main() {
 			return 3;
 		}
 	}
-	
 	return 0;
 };
 

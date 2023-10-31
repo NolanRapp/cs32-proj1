@@ -13,7 +13,13 @@ int main() {
 
 	// Creates Lexer with standard input and outputs in requested format
     Lexer lexer;
-    lexer.lex(totalString);
+	try {
+		lexer.lex(totalString);
+	}
+	catch(const LexError& e) {
+		std::cout << e.what() << std::endl;
+		return 1;
+	}
     lexer.printTokens();
 
     return 0;

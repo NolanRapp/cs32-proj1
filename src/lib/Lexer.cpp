@@ -92,8 +92,9 @@ void Lexer::lex(std::string& inputString) {
                     if (stream.peek() == '.') {
                         // checking for multiple decimals
                         if (decimal) {
-                            std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
-                            exit(1);
+							throw LexError(line, column + 1);
+                            //  std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
+                            //  exit(1);
                         }
                         else {
 							decimal = true;
@@ -107,16 +108,18 @@ void Lexer::lex(std::string& inputString) {
 
                 // checking for trailing decimal
                 if (placeholder.back() == '.') {
-                    std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
-                    exit(1);
+					throw LexError(line, column + 1);
+                    //  std::cout << "Syntax error on line " << line << " column " << column + 1 << ".\n";
+                    //  exit(1);
                 }
 
                 lexTokens.push_back(Token(line,startingColumn, placeholder));
             }
             // if not space, valid operator, or valid number, print error:
             else {
-                std::cout << "Syntax error on line " << line << " column " << column << ".\n";
-                exit(1);
+				throw LexError(line, column);
+                //  std::cout << "Syntax error on line " << line << " column " << column << ".\n";
+                //  exit(1);
             }
         }
         // if input is space, add column:
@@ -124,3 +127,4 @@ void Lexer::lex(std::string& inputString) {
     } 
     createEnd(lexTokens, line, column);
 }
+

@@ -3,6 +3,7 @@
 
 
 #include "Token.h"
+#include "Errors.h"
 #include <vector>
 #include <deque>
 #include <set>

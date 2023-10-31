@@ -32,11 +32,7 @@ int main() {
 
 		catch(const std::runtime_error& e) {
 			std::cout << e.what() << std::endl;
-		}
-
-		if (rootTree != nullptr) {
 			delete rootTree;
-			// if rootTree was created but error thrown, delete it
 		}
 	}
 };

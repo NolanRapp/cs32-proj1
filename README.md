@@ -62,4 +62,19 @@ Part 2: Persistence
                     This function was only required when only single expression were allowed. Now with multiple expressions the logic is simpler for handling single numbers so it was removed.           
 
     Infix Notation:
+        The New_Parser now parses expressions in infix notation, supporting equations in order of operations. The program uses the Recursive Descent Parser logic to parse the expression, building the AST top-down. New_Parser also handles variable assignment and usage within expressions.
+            
+            Important Additions:
+                Parse:
+                    This is the base function for parsing an expression or assignment. It looks at the current token and the token ahead of it to decide which parsing function to enter.
+                    
+                    ParseE and ParseT:
+                        Parses an expression (+ or -), or parses a term (* or /)
+                    ParseF:
+                        Parses factors (integers and identifiers)
+                    ParseA:
+                        Parses assignments, and recursively calls itself if there are many / nested instances of assignments.
+                
+                scanToken:
+                    This implements std::deque to assign the current token to a variable called nextToken, and peek ahead at the next token.
         

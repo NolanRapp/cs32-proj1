@@ -7,7 +7,7 @@ Parser::Parser(){}
 
 
 
-// 
+// Loops through all trees and deletes
 Parser::~Parser(){
 	while(!isEmpty()){
 		TreeNode* tempHead = popHead();

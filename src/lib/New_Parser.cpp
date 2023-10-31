@@ -256,13 +256,12 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
         }
     }
 
-    /*if (nextToken == "END" && lookahead == "END") {
+    if (nextToken == "END" && lookahead == "END") {
         return rootTree.release();
     }
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
-    }*/
-    return rootTree.release();
+    }
 
     return nullptr;
 }

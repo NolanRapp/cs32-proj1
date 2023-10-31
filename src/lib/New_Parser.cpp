@@ -80,12 +80,14 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
+            delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
 
         TreeNode* right = parseF(tokenizedQ, variables);
 
         if (right == nullptr) {
+            delete operatorNode
             newParseError(currentLine, currentColumn, nextToken);
         }
 
@@ -187,6 +189,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
             if (rhs == nullptr) {
                 delete assignmentNode;
+                delete id;
                 newParseError(currentLine, currentColumn, nextToken);
             }
 
@@ -197,6 +200,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
         if (tokenizedQ.empty() || nextToken != ")") {
             delete assignmentNode;
+            delete id;
             newParseError(currentLine, currentColumn, nextToken);
         }
         scanToken(tokenizedQ); // Consuming ")"
@@ -214,6 +218,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
         if (rhs == nullptr) {
             delete assignmentNode;
+            delete id;
             newParseError(currentLine, currentColumn, nextToken);
         }
 
@@ -223,15 +228,11 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     
     if (rhs == nullptr) {
         delete assignmentNode;
+        delete id;
         newParseError(currentLine, currentColumn, nextToken);
     }
 
     assignmentNode->addChild(rhs);
-    
-    // Evaluate the expression and assign the value to the variable
-    //double val = assignmentNode->evaluateNode(variables);
-    //variables[id->getID()] = val;
-
     return assignmentNode;
 }
 

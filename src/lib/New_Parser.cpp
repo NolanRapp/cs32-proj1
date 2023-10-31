@@ -186,11 +186,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
                 throw ParseError(currentLine, currentColumn, nextToken);
             }
 
-            assignmentNode->addChild(rhs.release());
-            return assignmentNode.release();
-            // Returns because we don't want to double evaluateNode
         }
-
         if (tokenizedQ.empty() || nextToken != ")") {
             throw ParseError(currentLine, currentColumn, nextToken);
         }

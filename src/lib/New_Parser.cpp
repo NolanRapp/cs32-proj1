@@ -49,14 +49,14 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
-            delete operatorNode;
+            //delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
 
         TreeNode* right = parseT(tokenizedQ, variables);
 
         if (right == nullptr) {
-            delete operatorNode;
+            //delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
 
@@ -81,14 +81,14 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ);
 
         if (nextToken == "END") {
-            delete operatorNode;
+            //delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
 
         TreeNode* right = parseF(tokenizedQ, variables);
 
         if (right == nullptr) {
-            delete operatorNode;
+            //delete operatorNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
 
@@ -189,7 +189,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
             rhs = parseE(tokenizedQ, variables);
 
             if (rhs == nullptr) {
-                delete assignmentNode;
+                //delete assignmentNode;
                 delete id;
                 newParseError(currentLine, currentColumn, nextToken);
             }
@@ -200,7 +200,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         }
 
         if (tokenizedQ.empty() || nextToken != ")") {
-            delete assignmentNode;
+            //delete assignmentNode;
             delete id;
             newParseError(currentLine, currentColumn, nextToken);
         }
@@ -218,7 +218,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         rhs = parseE(tokenizedQ, variables);
 
         if (rhs == nullptr) {
-            delete assignmentNode;
+            //delete assignmentNode;
             delete id;
             newParseError(currentLine, currentColumn, nextToken);
         }
@@ -228,7 +228,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     }
     
     if (rhs == nullptr) {
-        delete assignmentNode;
+        //delete assignmentNode;
         delete id;
         newParseError(currentLine, currentColumn, nextToken);
     }

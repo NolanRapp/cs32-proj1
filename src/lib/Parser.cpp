@@ -7,6 +7,15 @@ Parser::Parser(){}
 
 
 
+// 
+Parser::~Parser(){
+	while(!isEmpty()){
+		delete popHead();
+	}
+}
+
+
+
 // Feeds an entire queue made from a single Lexer and outputs multiple ASTs
 void Parser::createForest(std::deque<Token> oInput){
 	while(oInput.front().text != "END"){

@@ -63,7 +63,6 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
         operatorNode->addChild(right);
         node = operatorNode;
     }
-
     return node;
 }
 
@@ -114,16 +113,16 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
             newParseError(currentLine, currentColumn, nextToken);
         }
 
-        scanToken(tokenizedQ);
+        scanToken(tokenizedQ); // Consume digit
         return leaf;
     }
 
     else if (nextToken == "(") {
-        scanToken(tokenizedQ); // Consume open parenthesis, move onto next
+        scanToken(tokenizedQ); // Consume open parenthesis
         TreeNode* node = nullptr;
 
         if (nextToken == "END") {
-            newParseError(currentLine, currentColumn, nextToken);
+            newParseError(currentLine, currentColumn, nextToken); // missing closing parenthesis
         }
 
         if (isalpha(nextToken.at(0)) && (lookahead == "=")) {
@@ -133,8 +132,8 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
             node = parseE(tokenizedQ, variables);
         }
 
-        if (nextToken == ")") {
-            scanToken(tokenizedQ); // Consume closing parenthesis
+        if ((nextToken == ")")) {
+            scanToken(tokenizedQ); // consume closing parenthesis
             return node;
         }
         else {
@@ -146,13 +145,13 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         //if ((variables.find(nextToken) != variables.end())) {
             TreeIdentifier* leaf = new TreeIdentifier(nextToken);
             scanToken(tokenizedQ); // Consume the variable 
-            return leaf;
-        //}
-        //else {
-            // TODO: have to print wrong expression infix still
-            //throw std::runtime_error("Runtime error: unknown identifier " + nextToken);
 
-        //}
+            if (leaf == nullptr) {
+                delete leaf;
+                newParseError(currentLine, currentColumn, nextToken);
+            }
+
+            return leaf;
     }
 
     else {
@@ -197,6 +196,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         }
 
         if (tokenizedQ.empty() || nextToken != ")") {
+            delete assignmentNode;
             newParseError(currentLine, currentColumn, nextToken);
         }
         scanToken(tokenizedQ); // Consuming ")"
@@ -267,7 +267,15 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
             newParseError(currentLine, currentColumn, nextToken);
         }
     }
-    return rootTree;
+
+    if (nextToken == "END" && lookahead == "END") {
+        return rootTree;
+    }
+    else {
+        newParseError(currentLine, currentColumn, nextToken);
+    }
+
+    return nullptr;
 }
 
 

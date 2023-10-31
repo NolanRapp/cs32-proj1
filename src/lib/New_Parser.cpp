@@ -63,6 +63,7 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
         operatorNode->addChild(right);
         node = operatorNode;
     }
+
     return node;
 }
 
@@ -268,6 +269,8 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
             newParseError(currentLine, currentColumn, nextToken);
         }
     }
+
+    //std::cout << "NextToken in parse: " << nextToken << "   Lookahead in parse: " << lookahead << std::endl;
 
     if (nextToken == "END" && lookahead == "END") {
         return rootTree;

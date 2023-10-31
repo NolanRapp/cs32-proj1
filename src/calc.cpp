@@ -10,21 +10,28 @@ int main() {
 	New_Parser infix;
 		
 	while(getline(std::cin, line)) {
+		TreeNode* rootTree = nullptr;
+
 		try {
 			Lexer lexer;
 			lexer.lex(line);
 			std::deque<Token> tokenizedQ = lexer.getLexQueue();
-			TreeNode* rootTree = infix.parse(tokenizedQ, variables);
+			rootTree = infix.parse(tokenizedQ, variables);
 
 			rootTree->printInfix();
 			std::cout << std::endl;
 
 			std::cout << rootTree->evaluateNode(variables) << std::endl;
-			
-			delete rootTree;
+
 		}
+		
 		catch(const std::runtime_error& e) {
 			std::cout << e.what() << std::endl;
+		}
+
+		if (rootTree != nullptr) {
+			delete rootTree;
+			// if rootTree was created but error thrown, delete it
 		}
 	}
 };

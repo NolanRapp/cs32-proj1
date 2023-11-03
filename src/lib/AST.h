@@ -55,7 +55,7 @@ class TreeOperator : public TreeNode {
     */
 
     public:
-        TreeOperator(char operation);
+        TreeOperator(std::string operation);
         virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
         virtual void 		printInfix() const;	
         		void 		addChild(TreeNode* child);
@@ -71,7 +71,7 @@ class TreeOperator : public TreeNode {
         };
 
     private:
-        char operation;
+        std::string operation;
         std::vector<TreeNode*> children;
 };
 
@@ -91,6 +91,19 @@ class TreeIdentifier : public TreeNode {
 
 	private:
 		std::string idName;
+};
+
+class TreeBoolean : public TreeNode {
+    /*
+    This classs is used to handle booleans, 
+    and print them as "true" and "false" instead of 1 and 0 */
+
+    public:
+        virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const;
+        virtual void printInfix() const;
+
+    private:
+        bool boolVal;
 };
 
 

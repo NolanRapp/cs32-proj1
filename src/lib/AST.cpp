@@ -26,7 +26,7 @@ void TreeLeaf::printInfix() const {
 
 
 // Stores single char holding one of the 5 operators (+,-,/,*,=) in Operator
-TreeOperator::TreeOperator(char operation) {
+TreeOperator::TreeOperator(std::string operation) {
     this->operation = operation;
 }
 
@@ -46,7 +46,7 @@ double TreeOperator::evaluateNode(std::unordered_map<std::string, double>& vars)
 	
 	double result;
 
-	if(operation == '='){
+	if(operation == "="){
 		// Sets result to final num/id which will return double or error
 		result = children[children.size() - 1]->evaluateNode(vars);
 
@@ -60,13 +60,12 @@ double TreeOperator::evaluateNode(std::unordered_map<std::string, double>& vars)
 
 	result = children[0]->evaluateNode(vars);
 
-	switch(operation) {
-	case '*':
+	if (operation == "*") { 
 		for (unsigned int i = 1; i < children.size(); i++) {
 			result *= children[i]->evaluateNode(vars);
 		}
-		break;
-	case '/':
+	}
+	else if (operation == "/") {
 		for (unsigned int i = 1; i < children.size(); i++) {
 			// Special case of dividing by 0
 			if (children[i]->evaluateNode(vars) == 0){
@@ -75,15 +74,35 @@ double TreeOperator::evaluateNode(std::unordered_map<std::string, double>& vars)
 
 			result /= children[i]->evaluateNode(vars);
 		}
-		break;
-	case '+':
+	}
+	else if (operation == "+") {
 		for (unsigned int i = 1; i < children.size(); i++) {
 			result += children[i]->evaluateNode(vars);
 		}
-		break;
-	case '-':
+	}
+	else if (operation == "-") {
 		for (unsigned int i = 1; i < children.size(); i++) {
 			result -= children[i]->evaluateNode(vars);
+		}
+	}
+	else if (operation == "<") {
+		for (unsigned int i = 1; i < children.size(); i++) {
+			result = children[i]->evaluateNode(vars) < children[i + 1]->evaluateNode(vars);
+		}
+	}
+	else if (operation == ">") {
+		for (unsigned int i = 1; i < children.size(); i++) {
+			result = children[i]->evaluateNode(vars) > children[i + 1]->evaluateNode(vars);
+		}
+	}
+	else if (operation == "<=") {
+		for (unsigned int i = 1; i < children.size(); i++) {
+			result = children[i]->evaluateNode(vars) <= children[i + 1]->evaluateNode(vars);
+		}
+	}
+	else if (operation == ">=") {
+		for (unsigned int i = 1; i < children.size(); i++) {
+			result = children[i]->evaluateNode(vars) >= children[i + 1]->evaluateNode(vars);
 		}
 	}
 
@@ -144,3 +163,20 @@ std::string TreeIdentifier::getID(){
 
 
 
+double TreeBoolean::evaluateNode(std::unordered_map<std::string, double>& vars) const {
+	if (boolVal) {
+		return 1.0;
+	}
+	else {
+		return 0.0;
+	}
+}
+
+void TreeBoolean::printInfix() const {
+	if (boolVal) {
+		std::cout << "true";
+	}
+	else {
+		std::cout << "false";
+	}
+}

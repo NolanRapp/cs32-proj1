@@ -34,17 +34,17 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
     // Function to process 3rd order operations (expressions): "+" and "-"
 
-    std::unique_ptr<TreeNode> node(parseT(tokenizedQ, variables));
+    std::unique_ptr<TreeNode> node(parseT(tokenizedQ));
 
     if (node == nullptr) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
 
     while (nextToken == "+" || nextToken == "-") {
-        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken.at(0)));
+        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
         operatorNode->addChild(node.release());
         scanToken(tokenizedQ);
 
@@ -52,7 +52,7 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
-        std::unique_ptr<TreeNode> right(parseT(tokenizedQ, variables));
+        std::unique_ptr<TreeNode> right(parseT(tokenizedQ));
 
         if (right == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -67,14 +67,14 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
     // Function to process 2nd order operations (terms): "*" and "/"
 
-    std::unique_ptr<TreeNode> node(parseF(tokenizedQ, variables));
+    std::unique_ptr<TreeNode> node(parseF(tokenizedQ));
 
     while (nextToken == "*" || nextToken == "/") {
 
-        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken.at(0)));
+        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
         operatorNode->addChild(node.release());
         scanToken(tokenizedQ);
 
@@ -82,7 +82,7 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
-        std::unique_ptr<TreeNode> right(parseF(tokenizedQ, variables));
+        std::unique_ptr<TreeNode> right(parseF(tokenizedQ));
 
         if (right == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -99,7 +99,7 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
     // Function to process 4th order operators (factors): integer, identifier
 
     if (nextToken.empty()) {
@@ -126,10 +126,10 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
         }
 
         if (isalpha(nextToken.at(0)) && (lookahead == "=")) {
-            node.reset(parseA(tokenizedQ, variables));
+            node.reset(parseA(tokenizedQ));
         }
         else {
-            node.reset(parseE(tokenizedQ, variables));
+            node.reset(parseE(tokenizedQ));
         }
 
         if ((nextToken == ")")) {
@@ -161,7 +161,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
     // Function to parse assignments
     // Recursively calls itself if there are many instances of "="
 
@@ -170,7 +170,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
     scanToken(tokenizedQ); // Consume the variable 
     scanToken(tokenizedQ); // Consume the "="
 
-    std::unique_ptr<TreeOperator> assignmentNode(new TreeOperator('='));
+    std::unique_ptr<TreeOperator> assignmentNode(new TreeOperator("="));
     assignmentNode->addChild(id.release());
 
     std::unique_ptr<TreeNode> rhs;
@@ -180,10 +180,10 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
         scanToken(tokenizedQ); // Consume the "("
 
         if (lookahead == "=") {
-            rhs.reset(parseA(tokenizedQ, variables));
+            rhs.reset(parseA(tokenizedQ));
         }
         else {
-            rhs.reset(parseE(tokenizedQ, variables));
+            rhs.reset(parseE(tokenizedQ));
 
             if (rhs == nullptr) {
                 throw ParseError(currentLine, currentColumn, nextToken);
@@ -199,12 +199,12 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
     // Dealing with simple nested assignments like: a = b = 5
     else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0))) && (lookahead == "=")) {
-        rhs.reset(parseA(tokenizedQ, variables));
+        rhs.reset(parseA(tokenizedQ));
     }
 
     // If none of the above conditions are true, then parse it as an expression
     else {
-        rhs.reset(parseE(tokenizedQ, variables));
+        rhs.reset(parseE(tokenizedQ));
 
         if (rhs == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -221,7 +221,51 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ, std::unordered_map<s
 
 
 
-TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables) {
+TreeNode* New_Parser::parseC(std::deque<Token>& tokenizedQ) {
+    std::unique_ptr<TreeNode> left(parseE(tokenizedQ));
+
+    while (nextToken == "<" || nextToken == ">" || nextToken == "<=" || nextToken == ">=") {
+        
+        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
+        scanToken(tokenizedQ);
+
+        std::unique_ptr<TreeNode> right(parseE(tokenizedQ));
+
+        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+        ^^ does parser need this checK?
+        */
+        
+        if (nextToken == "END") {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+
+        operatorNode->addChild(left.release());
+        operatorNode->addChild(right.release());
+
+        left.reset(operatorNode.release());
+    }
+
+    return left.release();
+
+}
+
+
+
+TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
+
+}
+
+
+
+TreeNode* New_Parser::parseLogical(std::deque<Token>& tokenizedQ) {
+
+}
+
+
+
+TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
     // Function to parse entire input, and end when "END" token is reached
 
     scanToken(tokenizedQ); // Initial consumption
@@ -232,7 +276,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
     }
 
     if ((isalpha(nextToken.at(0))) && (lookahead == "=")) {
-        rootTree.reset(parseA(tokenizedQ, variables));
+        rootTree.reset(parseA(tokenizedQ));
 
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -241,11 +285,11 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ, std::unordered_map<st
     }
 
     else if ((isalpha(nextToken.at(0))) && (lookahead != "=")) {
-        rootTree.reset(parseE(tokenizedQ, variables));
+        rootTree.reset(parseE(tokenizedQ));
     }
 
     else {
-        rootTree.reset(parseE(tokenizedQ, variables));
+        rootTree.reset(parseE(tokenizedQ));
 
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);

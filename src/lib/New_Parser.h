@@ -25,11 +25,14 @@ class New_Parser {
         New_Parser();
         ~New_Parser();
         
-        TreeNode* parse(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // begins parse, and identifies when to end parse
-        TreeNode* parseE(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing and expression
-        TreeNode* parseT(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing a term
-        TreeNode* parseF(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing a factor
-        TreeNode* parseA(std::deque<Token>& tokenizedQ, std::unordered_map<std::string, double>& variables); // parsing an assignment tree
+        TreeNode* parse(std::deque<Token>& tokenizedQ); // begins parse, and identifies when to end parse
+        TreeNode* parseE(std::deque<Token>& tokenizedQ); // parsing and expression
+        TreeNode* parseT(std::deque<Token>& tokenizedQ); // parsing a term
+        TreeNode* parseF(std::deque<Token>& tokenizedQ); // parsing a factor
+        TreeNode* parseA(std::deque<Token>& tokenizedQ); // parsing an assignment tree
+        TreeNode* parseC(std::deque<Token>& tokenizedQ); // parsing a comparison operator like "<" or ">="
+        TreeNode* parseEquality(std::deque<Token>& tokenizedQ); // parsing an equality statement like "=="
+        TreeNode* parseLogical(std::deque<Token>& tokenizedQ); // parsing logical operations like "&", "^", "|" 
 
     private:
         std::string nextToken; // this is, at any point, the next unscanned token from the Token deque.

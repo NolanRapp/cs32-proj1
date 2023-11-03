@@ -2,8 +2,8 @@
 
 
 // Creates "END" token, prevents the queue from being empty
-void Lexer::createEnd(std::deque<Token>& inputq, int line, int column) {
-    inputq.push_back(Token(line, column, "END"));
+void Lexer::createEnd(std::deque<Token>& inputq, int line, int column, Type t) {
+    inputq.push_back(Token(line, column, "END", t));
 }
 
 
@@ -44,7 +44,9 @@ void Lexer::lex(std::string& inputString) {
         '-',
         '*',
         '/',
-        '='
+        '=',
+        '%',
+        '^',
     };
 
     while (stream.get(i)) { 
@@ -59,9 +61,31 @@ void Lexer::lex(std::string& inputString) {
 
         if (!isspace(i)) {
 
+            // handling two character operators like "<=", ">=", "==", "!="
+            if (i == '<' && stream.peek() == '=') {
+                lexTokens.push_back(Token(line, column, "<=", Type::OP));
+                stream.get(i);
+                column++;
+            }
+            else if (i == '>' && stream.peek() == '=') {
+                lexTokens.push_back(Token(line, column, ">=", Type::OP));
+                stream.get(i);
+                column++;
+            }
+            else if (i == '=' && stream.peek() == '=') {
+                lexTokens.push_back(Token(line, column, "==", Type::OP));
+                stream.get(i);
+                column++;
+            }
+            else if (i == '!' && stream.peek() == '=') {
+                lexTokens.push_back(Token(line, column, "!=", Type::OP));
+                stream.get(i);
+                column++;
+            }
+
             //if valid operator/parenthesis input, add to output deque:
-            if (valid.find(i) != valid.end()) {
-                lexTokens.push_back(Token(line,column, std::string(1, i)));
+            else if (valid.find(i) != valid.end()) {
+                lexTokens.push_back(Token(line,column, std::string(1, i), Type::OP));
             }
 
             //if is an identifier (starts with alphanum or _)
@@ -74,7 +98,16 @@ void Lexer::lex(std::string& inputString) {
                     placeholder += nextChar;
                     column++;
                 }
-                lexTokens.push_back(Token(line,startingColumn, placeholder));
+
+                // checking if identifier is a boolean
+                if (placeholder == "true" || placeholder == "false") {
+                    lexTokens.push_back(Token(line, startingColumn, placeholder, Type::BOOL));
+                }
+                else {
+                    lexTokens.push_back(Token(line, startingColumn, placeholder, Type::ID));
+                }
+
+                }
             }
             
 
@@ -109,16 +142,16 @@ void Lexer::lex(std::string& inputString) {
 					throw LexError(line, column + 1);
                 }
 
-                lexTokens.push_back(Token(line,startingColumn, placeholder));
+                lexTokens.push_back(Token(line,startingColumn, placeholder, Type::NUM));
             }
+
             // if not space, valid operator, or valid number, print error:
             else {
 				throw LexError(line, column);
             }
         }
-        // if input is space, add column:
-        column++;
-    } 
-    createEnd(lexTokens, line, column);
+    // if input is space, add column:
+    column++;
+    createEnd(lexTokens, line, column, Type::END);
 }
 

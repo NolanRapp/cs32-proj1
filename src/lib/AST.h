@@ -6,7 +6,7 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
-
+#include <cmath>
 
 class TreeNode {
     /* 
@@ -77,6 +77,35 @@ class TreeOperator : public TreeNode {
 
 
 
+class TreeBoolean : public TreeNode {
+    /*
+    This class is used to handle booleans, 
+    and print them as "true" and "false" instead of 1 and 0 */
+
+    public:
+        TreeBoolean(std::string op);
+        void addChild(TreeNode* child);
+        virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const;
+        virtual void printInfix() const;
+        virtual std::string getID() { // Should only be called on TreeIdentifiers
+			throw std::runtime_error("Runtime error: getID() called on Leaf");
+			return "";
+		};
+        ~TreeBoolean() {
+            for (auto child : children) {
+		        delete child;
+	        }
+	        children.clear();
+        };
+
+    private:
+        std::string op;
+        std::vector<TreeNode*> children;
+
+};
+
+
+
 class TreeIdentifier : public TreeNode {
 	/*
 	This class is used to store an identifier which will point
@@ -91,19 +120,6 @@ class TreeIdentifier : public TreeNode {
 
 	private:
 		std::string idName;
-};
-
-class TreeBoolean : public TreeNode {
-    /*
-    This classs is used to handle booleans, 
-    and print them as "true" and "false" instead of 1 and 0 */
-
-    public:
-        virtual double evaluateNode(std::unordered_map<std::string, double>& vars) const;
-        virtual void printInfix() const;
-
-    private:
-        bool boolVal;
 };
 
 

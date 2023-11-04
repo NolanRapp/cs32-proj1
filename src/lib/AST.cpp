@@ -161,48 +161,48 @@ void TreeBoolean::addChild(TreeNode* child){
 
 
 double TreeBoolean::evaluateNode(std::unordered_map<std::string, double>& vars) const {
-	double result;
+	if (children.size() != 2) {
+		throw std::runtime_error("Logical operator has to have two children");
+	}
+	// TODO: add this into Errors.h
+
+	double left = children[0]->evaluateNode(vars);
+	double right = children[1]->evaluateNode(vars);
+	bool result;
 
 	if (op == "<") {
-		for (unsigned int i = 1; i < children.size(); i++) {
-			result = children[i]->evaluateNode(vars) < children[i + 1]->evaluateNode(vars);
-		}
+		result = left < right;
 	}
 	else if (op == ">") {
-		for (unsigned int i = 1; i < children.size(); i++) {
-			result = children[i]->evaluateNode(vars) > children[i + 1]->evaluateNode(vars);
-		}
+		result = left > right;
 	}
 	else if (op == "<=") {
-		for (unsigned int i = 1; i < children.size(); i++) {
-			result = children[i]->evaluateNode(vars) <= children[i + 1]->evaluateNode(vars);
-		}
+		result = left <= right;
 	}
 	else if (op == ">=") {
-		for (unsigned int i = 1; i < children.size(); i++) {
-			result = children[i]->evaluateNode(vars) >= children[i + 1]->evaluateNode(vars);
-		}
-	}
-	
-	
-	if (result == 1.0) {
-		return true;
+		result = left >= right;
 	}
 	else {
-		return false;
+		throw std::runtime_error("Runtime error: invalid operand type.");
+	}
+	
+	
+	if (result) {
+		return 1.0;
+	}
+	else {
+		return 0.0;
 	}
 }
 
 void TreeBoolean::printInfix() const {
-	if (children.empty()) {
-		return;
+	if (children.size() != 2) {
+		throw std::runtime_error("Logical operator has to have two children");
 	}
 
 	std::cout << '(';
 	children[0]->printInfix();
-	for (unsigned int i = 1; i < children.size(); i++) {
-		std::cout << ' ' << op << ' ';
-		children[i]->printInfix();
-	}
+	std::cout << ' ' << op << ' ';
+	children[1]->printInfix();
 	std::cout << ')';
 }

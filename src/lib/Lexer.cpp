@@ -44,7 +44,6 @@ void Lexer::lex(std::string& inputString) {
         '-',
         '*',
         '/',
-        '=',
         '%',
         '^',
         '|',
@@ -64,19 +63,34 @@ void Lexer::lex(std::string& inputString) {
         if (!isspace(i)) {
 
             // handling two character operators like "<=", ">=", "==", "!="
-            if (i == '<' && stream.peek() == '=') {
-                lexTokens.push_back(Token(line, column, "<=", Type::OP));
-                stream.get(i);
+            if (i == '<') {
+                if(stream.peek() == '='){
+                    lexTokens.push_back(Token(line, column, "<=", Type::OP));
+                    stream.get(i);
+                }
+                else{
+                    lexTokens.push_back(Token(line, column, "<", Type::OP));
+                }
                 column++;
             }
-            else if (i == '>' && stream.peek() == '=') {
-                lexTokens.push_back(Token(line, column, ">=", Type::OP));
-                stream.get(i);
+            else if (i == '>') {
+                if(stream.peek() == '='){
+                    lexTokens.push_back(Token(line, column, ">=", Type::OP));
+                    stream.get(i);
+                }
+                else{
+                    lexTokens.push_back(Token(line, column, ">", Type::OP));
+                }
                 column++;
             }
-            else if (i == '=' && stream.peek() == '=') {
-                lexTokens.push_back(Token(line, column, "==", Type::OP));
-                stream.get(i);
+            else if (i == '=') {
+                if(stream.peek() == '='){
+                    lexTokens.push_back(Token(line, column, "==", Type::OP));
+                    stream.get(i);
+                }
+                else{
+                    lexTokens.push_back(Token(line, column, "=", Type::OP));
+                }
                 column++;
             }
             else if (i == '!' && stream.peek() == '=') {

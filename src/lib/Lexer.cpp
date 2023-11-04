@@ -160,6 +160,14 @@ void Lexer::lex(std::string& inputString) {
                 lexTokens.push_back(Token(line,startingColumn, placeholder, Type::NUM));
             }
 
+            //
+            else if (i == '{'){
+                lexTokens.push_back(Token(line, column, "{", Type::END));
+            }
+            else if (i == '}'){
+                lexTokens.push_back(Token(line, column, "}", Type::END));
+            }
+
             // if not space, valid operator, or valid number, print error:
             else { 
 				throw LexError(line, column);

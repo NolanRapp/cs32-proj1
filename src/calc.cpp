@@ -24,7 +24,7 @@ int main() {
 			rootTree->printInfix();
 			std::cout << std::endl;
 
-			std::cout << rootTree->evaluateNode(tempVars) << std::endl;
+			std::cout << rootTree->evalDouble(tempVars) << std::endl;
 			
 			variables = tempVars;
 		}

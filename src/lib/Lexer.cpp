@@ -47,6 +47,8 @@ void Lexer::lex(std::string& inputString) {
         '=',
         '%',
         '^',
+        '|',
+        '&'
     };
 
     while (stream.get(i)) { 
@@ -107,7 +109,6 @@ void Lexer::lex(std::string& inputString) {
                     lexTokens.push_back(Token(line, startingColumn, placeholder, Type::ID));
                 }
 
-                }
             }
             
 
@@ -146,12 +147,14 @@ void Lexer::lex(std::string& inputString) {
             }
 
             // if not space, valid operator, or valid number, print error:
-            else {
+            else { 
 				throw LexError(line, column);
             }
         }
-    // if input is space, add column:
-    column++;
+        // if input is space, add column:
+        column++;
+    }
+
     createEnd(lexTokens, line, column, Type::END);
 }
 

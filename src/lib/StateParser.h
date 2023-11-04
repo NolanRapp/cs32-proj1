@@ -12,18 +12,18 @@
 class StateParser {
 
 public:
-	StateParser(){};
-	~StateParser(){};
+    StateParser(){};
+    ~StateParser(){};
 
-	void                    createForest(std::deque<Token> oInput);
-	std::vector<TreeNode*>  createBlock(std::deque<Token>& input);
-	TreeNode*               createTree(std::deque<Token>& input);
-	TreeNode*               popHead();
-	bool                    isEmpty() const;
+    void                    createForest(std::deque<Token> oInput);
+    std::vector<TreeNode*>  createBlock(std::deque<Token>& input);
+    TreeNode*               createTree(std::deque<Token>& input);
+    TreeNode*               popHead();
+    bool                    isEmpty() const;
 
 private:
-	std::deque<TreeNode*>   mHeads;
-	bool                    isExp(Token& token) const;
+    std::deque<TreeNode*>   mHeads;
+    bool                    isExp(Token& token) const;
 
 };
 

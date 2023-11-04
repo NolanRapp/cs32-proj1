@@ -20,11 +20,17 @@ int main() {
 			std::deque<Token> tokenizedQ = lexer.getLexQueue();
 
 			rootTree.reset(infix.parse(tokenizedQ));
+			ReturnType returnType = rootTree->type();
 
 			rootTree->printInfix();
 			std::cout << std::endl;
 
-			std::cout << rootTree->evalDouble(tempVars) << std::endl;
+			if (returnType == ReturnType::NUM) {
+				std::cout << rootTree->evalDouble(tempVars) << std::endl;
+			}
+			else if (returnType == ReturnType::BOOL) {
+				std::cout << rootTree->evalBool(tempVars) << std::endl;
+			}
 			
 			variables = tempVars;
 		}

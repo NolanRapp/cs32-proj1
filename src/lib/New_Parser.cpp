@@ -77,74 +77,6 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
-    // Function to parse comparison operations 
-    // Only works on numbers, and return bools
-
-    std::unique_ptr<TreeNode> left(parseEquality(tokenizedQ));
-
-    while (nextToken == "<" || nextToken == ">" || nextToken == "<=" || nextToken == ">=") {
-        
-        std::unique_ptr<TreeBoolean> comparisonNode(new TreeBoolean(nextToken));
-        scanToken(tokenizedQ);
-
-        std::unique_ptr<TreeNode> right(parseE(tokenizedQ));
-
-        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-        ^^ does parser need this checK?
-        */
-        
-        if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-
-        comparisonNode->addChild(left.release());
-        comparisonNode->addChild(right.release());
-
-        left.reset(comparisonNode.release());
-    }
-    return left.release();
-}
-
-
-
-TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
-    // Function to process equality and inequality operations: "==", "!="
-    // Works on either two numbers or two bools, and return bools
-
-    std::unique_ptr<TreeNode> left(parseLogical(tokenizedQ));
-
-    while ((nextToken == "==") || (nextToken == "!=")) {
-        
-        std::unique_ptr<TreeBoolean> operatorNode(new TreeBoolean(nextToken));
-        scanToken(tokenizedQ);
-
-        std::unique_ptr<TreeNode> right(parseE(tokenizedQ));
-
-        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-        ^^ does parser need this checK?
-        */
-        
-        if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-
-        operatorNode->addChild(left.release());
-        operatorNode->addChild(right.release());
-
-        left.reset(operatorNode.release());
-    }
-
-    return left.release();
-
-}
-
-
-
 TreeNode* New_Parser::parseLogical(std::deque<Token>& tokenizedQ) {
     // Function to process logical operations: "&", "^", "|".
     // Ensure both operands are of boolean type, handle the operations accordingly.
@@ -172,6 +104,74 @@ TreeNode* New_Parser::parseLogical(std::deque<Token>& tokenizedQ) {
 
 
 
+TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
+    // Function to process equality and inequality operations: "==", "!="
+    // Works on either two numbers or two bools, and return bools
+
+    std::unique_ptr<TreeNode> left(parseComparison(tokenizedQ));
+
+    while ((nextToken == "==") || (nextToken == "!=")) {
+        
+        std::unique_ptr<TreeBoolean> operatorNode(new TreeBoolean(nextToken));
+        scanToken(tokenizedQ);
+
+        std::unique_ptr<TreeNode> right(parseComparison(tokenizedQ));
+
+        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+        ^^ does parser need this checK?
+        
+        
+        if (nextToken == "END") {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }*/
+
+        operatorNode->addChild(left.release());
+        operatorNode->addChild(right.release());
+
+        left.reset(operatorNode.release());
+    }
+
+    return left.release();
+
+}
+
+
+
+TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
+    // Function to parse comparison operations 
+    // Only works on numbers, and return bools
+
+    std::unique_ptr<TreeNode> left(parseE(tokenizedQ));
+
+    while (nextToken == "<" || nextToken == ">" || nextToken == "<=" || nextToken == ">=") {
+        
+        std::unique_ptr<TreeBoolean> comparisonNode(new TreeBoolean(nextToken));
+        scanToken(tokenizedQ);
+
+        std::unique_ptr<TreeNode> right(parseE(tokenizedQ));
+
+        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+        ^^ does parser need this checK?
+        
+        
+        if (nextToken == "END") {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }*/
+
+        comparisonNode->addChild(left.release());
+        comparisonNode->addChild(right.release());
+
+        left.reset(comparisonNode.release());
+    }
+    return left.release();
+}
+
+
+
 
 TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
     // Function to process 3rd order operations (expressions): "+" and "-"
@@ -187,9 +187,9 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
         operatorNode->addChild(node.release());
         scanToken(tokenizedQ);
 
-        if (nextToken == "END") {
+        /*if (nextToken == "END") {
             throw ParseError(currentLine, currentColumn, nextToken);
-        }
+        }*/
 
         std::unique_ptr<TreeNode> right(parseT(tokenizedQ));
 

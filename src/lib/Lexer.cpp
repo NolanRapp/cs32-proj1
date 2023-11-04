@@ -67,31 +67,31 @@ void Lexer::lex(std::string& inputString) {
                 if(stream.peek() == '='){
                     lexTokens.push_back(Token(line, column, "<=", Type::OP));
                     stream.get(i);
+                    column++;
                 }
                 else{
                     lexTokens.push_back(Token(line, column, "<", Type::OP));
                 }
-                column++;
             }
             else if (i == '>') {
                 if(stream.peek() == '='){
                     lexTokens.push_back(Token(line, column, ">=", Type::OP));
                     stream.get(i);
+                    column++;
                 }
                 else{
                     lexTokens.push_back(Token(line, column, ">", Type::OP));
                 }
-                column++;
             }
             else if (i == '=') {
                 if(stream.peek() == '='){
                     lexTokens.push_back(Token(line, column, "==", Type::OP));
                     stream.get(i);
+                    column++;
                 }
                 else{
                     lexTokens.push_back(Token(line, column, "=", Type::OP));
                 }
-                column++;
             }
             else if (i == '!' && stream.peek() == '=') {
                 lexTokens.push_back(Token(line, column, "!=", Type::OP));

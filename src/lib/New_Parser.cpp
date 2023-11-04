@@ -227,7 +227,21 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
 
-    if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
+    if (nextToken == "true" || nextToken == "false") {
+        bool TrueOrFalse = (nextToken == "true");
+        scanToken(tokenizedQ); // Consume true or false
+        if (TrueOrFalse) {
+            std::unique_ptr<TreeBooleanText> boolVal(new TreeBooleanText(TrueOrFalse));
+            return boolVal.release();
+        }
+        else {
+            std::unique_ptr<TreeBooleanText> boolVal(new TreeBooleanText(TrueOrFalse));
+            return boolVal.release();
+        }
+
+    }
+
+    else if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
         std::unique_ptr<TreeLeaf> leaf(new TreeLeaf(std::stod(nextToken)));
 
         if (leaf == nullptr) {
@@ -273,20 +287,6 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         return leaf.release();
     }
 
-    else if (tokenType == Type::BOOL) {
-        bool TrueOrFalse = (nextToken == "true");
-        scanToken(tokenizedQ); // Consume true or false
-        if (TrueOrFalse) {
-            std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean("true"));
-            return boolVal.release();
-        }
-        else {
-            std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean("false"));
-            return boolVal.release();
-        }
-
-    }
-
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
@@ -318,7 +318,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
             rhs.reset(parseA(tokenizedQ));
         }
         else {
-            rhs.reset(parseComparison(tokenizedQ));
+            rhs.reset(parseLogical(tokenizedQ));
 
             if (rhs == nullptr) {
                 throw ParseError(currentLine, currentColumn, nextToken);
@@ -339,7 +339,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
     // If none of the above conditions are true, then parse it as an expression
     else {
-        rhs.reset(parseComparison(tokenizedQ));
+        rhs.reset(parseLogical(tokenizedQ));
 
         if (rhs == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);

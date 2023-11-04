@@ -283,4 +283,35 @@ void TreeBoolean::printInfix() const {
 
 
 
+TreeBooleanText::TreeBooleanText(bool TrueFalse) {
+    this->TrueFalse = TrueFalse;
+}
+
+
+
+// This should always throw an error
+double TreeBooleanText::evalDouble(std::unordered_map<std::string, double>& vars) const {
+    throw std::runtime_error("Runtime error: invalid opearand type.");   
+}
+
+
+
+bool TreeBooleanText::evalBool(std::unordered_map<std::string, double>& vars) const {
+    return TrueFalse;
+}
+
+
+
+void TreeBooleanText::printInfix() const {
+    if (TrueFalse) {
+        std::cout << "true";
+    }
+    else {
+        std::cout << "false";
+    }
+}
+
+
+
+
 // Incoming logic of TreeStatements

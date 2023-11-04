@@ -149,6 +149,30 @@ class TreeBoolean : public TreeNode {
 
 
 
+class TreeBooleanText : public TreeNode {
+    /*
+    This class is used to handle boolean text
+    input like "true" and "false"
+    */
+
+   public:
+        TreeBooleanText(bool TrueFalse);
+        virtual double      evalDouble(std::unordered_map<std::string, double>& vars) const;
+        virtual bool        evalBool(std::unordered_map<std::string, double>& vars) const;
+        virtual ReturnType  type() const {return ReturnType::BOOL;}
+        virtual void        printInfix() const;
+        virtual std::string getID() { // Should only be called on TreeIdentifiers
+            throw std::runtime_error("Runtime error: getID() called on Leaf");
+            return "";
+        };
+    
+    private:
+        bool TrueFalse;
+        ReturnType          rType(){ return ReturnType::BOOL; };
+};
+
+
+
 // Incoming declaration of TreeStatment
 
 

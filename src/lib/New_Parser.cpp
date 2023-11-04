@@ -15,6 +15,8 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
 
     if (!tokenizedQ.empty()) {
         nextToken = tokenizedQ.front().text;
+        tokenType = tokenizedQ.front().type;
+
         if (nextToken == "END") {
             lookahead = "END";
         }
@@ -46,19 +48,17 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
     if ((isalpha(nextToken.at(0))) && (lookahead == "=")) {
         rootTree.reset(parseA(tokenizedQ));
-
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
-
     }
 
     else if ((isalpha(nextToken.at(0))) && (lookahead != "=")) {
-        rootTree.reset(parseComparison(tokenizedQ));
+        rootTree.reset(parseLogical(tokenizedQ));
     }
 
     else {
-        rootTree.reset(parseComparison(tokenizedQ));
+        rootTree.reset(parseLogical(tokenizedQ));
 
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -89,7 +89,7 @@ TreeNode* New_Parser::parseLogical(std::deque<Token>& tokenizedQ) {
 
         std::unique_ptr<TreeNode> right(parseEquality(tokenizedQ));
 
-        if (right == nullptr) {
+        if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
@@ -111,22 +111,16 @@ TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
     std::unique_ptr<TreeNode> left(parseComparison(tokenizedQ));
 
     while ((nextToken == "==") || (nextToken == "!=")) {
-        
-        std::unique_ptr<TreeBoolean> operatorNode(new TreeBoolean(nextToken));
-        scanToken(tokenizedQ);
 
+        std::string op = nextToken;
+        scanToken(tokenizedQ);
         std::unique_ptr<TreeNode> right(parseComparison(tokenizedQ));
 
-        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
+        if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
-        ^^ does parser need this checK?
         
-        
-        if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }*/
-
+        std::unique_ptr<TreeBoolean> operatorNode(new TreeBoolean(op));
         operatorNode->addChild(left.release());
         operatorNode->addChild(right.release());
 
@@ -147,21 +141,15 @@ TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
 
     while (nextToken == "<" || nextToken == ">" || nextToken == "<=" || nextToken == ">=") {
         
-        std::unique_ptr<TreeBoolean> comparisonNode(new TreeBoolean(nextToken));
+        std::string op = nextToken;
         scanToken(tokenizedQ);
-
         std::unique_ptr<TreeNode> right(parseE(tokenizedQ));
 
-        /*if ((!isalnum(left->evaluateNode())) || (!isalnum(right->evaluateNode()))) {
+        if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
-        ^^ does parser need this checK?
         
-        
-        if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }*/
-
+        std::unique_ptr<TreeBoolean> comparisonNode(new TreeBoolean(op));
         comparisonNode->addChild(left.release());
         comparisonNode->addChild(right.release());
 
@@ -169,7 +157,6 @@ TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
     }
     return left.release();
 }
-
 
 
 
@@ -186,10 +173,6 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
         std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
         operatorNode->addChild(node.release());
         scanToken(tokenizedQ);
-
-        /*if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }*/
 
         std::unique_ptr<TreeNode> right(parseT(tokenizedQ));
 
@@ -288,6 +271,20 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         }
 
         return leaf.release();
+    }
+
+    else if (tokenType == Type::BOOL) {
+        bool TrueOrFalse = (nextToken == "true");
+        scanToken(tokenizedQ); // Consume true or false
+        if (TrueOrFalse) {
+            std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean("true"));
+            return boolVal.release();
+        }
+        else {
+            std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean("false"));
+            return boolVal.release();
+        }
+
     }
 
     else {

@@ -37,6 +37,7 @@ class New_Parser {
     private:
         std::string nextToken; // this is, at any point, the next unscanned token from the Token deque.
         std::string lookahead; // this is, at any point, the token ahead of nextToken
+        Type tokenType;
 
         void scanToken(std::deque<Token>& tokenizedQ); // sets nextToken to point to the newly scanned token
         //void throw ParseError(int line, int col, std::string text) const;

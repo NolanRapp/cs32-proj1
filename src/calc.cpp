@@ -9,6 +9,7 @@ int main() {
 	std::unordered_map<std::string, double> tempVars; // Temporary map to store variables in (will be deleted if runtime_error)
 	std::string line;
 	New_Parser infix;
+	double boolDouble;
 		
 	while(getline(std::cin, line)) {
 		std::unique_ptr<TreeNode> rootTree;
@@ -29,7 +30,13 @@ int main() {
 				std::cout << rootTree->evalDouble(tempVars) << std::endl;
 			}
 			else if (returnType == ReturnType::BOOL) {
-				std::cout << rootTree->evalBool(tempVars) << std::endl;
+				boolDouble = rootTree->evalBool(tempVars);
+				if (boolDouble) {
+					std::cout << "true" << std::endl;
+				}
+				else {
+					std::cout << "false" << std::endl;
+				}
 			}
 			
 			variables = tempVars;

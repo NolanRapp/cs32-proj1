@@ -312,7 +312,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
     scanToken(tokenizedQ); // Consume the variable 
     scanToken(tokenizedQ); // Consume the "="
 
-    if (nextToken == "true" || nextToken == "false") {
+    if (nextToken == "true" || nextToken == "false" || nextToken == "t" || nextToken == "f") {
         return parseAbool(tokenizedQ, id);
     }
 

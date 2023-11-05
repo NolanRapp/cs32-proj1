@@ -9,15 +9,15 @@ TreeLeaf::TreeLeaf(double val) {
 
 
 // Returns number in Leaf
-double TreeLeaf::evalDouble(std::unordered_map<std::string, double>& vars) const{
+double TreeLeaf::evalDouble(std::unordered_map<std::string, variableMap>& vars) const{
     return value;
 }
 
 
 
 // Should never return a bool value
-bool TreeLeaf::evalBool(std::unordered_map<std::string, double>& vars) const{
-    throw std::runtime_error("Runtime error: invalid opearand type.");   
+bool TreeLeaf::evalBool(std::unordered_map<std::string, variableMap>& vars) const{
+    throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
@@ -51,23 +51,24 @@ void TreeOperator::addChild(TreeNode* child){
 
 
 // Evaluates Operator and children (recursive)
-double TreeOperator::evalDouble(std::unordered_map<std::string, double>& vars) const{
+double TreeOperator::evalDouble(std::unordered_map<std::string, variableMap>& vars) const{
     // the purpose of this function is to return the evaluated S-Expression 
     // we can assume children vector is nonempty by Parser logic
-    
+
     double result;
+    variableMap v;
 
-    if(operation == "="){
-        // Sets result to final num/id which will return double or error
-        result = children[children.size() - 1]->evalDouble(vars);
+	if (operation == "="){
+		// Sets result to final num/id which will return double or error
+		result = children[children.size() - 1]->evalDouble(vars);
+        v.isBool = false;
 
-        // Changes all child identifiers to the value of the final num/id
-        for(unsigned int i = 0; i < children.size() - 1; i++) {
-            vars[children[i]->getID()] = result;
-        }
-
-        return result;
-    }
+		// Changes all child identifiers to the value of the final num/id
+		for (unsigned int i = 0; i < children.size() - 1; i++) {
+			vars[children[i]->getID()] = result;
+		}
+		return result;
+	}
 
     result = children[0]->evalDouble(vars);
 
@@ -108,9 +109,9 @@ double TreeOperator::evalDouble(std::unordered_map<std::string, double>& vars) c
 
 
 
-// Should never return a bool value
-bool TreeOperator::evalBool(std::unordered_map<std::string, double>& vars) const{
-    throw std::runtime_error("Runtime error: invalid opearand type.");   
+bool TreeOperator::evalBool(std::unordered_map<std::string, variableMap>& vars) const{
+    throw std::runtime_error("Runtime Error: TreeOperator of type Double entered evalBool.");
+    // Boolean operators are handled in TreeBoolean 
 }
 
 
@@ -147,21 +148,23 @@ TreeIdentifier::TreeIdentifier(std::string name) {
 
 
 // Attempts to find value and return, if no value exists throws error
-double TreeIdentifier::evalDouble(std::unordered_map<std::string, double>& vars) const{
-    if(vars.find(idName) == vars.end()){
+double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableMap>& vars) const{
+    if (vars.find(idName) == vars.end() || vars.find(idName)->second.isBool) {
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
-
-    return vars[idName];
+    return vars.find(idName)->second.doubleVal;
 }
+
 
 
 
 // Variables can't be assigned bools so it will always error
-bool TreeIdentifier::evalBool(std::unordered_map<std::string, double>& vars) const{
-    throw std::runtime_error("Runtime error: invalid opearand type.");   
+bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableMap>& vars) const{
+    if (vars.find(idName) == vars.end() || !vars.find(idName)->second.isBool) {
+        throw std::runtime_error("Runtime error: unknown identifier " + idName);
+    }
+    return vars.find(idName)->second.boolVal;
 }
-
 
 
 // Prints ID name
@@ -198,20 +201,34 @@ void TreeBoolean::addChild(TreeNode* child){
 
 
 // This should always throw an error
-double TreeBoolean::evalDouble(std::unordered_map<std::string, double>& vars) const {
-    throw std::runtime_error("Runtime error: invalid opearand type.");   
+double TreeBoolean::evalDouble(std::unordered_map<std::string, variableMap>& vars) const {
+    throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
 
-//
-bool TreeBoolean::evalBool(std::unordered_map<std::string, double>& vars) const{
+bool TreeBoolean::evalBool(std::unordered_map<std::string, variableMap>& vars) const{
     if (children.size() != 2) {
         throw std::runtime_error("Logical operator has to have two children");
     }
 
+    bool result;
+    variableMap v;
+    if (op == "="){
+		// Sets result to final num/id which will return double or error
+		result = children[children.size() - 1]->evalBool(vars);
+        v.isBool = true;
+
+		// Changes all child identifiers to the value of the final num/id
+		for(unsigned int i = 0; i < children.size() - 1; i++) {
+			vars[children[i]->getID()] = result;
+		}
+		return result;
+	}
+
+
     // Order Comparison (Only numbers)
-    if (children[0]->rType() == ReturnType::NUM){
+    if (children[0]->type(vars) == ReturnType::NUM){
         double left  = children[0]->evalDouble(vars);
         double right = children[1]->evalDouble(vars);
 
@@ -290,13 +307,13 @@ TreeBooleanText::TreeBooleanText(bool TrueFalse) {
 
 
 // This should always throw an error
-double TreeBooleanText::evalDouble(std::unordered_map<std::string, double>& vars) const {
-    throw std::runtime_error("Runtime error: invalid opearand type.");   
+double TreeBooleanText::evalDouble(std::unordered_map<std::string, variableMap>& vars) const {
+    throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
 
-bool TreeBooleanText::evalBool(std::unordered_map<std::string, double>& vars) const {
+bool TreeBooleanText::evalBool(std::unordered_map<std::string, variableMap>& vars) const {
     return TrueFalse;
 }
 

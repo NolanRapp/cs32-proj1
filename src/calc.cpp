@@ -5,8 +5,8 @@
 int main() {
 
 	std::deque<Token> tokens; // holds all standard input
-	std::unordered_map<std::string, double> variables; // holds all currently assigned variables
-	std::unordered_map<std::string, double> tempVars; // Temporary map to store variables in (will be deleted if runtime_error)
+	std::unordered_map<std::string, variableMap> variables; // holds all currently assigned variables
+	std::unordered_map<std::string, variableMap> tempVars; // Temporary map to store variables in (will be deleted if runtime_error)
 	std::string line;
 	New_Parser infix;
 	double boolDouble;
@@ -21,7 +21,7 @@ int main() {
 			std::deque<Token> tokenizedQ = lexer.getLexQueue();
 
 			rootTree.reset(infix.parse(tokenizedQ));
-			ReturnType returnType = rootTree->type();
+			ReturnType returnType = rootTree->type(tempVars);
 
 			rootTree->printInfix();
 			std::cout << std::endl;

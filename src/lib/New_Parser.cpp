@@ -67,6 +67,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
     if (nextToken == "END" && lookahead == "END") {
         return rootTree.release();
+        // HERE: IMPLEMENT TYPE CHECK INSTEAD
     }
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
@@ -228,7 +229,13 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
     }
 
     if (nextToken == "true" || nextToken == "false") {
-        bool TrueOrFalse = (nextToken == "true");
+        bool TrueOrFalse;
+        if (nextToken == "true") {
+            TrueOrFalse = true;
+        }
+        else {
+            TrueOrFalse = false;
+        }
         scanToken(tokenizedQ); // Consume true or false
         if (TrueOrFalse) {
             std::unique_ptr<TreeBooleanText> boolVal(new TreeBooleanText(TrueOrFalse));
@@ -305,7 +312,64 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
     scanToken(tokenizedQ); // Consume the variable 
     scanToken(tokenizedQ); // Consume the "="
 
-    std::unique_ptr<TreeOperator> assignmentNode(new TreeOperator("="));
+    if (nextToken == "true" || nextToken == "false") {
+        return parseAbool(tokenizedQ, id);
+    }
+
+    else {
+        std::unique_ptr<TreeOperator> assignmentNode(new TreeOperator("="));
+        assignmentNode->addChild(id.release());
+
+        std::unique_ptr<TreeNode> rhs;
+
+        // Dealing with nested assignments: (a=(b=3))
+        if ((!tokenizedQ.empty()) && (nextToken == "(") && (isalpha(lookahead.at(0)))) {
+            scanToken(tokenizedQ); // Consume the "("
+
+            if (lookahead == "=") {
+                rhs.reset(parseA(tokenizedQ));
+            }
+            else {
+                rhs.reset(parseLogical(tokenizedQ));
+
+                if (rhs == nullptr) {
+                    throw ParseError(currentLine, currentColumn, nextToken);
+                }
+
+            }
+
+            if (tokenizedQ.empty() || nextToken != ")") {
+                throw ParseError(currentLine, currentColumn, nextToken);
+            }
+            scanToken(tokenizedQ); // Consuming ")"
+        }
+
+        // Dealing with simple nested assignments like: a = b = 5
+        else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0))) && (lookahead == "=")) {
+            rhs.reset(parseA(tokenizedQ));
+        }
+
+        // If none of the above conditions are true, then parse it as an expression
+        else {
+            rhs.reset(parseLogical(tokenizedQ));
+
+            if (rhs == nullptr) {
+                throw ParseError(currentLine, currentColumn, nextToken);
+            }
+        }
+        
+        if (rhs == nullptr) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+
+        assignmentNode->addChild(rhs.release());
+        return assignmentNode.release();
+    }
+}
+
+TreeNode* New_Parser::parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<TreeIdentifier>& id) {
+    
+    std::unique_ptr<TreeBoolean> assignmentNode(new TreeBoolean("="));
     assignmentNode->addChild(id.release());
 
     std::unique_ptr<TreeNode> rhs;
@@ -353,4 +417,3 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
     assignmentNode->addChild(rhs.release());
     return assignmentNode.release();
 }
-

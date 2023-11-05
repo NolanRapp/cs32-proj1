@@ -30,6 +30,7 @@ class New_Parser {
         TreeNode* parseT(std::deque<Token>& tokenizedQ); // parsing a term
         TreeNode* parseF(std::deque<Token>& tokenizedQ); // parsing a factor
         TreeNode* parseA(std::deque<Token>& tokenizedQ); // parsing an assignment tree
+        TreeNode* parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<TreeIdentifier>& id);
         TreeNode* parseComparison(std::deque<Token>& tokenizedQ); // parsing a comparison operator like "<" or ">="
         TreeNode* parseEquality(std::deque<Token>& tokenizedQ); // parsing an equality statement like "=="
         TreeNode* parseLogical(std::deque<Token>& tokenizedQ); // parsing logical operations like "&", "^", "|" 
@@ -38,6 +39,7 @@ class New_Parser {
         std::string nextToken; // this is, at any point, the next unscanned token from the Token deque.
         std::string lookahead; // this is, at any point, the token ahead of nextToken
         Type tokenType;
+        //Type lookaheadType;
 
         void scanToken(std::deque<Token>& tokenizedQ); // sets nextToken to point to the newly scanned token
         //void throw ParseError(int line, int col, std::string text) const;

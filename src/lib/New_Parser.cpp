@@ -252,11 +252,11 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 
 
 TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
-    // Function to process 2nd order operations (terms): "*" and "/"
+    // Function to process 2nd order operations (terms): "*" and "/" and "%"
 
     std::unique_ptr<TreeNode> node(parseF(tokenizedQ));
 
-    while (nextToken == "*" || nextToken == "/") {
+    while (nextToken == "*" || nextToken == "/" || nextToken == "%") {
 
         std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
         operatorNode->addChild(node.release());

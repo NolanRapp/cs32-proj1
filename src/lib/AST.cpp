@@ -87,11 +87,11 @@ double TreeOperator::evalDouble(std::unordered_map<std::string, variableMap>& va
             result /= children[i]->evalDouble(vars);
         }
     }
-    /*else if (operation == "%") {
+    else if (operation == "%") {
         for (unsigned int i = 1; i < children.size(); i++) {
-            result %= children[i]->evalDouble(vars);
+            result = fmod(result, children[i]->evalDouble(vars));
         }
-    }*/
+    }
 
     else if (operation == "+") {
         for (unsigned int i = 1; i < children.size(); i++) {

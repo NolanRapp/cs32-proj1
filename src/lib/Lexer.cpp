@@ -119,6 +119,9 @@ void Lexer::lex(std::string& inputString) {
                 if (placeholder == "true" || placeholder == "false") {
                     lexTokens.push_back(Token(line, startingColumn, placeholder, Type::BOOL));
                 }
+                else if (placeholder == "if" || placeholder == "else" || placeholder == "while" || placeholder == "print") {
+                    lexTokens.push_back(Token(line, startingColumn, placeholder, Type::STATE));
+                }
                 else {
                     lexTokens.push_back(Token(line, startingColumn, placeholder, Type::ID));
                 }

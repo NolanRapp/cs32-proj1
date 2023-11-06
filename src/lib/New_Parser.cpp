@@ -17,6 +17,9 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
         nextToken = tokenizedQ.front().text;
         tokenType = tokenizedQ.front().type;
 
+        currentLine = tokenizedQ.front().line;
+        currentColumn = tokenizedQ.front().column;
+
         if (nextToken == "END") {
             lookahead = "END";
         }
@@ -24,8 +27,6 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
             lookahead = tokenizedQ[1].text;
         }
 
-        currentLine = tokenizedQ.front().line;
-        currentColumn = tokenizedQ.front().column;
         tokenizedQ.pop_front();
     }
 
@@ -36,15 +37,28 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
 
 
 
+TreeNode* New_Parser::parseForCalc(std::deque<Token>& tokenizedQ) {
+    std::unique_ptr<TreeNode> ast;
+    ast.reset(parse(tokenizedQ));
+
+    if (nextToken != "END") {
+        throw ParseError(currentLine, currentColumn, nextToken);;
+        // HERE: add in parse for calc
+    }
+    return (ast.release());
+}
+
+
+
 TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
     // Function to parse entire input, and end when "END" token is reached
 
     scanToken(tokenizedQ); // Initial consumption
     std::unique_ptr<TreeNode> rootTree;
 
-    if (nextToken.empty()) {
+    /*if (nextToken.empty()) {
         throw ParseError(currentLine, currentColumn, nextToken);
-    }
+    }*/
 
     if ((isalpha(nextToken.at(0))) && (lookahead == "=")) {
         rootTree.reset(parseA(tokenizedQ));
@@ -65,15 +79,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
         }
     }
 
-    if (nextToken == "END" && lookahead == "END") {
-        return rootTree.release();
-        // HERE: IMPLEMENT TYPE CHECK INSTEAD
-    }
-    else {
-        throw ParseError(currentLine, currentColumn, nextToken);
-    }
-
-    return nullptr;
+    return rootTree.release();
 }
 
 
@@ -237,14 +243,8 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             TrueOrFalse = false;
         }
         scanToken(tokenizedQ); // Consume true or false
-        if (TrueOrFalse) {
-            std::unique_ptr<TreeBooleanText> boolVal(new TreeBooleanText(TrueOrFalse));
-            return boolVal.release();
-        }
-        else {
-            std::unique_ptr<TreeBooleanText> boolVal(new TreeBooleanText(TrueOrFalse));
-            return boolVal.release();
-        }
+        std::unique_ptr<TreeBooleanText> boolVal(new TreeBooleanText(TrueOrFalse));
+        return boolVal.release();
 
     }
 
@@ -271,10 +271,10 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             node.reset(parseA(tokenizedQ));
         }
         else {
-            node.reset(parseComparison(tokenizedQ));
+            node.reset(parseLogical(tokenizedQ));
         }
 
-        if ((nextToken == ")")) {
+        if (nextToken == ")") {
             scanToken(tokenizedQ); // Consume "("
             return node.release();
         }
@@ -309,8 +309,8 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeIdentifier> id(new TreeIdentifier(nextToken));
 
-    scanToken(tokenizedQ); // Consume the variable 
-    scanToken(tokenizedQ); // Consume the "="
+    scanToken(tokenizedQ); // Consume the "=" 
+    scanToken(tokenizedQ); // Consumes whats next
 
     if (nextToken == "true" || nextToken == "false") {
         return parseAbool(tokenizedQ, id);

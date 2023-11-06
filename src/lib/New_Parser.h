@@ -26,6 +26,8 @@ class New_Parser {
         ~New_Parser();
         
         TreeNode* parse(std::deque<Token>& tokenizedQ); // begins parse, and identifies when to end parse
+        TreeNode* parseForCalc(std::deque<Token>& tokenizedQ); // main parse for calc.cpp
+
         TreeNode* parseE(std::deque<Token>& tokenizedQ); // parsing and expression
         TreeNode* parseT(std::deque<Token>& tokenizedQ); // parsing a term
         TreeNode* parseF(std::deque<Token>& tokenizedQ); // parsing a factor

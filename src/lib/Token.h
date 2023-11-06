@@ -10,6 +10,7 @@ enum class Type {
     OP,
     ID,
     END,
+    STATE
 };
 
 // this is the token struct containing information about one token

@@ -20,7 +20,7 @@ int main() {
 			lexer.lex(line);
 			std::deque<Token> tokenizedQ = lexer.getLexQueue();
 
-			rootTree.reset(infix.parse(tokenizedQ));
+			rootTree.reset(infix.parseForCalc(tokenizedQ));
 			ReturnType returnType = rootTree->type(tempVars);
 
 			rootTree->printInfix();

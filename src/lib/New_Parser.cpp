@@ -25,6 +25,7 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
         }
         else {
             lookahead = tokenizedQ[1].text;
+            lookaheadType = tokenizedQ[1].type;
         }
 
         tokenizedQ.pop_front();
@@ -60,14 +61,14 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }*/
 
-    if ((isalpha(nextToken.at(0))) && (lookahead == "=")) {
+    if ((tokenType == Type::ID) && (lookahead == "=")) {
         rootTree.reset(parseA(tokenizedQ));
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
     }
 
-    else if ((isalpha(nextToken.at(0))) && (lookahead != "=")) {
+    else if ((tokenType == Type::ID) && (lookahead != "=")) {
         rootTree.reset(parseLogical(tokenizedQ));
     }
 
@@ -234,7 +235,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
 
-    if (nextToken == "true" || nextToken == "false") {
+    if (tokenType == Type::BOOL) {
         bool TrueOrFalse;
         if (nextToken == "true") {
             TrueOrFalse = true;
@@ -248,8 +249,8 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
     }
 
-    else if (isdigit(nextToken.at(0)) || nextToken.at(0) == '_') {
-        std::unique_ptr<TreeLeaf> leaf(new TreeLeaf(std::stod(nextToken)));
+    else if (tokenType == Type::NUM) {
+        std::unique_ptr<TreeLeaf> leaf(new TreeLeaf(std::stold(nextToken)));
 
         if (leaf == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -267,7 +268,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             throw ParseError(currentLine, currentColumn, nextToken); // Missing closing parenthesis
         }
 
-        if (isalpha(nextToken.at(0)) && (lookahead == "=")) {
+        if ((tokenType == Type::ID) && (lookahead == "=")) {
             node.reset(parseA(tokenizedQ));
         }
         else {
@@ -283,7 +284,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         }
     }
 
-    else if (isalpha(nextToken.at(0))) {
+    else if (tokenType == Type::ID) {
         std::unique_ptr<TreeIdentifier> leaf(new TreeIdentifier(nextToken));
         scanToken(tokenizedQ); // Consume variable 
 
@@ -312,7 +313,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
     scanToken(tokenizedQ); // Consume the "=" 
     scanToken(tokenizedQ); // Consumes whats next
 
-    if (nextToken == "true" || nextToken == "false") {
+    if (tokenType == Type::BOOL) {
         return parseAbool(tokenizedQ, id);
     }
 
@@ -323,7 +324,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
         std::unique_ptr<TreeNode> rhs;
 
         // Dealing with nested assignments: (a=(b=3))
-        if ((!tokenizedQ.empty()) && (nextToken == "(") && (isalpha(lookahead.at(0)))) {
+        if ((!tokenizedQ.empty()) && (nextToken == "(") && (lookaheadType == Type::ID)) {
             scanToken(tokenizedQ); // Consume the "("
 
             if (lookahead == "=") {
@@ -345,7 +346,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
         }
 
         // Dealing with simple nested assignments like: a = b = 5
-        else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0))) && (lookahead == "=")) {
+        else if ((!tokenizedQ.empty()) && (tokenType == Type::ID) && (lookahead == "=")) {
             rhs.reset(parseA(tokenizedQ));
         }
 
@@ -375,7 +376,7 @@ TreeNode* New_Parser::parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<
     std::unique_ptr<TreeNode> rhs;
 
     // Dealing with nested assignments: (a=(b=3))
-    if ((!tokenizedQ.empty()) && (nextToken == "(") && (isalpha(lookahead.at(0)))) {
+    if ((!tokenizedQ.empty()) && (nextToken == "(") && (lookaheadType == Type::ID)) {
         scanToken(tokenizedQ); // Consume the "("
 
         if (lookahead == "=") {
@@ -397,7 +398,7 @@ TreeNode* New_Parser::parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<
     }
 
     // Dealing with simple nested assignments like: a = b = 5
-    else if ((!tokenizedQ.empty()) && (isalpha(nextToken.at(0))) && (lookahead == "=")) {
+    else if ((!tokenizedQ.empty()) && (tokenType == Type::ID) && (lookahead == "=")) {
         rhs.reset(parseA(tokenizedQ));
     }
 

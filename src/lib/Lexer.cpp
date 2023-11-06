@@ -51,7 +51,7 @@ void Lexer::lex(std::string& inputString) {
     };
 
     while (stream.get(i)) { 
-        //std::stream.get(i) reads input, whitespace, and newlines
+        // std::stream.get(i) reads input, whitespace, and newlines
         // https://cplusplus.com/reference/istream/istream/get/
 
         if (i == '\n') {
@@ -105,7 +105,7 @@ void Lexer::lex(std::string& inputString) {
             }
 
             //if is an identifier (starts with alphanum or _)
-            else if (isalpha(i) || i == '_'){
+            else if (isalpha(i) || i == '_') {
                 std::string placeholder(1, i); // this converts a char (1) to a string
                 int startingColumn = column;
                 while((isalnum(stream.peek()) || stream.peek() == '_')){

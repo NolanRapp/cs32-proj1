@@ -20,7 +20,7 @@ struct Token {
     std::string text; // the text of the token exactly as it appears in the input
     Type type; // the type of the token
 
-    Token(int l, int c, const std::string &t, Type type) : line(l), column(c), text(t), type(Type::NUM) {} // token constructor for testing, type default is num
+    Token(int l, int c, const std::string &t, Type type) : line(l), column(c), text(t), type(type) {} // token constructor for testing, type default is num
 };
 
 

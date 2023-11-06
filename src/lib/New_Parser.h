@@ -35,7 +35,10 @@ class New_Parser {
         TreeNode* parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<TreeIdentifier>& id);
         TreeNode* parseComparison(std::deque<Token>& tokenizedQ); // parsing a comparison operator like "<" or ">="
         TreeNode* parseEquality(std::deque<Token>& tokenizedQ); // parsing an equality statement like "=="
-        TreeNode* parseLogical(std::deque<Token>& tokenizedQ); // parsing logical operations like "&", "^", "|" 
+        TreeNode* parseInclusive(std::deque<Token>& tokenizedQ); // parsing logical operations like "&", "^", "|" 
+        TreeNode* parseExclusive(std::deque<Token>& tokenizedQ); // parsing logical operations like "&", "^", "|" 
+        TreeNode* parseAnd(std::deque<Token>& tokenizedQ); // parsing logical operations like "&", "^", "|" 
+
 
     private:
         std::string nextToken; // this is, at any point, the next unscanned token from the Token deque.

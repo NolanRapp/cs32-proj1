@@ -69,11 +69,11 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
     }
 
     else if ((tokenType == Type::ID) && (lookahead != "=")) {
-        rootTree.reset(parseLogical(tokenizedQ));
+        rootTree.reset(parseInclusive(tokenizedQ));
     }
 
     else {
-        rootTree.reset(parseLogical(tokenizedQ));
+        rootTree.reset(parseInclusive(tokenizedQ));
 
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -85,13 +85,67 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
 
 
-TreeNode* New_Parser::parseLogical(std::deque<Token>& tokenizedQ) {
+TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
+    // Function to process logical operations: "&", "^", "|".
+    // Ensure both operands are of boolean type, handle the operations accordingly.
+
+    std::unique_ptr<TreeNode> left(parseExclusive(tokenizedQ));
+
+    while (nextToken == "|" ) {
+        std::string op = nextToken;
+        scanToken(tokenizedQ);
+
+        std::unique_ptr<TreeNode> right(parseExclusive(tokenizedQ));
+
+        if (right == nullptr || left == nullptr) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+
+        std::unique_ptr<TreeBoolean> nodeLogical(new TreeBoolean(op));
+        nodeLogical->addChild(left.release());
+        nodeLogical->addChild(right.release());
+
+        left.reset(nodeLogical.release());
+    }
+    return left.release();
+}
+
+
+
+TreeNode* New_Parser::parseExclusive(std::deque<Token>& tokenizedQ) {
+    // Function to process logical operations: "&", "^", "|".
+    // Ensure both operands are of boolean type, handle the operations accordingly.
+
+    std::unique_ptr<TreeNode> left(parseAnd(tokenizedQ));
+
+    while (nextToken == "^") {
+        std::string op = nextToken;
+        scanToken(tokenizedQ);
+
+        std::unique_ptr<TreeNode> right(parseAnd(tokenizedQ));
+
+        if (right == nullptr || left == nullptr) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+
+        std::unique_ptr<TreeBoolean> nodeLogical(new TreeBoolean(op));
+        nodeLogical->addChild(left.release());
+        nodeLogical->addChild(right.release());
+
+        left.reset(nodeLogical.release());
+    }
+    return left.release();
+}
+
+
+
+TreeNode* New_Parser::parseAnd(std::deque<Token>& tokenizedQ) {
     // Function to process logical operations: "&", "^", "|".
     // Ensure both operands are of boolean type, handle the operations accordingly.
 
     std::unique_ptr<TreeNode> left(parseEquality(tokenizedQ));
 
-    while (nextToken == "&" || nextToken == "|" || nextToken == "^") {
+    while (nextToken == "&") {
         std::string op = nextToken;
         scanToken(tokenizedQ);
 
@@ -109,6 +163,7 @@ TreeNode* New_Parser::parseLogical(std::deque<Token>& tokenizedQ) {
     }
     return left.release();
 }
+
 
 
 
@@ -272,7 +327,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             node.reset(parseA(tokenizedQ));
         }
         else {
-            node.reset(parseLogical(tokenizedQ));
+            node.reset(parseInclusive(tokenizedQ));
         }
 
         if (nextToken == ")") {
@@ -331,7 +386,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
                 rhs.reset(parseA(tokenizedQ));
             }
             else {
-                rhs.reset(parseLogical(tokenizedQ));
+                rhs.reset(parseInclusive(tokenizedQ));
 
                 if (rhs == nullptr) {
                     throw ParseError(currentLine, currentColumn, nextToken);
@@ -352,7 +407,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
         // If none of the above conditions are true, then parse it as an expression
         else {
-            rhs.reset(parseLogical(tokenizedQ));
+            rhs.reset(parseInclusive(tokenizedQ));
 
             if (rhs == nullptr) {
                 throw ParseError(currentLine, currentColumn, nextToken);
@@ -383,7 +438,7 @@ TreeNode* New_Parser::parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<
             rhs.reset(parseA(tokenizedQ));
         }
         else {
-            rhs.reset(parseLogical(tokenizedQ));
+            rhs.reset(parseInclusive(tokenizedQ));
 
             if (rhs == nullptr) {
                 throw ParseError(currentLine, currentColumn, nextToken);
@@ -404,7 +459,7 @@ TreeNode* New_Parser::parseAbool(std::deque<Token>& tokenizedQ, std::unique_ptr<
 
     // If none of the above conditions are true, then parse it as an expression
     else {
-        rhs.reset(parseLogical(tokenizedQ));
+        rhs.reset(parseInclusive(tokenizedQ));
 
         if (rhs == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);

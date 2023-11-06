@@ -120,9 +120,8 @@ class TreeIdentifier : public TreeNode {
         virtual bool        evalBool(std::unordered_map<std::string, variableMap>& vars) const;
 
         virtual ReturnType  type(std::unordered_map<std::string, variableMap>& vars) const {
-            auto it = vars.find(idName);
-            if (it != vars.end()) {
-                if (it->second.isBool) {
+            if (vars.find(idName) != vars.end()) {
+                if (vars.find(idName)->second.isBool) {
                     return ReturnType::BOOL;
                 }
                 else {

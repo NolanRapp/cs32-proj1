@@ -214,20 +214,17 @@ bool TreeBoolean::evalBool(std::unordered_map<std::string, variableMap>& vars) c
 
     bool result;
     variableMap v;
-
-	if (op == "=") {
+    if (op == "="){
 		// Sets result to final num/id which will return double or error
 		result = children[children.size() - 1]->evalBool(vars);
         v.isBool = true;
 
 		// Changes all child identifiers to the value of the final num/id
-		for (unsigned int i = 0; i < children.size() - 1; i++) {
+		for(unsigned int i = 0; i < children.size() - 1; i++) {
 			vars[children[i]->getID()] = result;
 		}
 		return result;
 	}
-
-    result = children[0]->evalBool(vars);
 
 
     // Order Comparison (Only numbers)
@@ -259,26 +256,24 @@ bool TreeBoolean::evalBool(std::unordered_map<std::string, variableMap>& vars) c
     bool left  = children[0]->evalBool(vars);
     bool right = children[1]->evalBool(vars);
 
-    if (op == "|") {
-        result = (left || right);
+    if (op == "|"){
+        return (left || right);
     }
     else if (op == "^"){
-        result = ((left && !right) || (!left && right));
+        return ((left && !right) || (!left && right));
     }
     else if (op == "&"){
-        result = (left && right);
+        return (left && right);
     }
     else if (op == "=="){
-        result = (left == right);
+        return (left == right);
     }
     else if (op == "!="){
-        result = (left != right);
+        return (left != right);
     } 
 
-    return result;
-
     // This should not run if Parser runs correctly
-    //throw std::runtime_error("TreeBoolean is holding wrong operator.");
+    throw std::runtime_error("TreeBoolean is holding wrong operator.");
 }
 
 

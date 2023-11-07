@@ -248,7 +248,7 @@ TreeBoolean::TreeBoolean(std::string value) {
 
 // This should always throw an error
 double TreeBoolean::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
-    throw std::runtime_error("Runtime error: invalid operand type.");   
+    throw std::runtime_error("Runtime error: invalid operand type1.");   
 }
 
 
@@ -281,7 +281,7 @@ void TreeBoolean::printInfix(int depth) const {
 double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
     if(children[0]->type(vars) == ReturnType::BOOL
     || children[1]->type(vars) != ReturnType::NUM){
-        throw std::runtime_error("Runtime error: invalid operand type.");   
+        throw std::runtime_error("Runtime error: invalid operand type2.");   
     }
 
     // Sets result to final num/id which will return double or error
@@ -300,7 +300,7 @@ double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars
 bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) const {
     if(children[0]->type(vars) == ReturnType::NUM 
     || children[1]->type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: invalid operand type.");   
+        throw std::runtime_error("Runtime error: invalid operand type3.");   
     }
 
     // Sets result to final bool/id which will return double or error
@@ -376,7 +376,7 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 //
 void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition->type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: condition is not a bool.");   
+        throw std::runtime_error("Runtime error: condition is not a bool4.");   
     }
 
     while(condition->evalBool(vars)){ 
@@ -396,7 +396,7 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
 //
 void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition->type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: condition is not a bool.");   
+        throw std::runtime_error("Runtime error: condition is not a bool5.");   
     }
 
     if(condition->evalBool(vars)){

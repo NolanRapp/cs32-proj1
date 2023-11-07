@@ -201,6 +201,7 @@ TreeIdentifier::TreeIdentifier(std::string name) {
 // Attempts to find value and return, if no value exists throws error
 double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::NUM){
+        std::cout << "here\n";
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
     return vars[idName].doubleVal;
@@ -210,6 +211,7 @@ double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& 
 // Variable assignment to boolean will throw error if enters here, implementation happens in TreeAssign
 bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::BOOL){ 
+        std::cout << "here!\n";
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
     return vars[idName].boolVal;
@@ -282,7 +284,7 @@ void TreeBoolean::printInfix(int depth) const {
 
 // Variable assignment evaluation for doubles (will throw an error if Type::BOOL)
 double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
-    if(type(vars) != ReturnType::NUM){
+    if(children[children.size()-1]->type(vars) != ReturnType::NUM){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
 
@@ -301,7 +303,7 @@ double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars
 
 // Variable assignment for booleans (will throw an error if Type::NUM)
 bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) const {
-    if(type(vars) != ReturnType::BOOL){
+    if(children[children.size()-1]->type(vars) != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
 
@@ -314,27 +316,6 @@ bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) co
         vars[children[i]->getID()] = val;
     }
     return result;
-}
-
-
-ReturnType TreeAssign::type(std::unordered_map<std::string, variableVal>& vars) const{
-    ReturnType lType = children[0]->type(vars);
-    ReturnType rType = children[1]->type(vars);
-
-    if(rType == ReturnType::BOOL){
-        if(lType == ReturnType::BOOL || lType == ReturnType::NONE){
-            return ReturnType::BOOL;
-        }
-        return ReturnType::INVALID;
-    }
-    else if(rType == ReturnType::NUM){
-        if(lType == ReturnType::NUM || lType == ReturnType::NONE){
-            return ReturnType::NUM;
-        }
-        return ReturnType::INVALID;
-    }
-
-    return ReturnType::INVALID;
 }
 
 
@@ -412,6 +393,10 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
                 tree->evalBool(vars);
             }
         }
+ 
+        if(condition->type(vars) != ReturnType::BOOL){
+            throw std::runtime_error("Runtime error: condition is not a bool.");   
+        }
     }
     return;
 }
@@ -420,7 +405,7 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
 //
 void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition->type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: condition is not a bool5.");   
+        throw std::runtime_error("Runtime error: condition is not a bool.");   
     }
 
     if(condition->evalBool(vars)){

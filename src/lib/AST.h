@@ -12,8 +12,7 @@
 enum class ReturnType {
     BOOL,
     NUM,
-    NONE,
-    INVALID
+    NONE
 };
 
 
@@ -180,7 +179,7 @@ class TreeAssign : public TreeNode {
         TreeAssign(){}
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const;  // return children[children.size()-1]->type(vars);
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const{ return children[children.size()-1]->type(vars); }
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
         virtual std::string getID() { // Should only be called on TreeIdentifiers

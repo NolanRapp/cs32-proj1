@@ -19,7 +19,7 @@ class Lexer {
 	de queue will be made of Tokens which are readable by the Parser class.
 	*/
     public: 
-        void createEnd(std::deque<Token>& inputq, int line, int column);
+        void createEnd(std::deque<Token>& inputq, int line, int column, Type t);
         void printTokens();
         void lex(std::string& inputString);
         std::deque<Token> getLexQueue();

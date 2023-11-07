@@ -41,7 +41,7 @@ int main() {
 		std::cout << std::endl;
 
 		try { // Attempts to evaluate AST in forest
-			double calculation = ASThead->evaluateNode(variables);
+			double calculation = ASThead->evalDouble(variables);
 			delete ASThead;
 			std::cout << calculation << std::endl;
 		}

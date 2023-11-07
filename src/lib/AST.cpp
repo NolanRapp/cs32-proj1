@@ -23,7 +23,12 @@ bool TreeLeaf::evalBool(std::unordered_map<std::string, variableVal>& vars) cons
 
 
 // Prints number in Leaf
-void TreeLeaf::printInfix() const {
+void TreeLeaf::printInfix(int depth) const {
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << value;
 }
 
@@ -158,16 +163,20 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
 
 
 // Prints expression using all children of current Operation (recursive)
-void TreeOperator::printInfix() const {
+void TreeOperator::printInfix(int depth) const {
     if (children.empty()) {
         return;
     }
 
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << '(';
-    children[0]->printInfix();
+    children[0]->printInfix(0);
     for (unsigned int i = 1; i < children.size(); i++) {
         std::cout << ' ' << op << ' ';
-        children[i]->printInfix();
+        children[i]->printInfix(0);
     }
     std::cout << ')';
 }
@@ -207,7 +216,11 @@ bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars
 
 
 // Prints ID name
-void TreeIdentifier::printInfix() const{
+void TreeIdentifier::printInfix(int depth) const{
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << idName;
 }
 
@@ -248,7 +261,11 @@ bool TreeBoolean::evalBool(std::unordered_map<std::string, variableVal>& vars) c
 
 
 //
-void TreeBoolean::printInfix() const {
+void TreeBoolean::printInfix(int depth) const {
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << value;
 }
 
@@ -299,16 +316,20 @@ bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) co
 
 
 
-void TreeAssign::printInfix() const {
+void TreeAssign::printInfix(int depth) const {
     if (children.empty()) {
         return;
     }
 
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << '(';
-    children[0]->printInfix();
+    children[0]->printInfix(0);
     for (unsigned int i = 1; i < children.size(); i++) {
         std::cout << " = ";
-        children[i]->printInfix();
+        children[i]->printInfix(0);
     }
     std::cout << ')';
 }
@@ -354,6 +375,10 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 
 //
 void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition->type(vars) != ReturnType::BOOL){
+        throw std::runtime_error("Runtime error: condition is not a bool.");   
+    }
+
     while(condition->evalBool(vars)){ 
         for(TreeNode* tree : truths){
             if(tree->type(vars) == ReturnType::NUM){
@@ -370,6 +395,10 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
 
 //
 void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition->type(vars) != ReturnType::BOOL){
+        throw std::runtime_error("Runtime error: condition is not a bool.");   
+    }
+
     if(condition->evalBool(vars)){
         for(TreeNode* tree : truths){
             if(tree->type(vars) == ReturnType::NUM){
@@ -420,25 +449,67 @@ bool TreeStatement::evalBool(std::unordered_map<std::string, variableVal>& vars)
 
 
 //
-void TreeStatement::printInfix() const{
+void TreeStatement::printInfix(int depth) const{
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
 
     if(stateStr == "print"){
         std::cout << "print ";
-        condition->printInfix();
-        std::cout << std::endl;
+        condition->printInfix(0);
     }
     else if(stateStr == "while"){
         std::cout << "while ";
-        condition->printInfix();
-        std::cout << " }" << std::endl;
+        condition->printInfix(0);
+        std::cout << " {";
 
         for(TreeNode* tree : truths){
-            std::cout << "    ";
-            tree->printInfix();
+            std::cout << '\n';
+            tree->printInfix(depth + 1);
         }
-    }
-    else{
         
+        std::cout << '\n';
+        for(int i = 1; i <= depth; i++){
+            std::cout << "    ";
+        }
+        std::cout << "}";
+    }
+    else{ 
+        std::cout << "if ";
+        condition->printInfix(0);
+        std::cout << " {";
+
+        for(TreeNode* tree : truths){
+            std::cout << '\n';
+            tree->printInfix(depth + 1);
+        }
+        
+        std::cout << '\n';
+        for(int i = 1; i <= depth; i++){
+            std::cout << "    ";
+        }
+        std::cout << "}";
+        
+        if(falses.size() > 0){
+            std::cout << '\n';
+            for(int i = 1; i <= depth; i++){
+
+                std::cout << "    ";
+            }
+            std::cout << "else {";
+    
+            for(TreeNode* tree : falses){
+                std::cout << '\n';
+                tree->printInfix(depth + 1);
+            }
+            
+            std::cout << '\n';
+            for(int i = 1; i <= depth; i++){
+
+                std::cout << "    ";
+            }
+            std::cout << "}";
+        }
     }
 }
 

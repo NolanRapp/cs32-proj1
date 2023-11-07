@@ -36,7 +36,7 @@ int main() {
 		// Evaluates current AST
 		TreeNode* ASThead = parser.popHead();
 
-		ASThead->printInfix();
+		ASThead->printInfix(0);
 		delete ASThead;
     }
 

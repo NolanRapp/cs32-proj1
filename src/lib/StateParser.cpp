@@ -17,7 +17,7 @@ TreeNode* StateParser::createTree(std::dequeue<Token>& input){
     if(isExp(input.front())){
         New_Parser parser;
 
-        return parse(input, /*MAP?*/); // Only ends on "END", "{", or "}"
+        return parse(input); // Only ends on "END", "{", or "}"
     }
 
     return createStatement(input);
@@ -26,14 +26,21 @@ TreeNode* StateParser::createTree(std::dequeue<Token>& input){
 
 // When given "if" or "while" creates a node with a condition and a true and false tree
 TreeNode* StateParser::createStatement(std::dequeue<Token>& input){
-    // Create a TreeStatement
+    unique_ptr<TreeStatement> head(new TreeStatement());
 
-    // Check if isExp() or throw
-    // Add expression as condition child
+    if(!isExp(input.front())){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects expression
+    }
+    head->condition = parseForState(input); 
 
     // Check for "{"
     // createBlock into True Tree
+    while(/*Not "}"*/){
+        head->truth.push_back(/**/);
+    }
 
+    
     // Return if "while"
 
     // Return if not "else"

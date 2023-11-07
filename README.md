@@ -77,4 +77,26 @@ Part 2: Persistence
                 
                 scanToken:
                     This implements std::deque to assign the current token to a variable called nextToken, and peek ahead at the next token.
+
+
+Part 3: Conditionals
+    The purpose of the third checkpoint is to implement booleans into our current parsing and evaluating logic in order to support statements in our language. The goal is to be able to support statements like "if" and "while" that evaluate to boolean true or false.
+
+        Booleans:
+            A new data type, booleans, are now supported in our program. Boolean-returning or boolean evaluating operations, like equality/inequality, comparison, logical and/exclusive/inclusive, and boolean assignment are now supported. This required updating New_Parser.cpp, AST.cpp, Token.h and Lexer.cpp to recognize these new operators and be able to handle boolean evaluations.
+
+                Important Additions: 
+                    New_Parser:
+                        New operators were added to the Recursive Descent Parser to agree with the precedence order defined on the F23 Github page. These included comparison, equality, and logical operators. Assignments were also updated to handle variable assignments to booleans as well as numbers. 
+                        parseForCalc() function was added to handle parsing for specifically calc.cpp, for Track A of Scrypt 03.
+                    AST:
+                        The AST TreeNodes were modified slightly to handle boolean and double evaluations seperately. The type of token is determined when constructing the deque in the lexer, and this type determines which evaluation to enter when constructing the AST (double or bool). Logic for evaulating these new operators was added. Additionally, a new TreeAssign class was created to specially handle assignment nodes, seperately from operator nodes.
+                    Token:
+                        The token class was expanded to include the type of token (enum class Type) when the constructor is called from the lexer. This made AST and New_Parser more readable and convenient.
+
+
+        Statements: 
+                    
+
+
         

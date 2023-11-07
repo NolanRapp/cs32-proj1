@@ -38,28 +38,24 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
 
 
 
+// Function specifically to be called in calc.cpp, Track A of Scrypt 03
 TreeNode* New_Parser::parseForCalc(std::deque<Token>& tokenizedQ) {
     std::unique_ptr<TreeNode> ast;
     ast.reset(parse(tokenizedQ));
 
     if (nextToken != "END") {
         throw ParseError(currentLine, currentColumn, nextToken);;
-        // HERE: add in parse for calc
     }
     return (ast.release());
 }
 
 
 
+// MAIN Parser. Begining of Recursive Descent.
 TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
-    // Function to parse entire input, and end when "END" token is reached
 
     scanToken(tokenizedQ); // Initial consumption
     std::unique_ptr<TreeNode> rootTree;
-
-    /*if (nextToken.empty()) {
-        throw ParseError(currentLine, currentColumn, nextToken);
-    }*/
 
     if ((tokenType == Type::ID) && (lookahead == "=")) {
         rootTree.reset(parseA(tokenizedQ));
@@ -72,17 +68,16 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
     }
     else {
         rootTree.reset(parseInclusive(tokenizedQ));
-
         if (rootTree == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
     }
-
     return rootTree.release();
 }
 
 
 
+// Inclusive operator parser "|". Lowest precedence operator.
 TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseExclusive(tokenizedQ));
@@ -98,6 +93,7 @@ TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
         }
 
         std::unique_ptr<TreeOperator> nodeOperator(new TreeOperator(op));
+
         nodeOperator->addChild(left.release());
         nodeOperator->addChild(right.release());
 
@@ -108,6 +104,7 @@ TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
 
 
 
+// Exclusive operator parser "^".
 TreeNode* New_Parser::parseExclusive(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseAnd(tokenizedQ));
@@ -133,6 +130,7 @@ TreeNode* New_Parser::parseExclusive(std::deque<Token>& tokenizedQ) {
 
 
 
+// And operator parser "&"
 TreeNode* New_Parser::parseAnd(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseEquality(tokenizedQ));
@@ -158,7 +156,7 @@ TreeNode* New_Parser::parseAnd(std::deque<Token>& tokenizedQ) {
 
 
 
-
+// Equality operator parser "==" and "!=".
 TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseComparison(tokenizedQ));
@@ -186,6 +184,7 @@ TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
 
 
 
+// Comparison operator parser "<", ">", "<=", ">=".
 TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseE(tokenizedQ));
@@ -211,8 +210,8 @@ TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
 
 
 
+// Expression operator parser "+" and "-"
 TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
-    // Function to process 3rd order operations (expressions): "+" and "-"
 
     std::unique_ptr<TreeNode> node(parseT(tokenizedQ));
 
@@ -239,13 +238,12 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 
 
 
+// Term operator parser "*", "/", "%"
 TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
-    // Function to process 2nd order operations (terms): "*" and "/" and "%"
 
     std::unique_ptr<TreeNode> node(parseF(tokenizedQ));
 
     while (nextToken == "*" || nextToken == "/" || nextToken == "%") {
-
         std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
         operatorNode->addChild(node.release());
         scanToken(tokenizedQ);
@@ -262,17 +260,14 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
         operatorNode->addChild(right.release());
         node.reset(operatorNode.release());
-
     }
-
     return node.release();
-
 }
 
 
 
+// Factor operator parser (integers, identifiers, and parenthesis)
 TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
-    // Function to process 4th order operators (factors): integer, identifier
 
     if (nextToken.empty()) {
         throw ParseError(currentLine, currentColumn, nextToken);
@@ -314,7 +309,7 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             return node.release();
         }
         else {
-            throw ParseError(currentLine, currentColumn, nextToken); // Throws error corresponding to "END" token, missing closing parenthesis
+            throw ParseError(currentLine, currentColumn, nextToken); // missing closing parenthesis
         }
     }
 
@@ -328,7 +323,6 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
         return leaf.release();
     }
-
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
@@ -338,23 +332,22 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
 
 
+// Assignment operator parser "=". Recursively calls itself if assignments are nested.
 TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
-    // Function to parse assignments
-    // Recursively calls itself if there are many instances of "="
 
     std::unique_ptr<TreeIdentifier> id(new TreeIdentifier(nextToken));
 
-    scanToken(tokenizedQ); // Consume the "=" 
-    scanToken(tokenizedQ); // Consumes whats next
+    scanToken(tokenizedQ); // Consume "=" 
+    scanToken(tokenizedQ); // Consumes next
 
     std::unique_ptr<TreeAssign> assignmentNode(new TreeAssign());
     assignmentNode->addChild(id.release());
 
     std::unique_ptr<TreeNode> rhs;
 
-    // Dealing with nested assignments: (a=(b=3))
+    // Dealing with parenthetic nested assignments: (a=(b=3))
     if ((!tokenizedQ.empty()) && (nextToken == "(") && (lookaheadType == Type::ID)) {
-        scanToken(tokenizedQ); // Consume the "("
+        scanToken(tokenizedQ); // Consume "("
 
         if (lookahead == "=") {
             rhs.reset(parseA(tokenizedQ));
@@ -365,27 +358,26 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
             if (rhs == nullptr) {
                 throw ParseError(currentLine, currentColumn, nextToken);
             }
-
         }
 
         if (tokenizedQ.empty() || nextToken != ")") {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
-        scanToken(tokenizedQ); // Consuming ")"
+        scanToken(tokenizedQ); // Consume ")"
     }
 
-    // Dealing with simple nested assignments like: a = b = 5
+    // Dealing with simple nested assignments: a = b = 5
     else if ((!tokenizedQ.empty()) && (tokenType == Type::ID) && (lookahead == "=")) {
         rhs.reset(parseA(tokenizedQ));
     }
 
-    // If none of the above conditions are true, then parse it as an expression
     else {
         rhs.reset(parseInclusive(tokenizedQ));
 
         if (rhs == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
+
     }
     
     if (rhs == nullptr) {
@@ -394,7 +386,6 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
     assignmentNode->addChild(rhs.release());
     return assignmentNode.release();
-
 }
 
 

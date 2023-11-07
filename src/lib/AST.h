@@ -32,11 +32,10 @@ struct variableVal {
 
 class TreeNode {
     /* 
-    This class is the BASE of the inheritance implemented in Class TreeLeaf and 
-    Class TreeOperator
-    It initializes the function evaluateNode(), our virtual function
-    TreeNode also contains a destructor, which gets inherited with evaluateNode().
-        If a variable goes out of evaluateNode() scope, ~TreeNode will be called 
+    This class is the BASE of the Tree Forest inheritance.
+    It initializes our virtual functions to be utilized in their respective classes.
+    TreeNode also contains a destructor, which gets inherited as well.
+        If a variable goes out of the inherited functions scope, ~TreeNode will be called 
     */
 
     public:
@@ -52,9 +51,8 @@ class TreeNode {
 
 class TreeLeaf : public TreeNode {
     /* 
-    This class is used to store and return ONE numerical value. 
-    The evaluateNode() function will just return this value, to be used 
-    in conjunction with TreeOperator
+    This class is used to store, evaluate (return), and print and return the leaf node of the AST.
+    This is always ONE numerical operator. 
     */
 
     public:
@@ -76,8 +74,8 @@ class TreeLeaf : public TreeNode {
 
 class TreeOperator : public TreeNode {
     /*
-    This class assigns a vector of operands to an operator. This will 
-    indicate which values the operation is to be preformed on.
+    This class is used to store, evaluate, and print operators of the AST.
+    The operator nodes vector of type TreeNode* storing their operands.
     */
 
     public:
@@ -114,8 +112,9 @@ class TreeOperator : public TreeNode {
 
 class TreeIdentifier : public TreeNode {
     /*
-    This class is used to store an identifier which will point
-    to its value so it can be used across multiple AST trees
+    This class is used to store, evaluate, and print an identifier.
+    The identifier points to its value so it can be used across multiple AST trees.
+    Valid identifiers can hold values of Type::NUM or Type::BOOL. 
     */
 
     public:
@@ -148,8 +147,9 @@ class TreeIdentifier : public TreeNode {
 
 class TreeBoolean : public TreeNode {
     /*
-    This class is used to handle booleans, 
-    and print them as "true" and "false"*/
+    This class is used to store, evaluate, and print booleans.
+    It prints booleans at "true" or "false".
+    */
 
     public:
         TreeBoolean(std::string value);
@@ -170,6 +170,10 @@ class TreeBoolean : public TreeNode {
 
 
 class TreeAssign : public TreeNode {
+    /*
+    This class is used to store, evaluate, and print assignment operations only.
+    It handles both double and boolean assignments.
+    */
 
    public:
         TreeAssign();

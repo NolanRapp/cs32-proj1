@@ -13,8 +13,7 @@ void Lexer::printTokens() {
     while (!lexTokens.empty()) {
         Token printToken = lexTokens.front();
         std::cout << std::setfill(' ')  << std::setw(4) << std::right << printToken.line << std::setfill(' ')
-        << std::setw(5) << std::right << printToken.column << "  " << printToken.text << std::endl;
-        // using example from  https://cplusplus.com/reference/iomanip/setw/ 
+        << std::setw(5) << std::right << printToken.column << "  " << printToken.text << std::endl; 
         
         lexTokens.pop_front();
     }
@@ -51,8 +50,6 @@ void Lexer::lex(std::string& inputString) {
     };
 
     while (stream.get(i)) { 
-        // std::stream.get(i) reads input, whitespace, and newlines
-        // https://cplusplus.com/reference/istream/istream/get/
 
         if (i == '\n') {
             line++;
@@ -93,6 +90,7 @@ void Lexer::lex(std::string& inputString) {
                     lexTokens.push_back(Token(line, column, "=", Type::OP));
                 }
             }
+
             else if (i == '!' && stream.peek() == '=') {
                 lexTokens.push_back(Token(line, column, "!=", Type::OP));
                 stream.get(i);
@@ -137,9 +135,6 @@ void Lexer::lex(std::string& inputString) {
 
                 // if number is a decimal:
                 while ((isdigit(stream.peek()) || stream.peek() == '.')) {
-                    // peek returns next character in the input sequence, without extracting it
-                    // https://cplusplus.com/reference/istream/istream/peek/
-
                     if (stream.peek() == '.') {
                         // checking for multiple decimals
                         if (decimal) {

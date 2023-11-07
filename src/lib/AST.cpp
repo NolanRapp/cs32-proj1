@@ -50,7 +50,7 @@ void TreeOperator::addChild(TreeNode* child){
 
 
 
-// Evaluates Operator and children (recursive)
+// Evaluates double Operators and children (recursive)
 double TreeOperator::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
 
     if(type(vars) != ReturnType::NUM){
@@ -101,6 +101,7 @@ double TreeOperator::evalDouble(std::unordered_map<std::string, variableVal>& va
 
 
 
+// Evaluates boolean Operator and children (recursive)
 bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
 
     if(type(vars) != ReturnType::BOOL){
@@ -152,7 +153,7 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
         return (left != right);
     } 
 
-    return false; // should not be ran
+    return false; // Should never reach here
 }
 
 
@@ -197,7 +198,7 @@ double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& 
 }
 
 
-// Variables can't be assigned bools so it will always error
+// Variable assignment to boolean will throw error if enters here, implementation happens in TreeAssign
 bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::BOOL){ 
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
@@ -240,14 +241,14 @@ double TreeBoolean::evalDouble(std::unordered_map<std::string, variableVal>& var
 
 
 
-//
+// Returns "true" 
 bool TreeBoolean::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     return (value == "true");
 }
 
 
 
-//
+// Prints the boolean
 void TreeBoolean::printInfix() const {
     std::cout << value;
 }
@@ -266,7 +267,7 @@ TreeAssign::TreeAssign() {
 
 
 
-// This should always throw an error
+// Variable assignment evaluation for doubles (will throw an error if Type::BOOL)
 double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
     if(children[0]->type(vars) == ReturnType::BOOL
     || children[1]->type(vars) != ReturnType::NUM){
@@ -286,6 +287,7 @@ double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars
 
 
 
+// Variable assignment for booleans (will throw an error if Type::NUM)
 bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) const {
     if(children[0]->type(vars) == ReturnType::NUM 
     || children[1]->type(vars) != ReturnType::BOOL){
@@ -305,6 +307,7 @@ bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) co
 
 
 
+// Prints variable assignment infix
 void TreeAssign::printInfix() const {
     if (children.empty()) {
         return;
@@ -320,7 +323,7 @@ void TreeAssign::printInfix() const {
 }
 
 
-
+// Adds a right-most child node
 void TreeAssign::addChild(TreeNode* child){
     children.push_back(child);
 }

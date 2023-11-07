@@ -51,6 +51,20 @@ TreeNode* New_Parser::parseForCalc(std::deque<Token>& tokenizedQ) {
 
 
 
+
+TreeNode* New_Parser::parseForState(std::deque<Token>& tokenizedQ) {
+    std::unique_ptr<TreeNode> ast;
+    ast.reset(parse(tokenizedQ));
+
+    Token pushTok(currentLine, currentColumn, nextToken, tokenType);
+
+    tokenizedQ.push_front(pushTok);
+
+    return (ast.release());
+}
+
+
+
 TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
     // Function to parse entire input, and end when "END" token is reached
 

@@ -260,12 +260,6 @@ void TreeBoolean::printInfix() const {
 
 
 
-// Nothing to do here
-TreeAssign::TreeAssign() {
-}
-
-
-
 // This should always throw an error
 double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
     if(children[0]->type(vars) == ReturnType::BOOL
@@ -327,4 +321,133 @@ void TreeAssign::addChild(TreeNode* child){
 
 
 
-// Incoming logic of TreeStatements
+
+
+
+
+
+
+//
+TreeStatement::TreeStatement(std::string statement){
+    stateStr = statement;
+}
+
+
+
+//
+void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition->type(vars) == ReturnType::NUM){
+        double value = condition->evalDouble(vars);
+        std::cout << value << '\n';
+        return;
+    }
+
+    if(condition->evalBool(vars)){
+        std::cout << "True\n";
+        return;
+    }
+    std::cout << "False\n";
+    return;
+}
+
+
+
+//
+void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{
+    while(condition->evalBool(vars)){ 
+        for(TreeNode* tree : truths){
+            if(tree->type(vars) == ReturnType::NUM){
+                tree->evalDouble(vars);
+            }
+            else{
+                tree->evalBool(vars);
+            }
+        }
+    }
+    return;
+}
+
+
+//
+void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition->evalBool(vars)){
+        for(TreeNode* tree : truths){
+            if(tree->type(vars) == ReturnType::NUM){
+                tree->evalDouble(vars);
+            }
+            else{
+                tree->evalBool(vars);
+            }
+        }
+        return;
+    }
+    
+    for(TreeNode* tree : falses){
+        if(tree->type(vars) == ReturnType::NUM){
+            tree->evalDouble(vars);
+        }
+        else{
+            tree->evalBool(vars);
+        }
+    }
+    return;
+}
+
+
+
+//
+double TreeStatement::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
+    if(stateStr == "print"){
+        evaluatePrint(vars);
+    }
+    else if(stateStr == "while"){
+        evaluateWhile(vars);
+    }
+    else{
+        evaluateIf(vars);
+    }
+
+    return 0.0; // Dummy return will never be used
+}
+
+
+
+//
+bool TreeStatement::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
+    throw std::runtime_error("Statement called evalBool"); // should never run   
+}
+
+
+
+//
+void TreeStatement::printInfix() const{
+
+    if(stateStr == "print"){
+        std::cout << "print ";
+        condition->printInfix();
+        std::cout << std::endl;
+    }
+    else if(stateStr == "while"){
+        std::cout << "while ";
+        condition->printInfix();
+        std::cout << " }" << std::endl;
+
+        for(TreeNode* tree : truths){
+            std::cout << "    ";
+            tree->printInfix();
+        }
+    }
+    else{
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+

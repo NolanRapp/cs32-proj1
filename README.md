@@ -4,7 +4,7 @@ Authors:
     Jesse Cobb, Chloe Andersen, Nolan Rapp, Christy Yu
 
 Make Commands:
-    Lexer Parser New_Parser clean
+    Lexer Parser New_Parser Format Scrypt clean
 
 
 Part 1: Calculator

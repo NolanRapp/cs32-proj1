@@ -38,7 +38,7 @@ int main() {
 		TreeNode* ASThead = parser.popHead();
 
 		try { // Attempts to evaluate AST in forest
-            if(ASThead->type(vars) == ReturnType::Num){
+            if(ASThead->type(vars) == ReturnType::NUM){
                 ASThead->evalDouble(vars);
             }
             else{

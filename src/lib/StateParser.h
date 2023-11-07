@@ -7,7 +7,8 @@
 #include "AST.h"
 #include "Errors.h"
 
-#include <dequeue>
+#include <deque>
+#include <memory>
 
 class StateParser {
 
@@ -16,6 +17,7 @@ public:
     ~StateParser(){};
 
     void                    createForest(std::deque<Token> oInput);
+    TreeNode*               createStatement(std::deque<Token>& input);
     std::vector<TreeNode*>  createBlock(std::deque<Token>& input);
     TreeNode*               createTree(std::deque<Token>& input);
     TreeNode*               popHead();

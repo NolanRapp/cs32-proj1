@@ -201,7 +201,6 @@ TreeIdentifier::TreeIdentifier(std::string name) {
 // Attempts to find value and return, if no value exists throws error
 double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::NUM){
-        std::cout << "here\n";
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
     return vars[idName].doubleVal;
@@ -211,7 +210,6 @@ double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& 
 // Variable assignment to boolean will throw error if enters here, implementation happens in TreeAssign
 bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::BOOL){ 
-        std::cout << "here!\n";
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
     return vars[idName].boolVal;

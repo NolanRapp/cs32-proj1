@@ -85,7 +85,7 @@ TreeNode* Parser::closedTree(std::deque<Token>& input){
 // Evaluates an S expression from its operator by adding valid children to it on the AST
 TreeNode* Parser::opTree(std::deque<Token>& input){
 
-	std::unique_ptr<TreeOperator> op(new TreeOperator(input.front().text.at(0)));
+	std::unique_ptr<TreeOperator> op(new TreeOperator(input.front().text));
 	TreeNode* 		tempExp;
 	TreeLeaf* 		tempLeaf;
 	TreeIdentifier* tempID;
@@ -132,7 +132,7 @@ TreeNode* Parser::opTree(std::deque<Token>& input){
 // Evaluates an assignment expression, confirms conditions for valid expression
 TreeNode* Parser::assignTree(std::deque<Token>& input){
 	
-	std::unique_ptr<TreeOperator> assign(new TreeOperator(input.front().text.at(0)));
+	std::unique_ptr<TreeOperator> assign(new TreeOperator(input.front().text));
 	TreeIdentifier* tempID;
 	int childNum = 0;
 	input.pop_front();

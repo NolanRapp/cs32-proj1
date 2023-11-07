@@ -6,6 +6,28 @@
 #include <iostream>
 #include <vector>
 #include <unordered_map>
+#include <cmath>
+
+
+enum class ReturnType {
+    BOOL,
+    NUM,
+    NONE
+};
+
+
+
+struct variableVal {
+    double  doubleVal;
+    bool    boolVal;
+    bool    isBool;
+
+    variableVal()               : doubleVal(0), boolVal(false), isBool(false) {}
+    variableVal(double number)  : doubleVal(number), boolVal(false), isBool(false) {} // num constructor
+    variableVal(bool boolean)   : doubleVal(0), boolVal(boolean), isBool(true) {} // bool constructor
+};
+
+
 
 
 class TreeNode {
@@ -18,9 +40,11 @@ class TreeNode {
     */
 
     public:
-        virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const = 0;
-        virtual void 		printInfix() const = 0;
-		virtual std::string getID() = 0; // Should only be called on TreeIdentifiers
+        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const = 0;
+        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const = 0;
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const = 0; 
+        virtual void        printInfix() const = 0;
+        virtual std::string getID() = 0; // Should only be called on TreeIdentifiers
         virtual ~TreeNode() {};
 };
 
@@ -35,12 +59,14 @@ class TreeLeaf : public TreeNode {
 
     public:
         TreeLeaf(double val);
-        virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
-        virtual void 		printInfix() const;
-		virtual std::string getID() { // Should only be called on TreeIdentifiers
-			throw std::runtime_error("Runtime error: getID() called on Leaf");
-			return "";
-		}; 
+        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::NUM;}
+        virtual void        printInfix() const;
+        virtual std::string getID() { // Should only be called on TreeIdentifiers
+            throw std::runtime_error("Runtime error: getID() called on Leaf");
+            return "";
+        } 
 
     private:
         double value;
@@ -55,43 +81,123 @@ class TreeOperator : public TreeNode {
     */
 
     public:
-        TreeOperator(char operation);
-        virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
-        virtual void 		printInfix() const;	
-        		void 		addChild(TreeNode* child);
-		virtual std::string getID() { // Should only be called on TreeIdentifiers
-			throw std::runtime_error("Runtime error: getID() called on Operator");
-			return "";
-		}; 
-		~TreeOperator() {
+        TreeOperator(std::string operation);
+        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const { 
+            if(op == "+" || op == "-" || op == "*" ||
+               op == "/" || op == "%"){
+                return ReturnType::NUM;
+            }
+            return ReturnType::BOOL;
+        }
+
+        virtual void        printInfix() const; 
+                void        addChild(TreeNode* child);
+        virtual std::string getID() { // Should only be called on TreeIdentifiers
+            throw std::runtime_error("Runtime error: getID() called on Operator");
+            return "";
+        } 
+        ~TreeOperator() {
             for (auto child : children) {
-		        delete child;
-	        }
-	        children.clear();
-        };
+                delete child;
+            }
+            children.clear();
+        }
 
     private:
-        char operation;
+        std::string op;
         std::vector<TreeNode*> children;
 };
 
 
 
 class TreeIdentifier : public TreeNode {
-	/*
-	This class is used to store an identifier which will point
-	to its value so it can be used across multiple AST trees
-	*/
+    /*
+    This class is used to store an identifier which will point
+    to its value so it can be used across multiple AST trees
+    */
 
-	public:
-		TreeIdentifier(std::string name);
-		virtual double 		evaluateNode(std::unordered_map<std::string, double>& vars) const;
-		virtual void 		printInfix() const;
-		virtual std::string getID(); 
+    public:
+        TreeIdentifier(std::string name);
+        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {
+            if (vars.find(idName) != vars.end()) {
+                if (vars[idName].isBool) {
+                    return ReturnType::BOOL;
+                }
+                else {
+                    return ReturnType::NUM;
+                }
+            }
+            else {
+                return ReturnType::NONE;
+            }
+        }
 
-	private:
-		std::string idName;
+        virtual void        printInfix() const;
+                void        addChild(TreeNode* child);
+        virtual std::string getID(); 
+
+    private:
+        std::string idName;
 };
+
+
+
+class TreeBoolean : public TreeNode {
+    /*
+    This class is used to handle booleans, 
+    and print them as "true" and "false"*/
+
+    public:
+        TreeBoolean(std::string value);
+        void addChild(TreeNode* child);
+        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::BOOL;}
+        virtual void        printInfix() const;
+        virtual std::string getID() { // Should only be called on TreeIdentifiers
+            throw std::runtime_error("Runtime error: getID() called on Leaf");
+            return "";
+        };
+
+    private:
+        std::string value;
+};
+
+
+
+class TreeAssign : public TreeNode {
+
+   public:
+        TreeAssign();
+        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {
+            return children[children.size()-1]->type(vars);
+        }
+        virtual void        printInfix() const; 
+                void        addChild(TreeNode* child);
+        virtual std::string getID() { // Should only be called on TreeIdentifiers
+            throw std::runtime_error("Runtime error: getID() called on Operator");
+            return "";
+        }; 
+        ~TreeAssign() {
+            for (auto child : children) {
+                delete child;
+            }
+            children.clear();
+        }
+
+    private:
+        std::vector<TreeNode*> children;
+};
+
+
+
+// Incoming declaration of TreeStatment
 
 
 #endif

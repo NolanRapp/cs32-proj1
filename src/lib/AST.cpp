@@ -315,6 +315,27 @@ bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) co
 }
 
 
+ReturnType TreeAssign::type(std::unordered_map<std::string, variableVal>& vars) const{
+    ReturnType lType = children[0]->type(vars);
+    ReturnType rType = children[1]->type(vars);
+
+    if(rType == ReturnType::BOOL){
+        if(lType == ReturnType::BOOL || lType == ReturnType::NONE){
+            return ReturnType::BOOL;
+        }
+        return ReturnType::INVALID;
+    }
+    else if(rType == ReturnType::NUM){
+        if(lType == ReturnType::NUM || lType == ReturnType::NONE){
+            return ReturnType::NUM;
+        }
+        return ReturnType::INVALID;
+    }
+
+    return ReturnType::INVALID;
+}
+
+
 
 void TreeAssign::printInfix(int depth) const {
     if (children.empty()) {

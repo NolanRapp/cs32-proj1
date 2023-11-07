@@ -176,24 +176,7 @@ class TreeAssign : public TreeNode {
         TreeAssign(){}
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {
-            // return children[children.size()-1]->type(vars);
-            if(children[0]->type(vars) == ReturnType::BOOL){
-                for(size_t i = 1; i < children.size(); i++){
-                    if(children[i]->type(vars) == ReturnType::NUM){
-                        return ReturnType::INVALID;
-                    }
-                }
-                return ReturnType::BOOL;
-            }
-            
-            for(size_t i = 0; i < children.size(); i++){
-                if(children[i]->type(vars) == ReturnType::BOOL){
-                    return ReturnType::INVALID;
-                }
-            }
-            return ReturnType::NUM;
-        }
+        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const;  // return children[children.size()-1]->type(vars);
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
         virtual std::string getID() { // Should only be called on TreeIdentifiers

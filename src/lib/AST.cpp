@@ -279,8 +279,7 @@ void TreeBoolean::printInfix(int depth) const {
 
 // This should always throw an error
 double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
-    if(children[0]->type(vars) == ReturnType::BOOL
-    || children[1]->type(vars) != ReturnType::NUM){
+    if(type(vars) != ReturnType::NUM){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
 
@@ -298,8 +297,7 @@ double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars
 
 
 bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) const {
-    if(children[0]->type(vars) == ReturnType::NUM 
-    || children[1]->type(vars) != ReturnType::BOOL){
+    if(type(vars) != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
 

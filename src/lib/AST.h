@@ -180,7 +180,7 @@ class TreeAssign : public TreeNode {
             // return children[children.size()-1]->type(vars);
             if(children[0]->type(vars) == ReturnType::BOOL){
                 for(size_t i = 1; i < children.size(); i++){
-                    if(children[i]->type(vars) != ReturnType::BOOL){
+                    if(children[i]->type(vars) == ReturnType::NUM){
                         return ReturnType::INVALID;
                     }
                 }
@@ -188,7 +188,7 @@ class TreeAssign : public TreeNode {
             }
             
             for(size_t i = 0; i < children.size(); i++){
-                if(children[i]->type(vars) != ReturnType::NUM){
+                if(children[i]->type(vars) == ReturnType::BOOL){
                     return ReturnType::INVALID;
                 }
             }

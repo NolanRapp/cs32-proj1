@@ -23,7 +23,7 @@ int main(){
 			rootTree.reset(infix.parseForCalc(tokenizedQ));
 			ReturnType returnType = rootTree->type(tempVars);
 
-			rootTree->printInfix();
+			rootTree->printInfix(0);
 			std::cout << std::endl;
 
 			if (returnType == ReturnType::NUM) {

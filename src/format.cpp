@@ -37,6 +37,7 @@ int main() {
 		TreeNode* ASThead = parser.popHead();
 
 		ASThead->printInfix(0);
+        std::cout << '\n';
 		delete ASThead;
     }
 

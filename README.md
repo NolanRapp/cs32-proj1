@@ -13,7 +13,7 @@ Using a `[Program]`:
     - Arithmatic Operations: `*`, `/`, `%`, `+`, `-`, `(`, `)`
     - Booleans Operations: `<`, `<=`, `>`, `>=`, `==`, `!=`, `&`, `^`, `|`, `=`, 
     - Statements: `{`, `}`, `if`, `else`, `while`, `print`
-    - Numbers, `true`, `false`
+    - Numbers, Identifiers (Any non-resevred string of letters and underscore), `true`, `false`
 
 `Scrypt`:
 > This program takes in user input in the form of a program using statement tokens along with infix expressions then evaluates the program.

@@ -67,7 +67,7 @@ Calculator (Checkpoint 1)
 >
 >> This makes use of the `Parser` which takes the queue built by the lexer and attempts to parse a single S-expression. Has error handling for parse errors as well as evaluation errors such as dividing by 0.
 
-Checkpoint 2
+Persistence (Checkpoint 2)
 > Variables (Track A)
 >
 >> This uses both `Lexer` and `Parser` after altering the valid input of the user. The user can now submit strings of letters and underscores as well as the assignment operator `=`. This is used for assigning double values to these variable. Multiple expressions are now supported.

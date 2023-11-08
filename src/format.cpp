@@ -23,6 +23,7 @@ int main() {
         return 1;
     }
 
+    // Parses all input to make a forest of the program
     StateParser parser;
     try { // Attempts to parse queue
         parser.createForest(lexer.getLexQueue());
@@ -32,8 +33,8 @@ int main() {
         return 2;
     }
     
+    // Evaluates forest
     while(!parser.isEmpty()){
-        // Evaluates current AST
         TreeNode* ASThead = parser.popHead();
 
         ASThead->printInfix(0);

@@ -16,7 +16,6 @@ int main() {
 
     // Creates deque by reading user input and feeds into a parser
     Lexer lexer;
-
     try { // Attempts to lex input
         lexer.lex(totalString);
     }

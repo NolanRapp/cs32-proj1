@@ -1,80 +1,96 @@
 # cs32
 
-Authors:
-    Jesse Cobb, Chloe Andersen, Nolan Rapp, Christy Yu
 
-Make Commands:
-    Lexer Parser New_Parser clean
+#### Authors:
+> Jesse Cobb, Chloe Andersen, Nolan Rapp, Christy Yu
+
+### Programs:
+Using a `[Program]`:
+- Please run all program commands in `src/` and replace `[Program]` with one of the program names.
+- Compiling: `cd src/ && [Program]`
+- Running: `./[Program]`
+- Valid Tokens:
+    - Arithmatic Operations: `*`, `/`, `%`, `+`, `-`, `(`, `)`
+    - Booleans Operations: `<`, `<=`, `>`, `>=`, `==`, `!=`, `&`, `^`, `|`, `=`, 
+    - Statements: `{`, `}`, `if`, `else`, `while`, `print`
+    - Numbers, `true`, `false`
+
+`Scrypt`:
+> This program takes in user input in the form of a program using statement tokens along with infix expressions then evaluates the program.
+
+`Format`
+> This program takes in user input in the form of a program using statement tokens along with infix expressions then prints the program in standard format.
+
+`New_Parser`
+> This program takes user input line-by-line and outputs the expression and evaluates it. Errors will not interrupt the program but will ask for new input.
+> Doesn't accept Statement Tokens
+
+`Parser` [OUTDATED]
+> Takes all input and parses a single S-expression.
+> No longer compiles due to changes in ASTs [Refer to New_Parser]
+
+`Lexer`
+> This program reads input and saves all valid inputs as Token objects used by parsers. Will exit if there is an invalid input.
+
+### Files:
+    cs32-scrypt
+    ├── README.md   ------------- Project Documentation
+    ├── .gitignore
+    └── src         ------------- All main source files
+        ├── Makefile
+        ├── calc.cpp ------------ Parses expression by line
+        ├── format.cpp ---------- Parses program and prints
+        ├── lex.cpp ------------- Outputs tokens from input
+        ├── parse.cpp ----------- [OUTDATED] Parses S-expression using input
+        ├── scrypt.cpp ---------- Parses program and evaluates
+        └── lib     ------------- Library files used by main files
+            ├── AST.cpp
+            ├── AST.h ----------- Class for nodes of ASTs (includes statements)
+            ├── Errors.h -------- Custom exceptions for intuitive errors
+            ├── Lexer.cpp
+            ├── Lexer.h --------- Class for converting input to Tokens
+            ├── New_Parser.cpp
+            ├── New_Parser.h ---- Parses infix expression
+            ├── Parser.cpp
+            ├── Parser.h -------- [OUTDATED] Parses S-expressions
+            ├── StateParser.cpp
+            ├── StateParser.h --- Parses full programs with statements
+            └── Token.h --------- Fundamental object of Lexer and used for parsing
+
+## Timeline
+Calculator (Checkpoint 1)
+> The Lexer (Track A)
+>
+>> This makes use of the `Lexer` which takes in user input and allows for standard S-expression notation: `(`, `)`, `+`, `-`, `/`, `*`, and numbers. This program outputs the build queue of Tokens.
+>
+> The Parser (Track B)
+>
+>> This makes use of the `Parser` which takes the queue built by the lexer and attempts to parse a single S-expression. Has error handling for parse errors as well as evaluation errors such as dividing by 0.
+
+Checkpoint 2
+> Variables (Track A)
+>
+>> This uses both `Lexer` and `Parser` after altering the valid input of the user. The user can now submit strings of letters and underscores as well as the assignment operator `=`. This is used for assigning double values to these variable. Multiple expressions are now supported.
+>
+> Infix Notation (Track B)
+>
+>> This uses `New_Parser` which takes user input and parses a single infix expression per line. No errors interrupt the program but will request a new input. This also supports assignment of variables. This parser was created using Recursive-Descent Parser logic.
+
+Conditionals (Checkpoint 3)
+> Booleans (Track A)
+>
+>> This uses `New_Parser` with many new operations and tokens added: `%`, `<`, `>`, `<=`, `>=`, `==`, `!=`, `&`, `^`, `|`, `true`, and `false`. This requires the implementation of booleans as well as boolean assigning.
+>
+> Statements (Track B)
+>
+>> This uses `Scrypt` and `Format` and allows for `if`, `else`, `while`, `print`, `{`, and `}` to allow for an entire program to be written using fundamental statements. It can output the forest of ASTs built in standard formatting and can also evaluate this forest.
 
 
-Part 1: Calculator
-    The purpose of the first checkpoint of this project is to build a calculator. The calculator is split into two parts: the lexer (which reads in raw text and translates it to a sequence of tokens), and the parser (which builds an abstract syntax tree, and calculates the input S-Expression).
-
-    The Lexer:
-        The Lexer collects standard input in its construction and forms a queue of Token objects that are restricted to being any of the following strings: "(", ")", "+", "-", "/", "*", and a valid number. These are collected to later be used by a class such as the Parser that will evaluate them.          
-
-            Important Functions:
-                Lexer::createEnd():
-                    Creates an "END" token for formatting.
-                Lexer::printTokens():
-                    Prints all tokens from the queue in easy to read column format.
-                Lexer::Lexer():
-                    Creates a queue of Tokens from standard input. 
-
-    The Parser:
-        The Parser collects a queue of tokens (token line, token column, and token text) from the Lexer, and builds an abstract syntax tree using the Parser::parse() function. It is then able to easily calculate the desired S-Expression using the virtual function evaluateNode(). It also constructs and prints the original S-Expression in infix form using the virtual function printInfix(). In main, we run a try-catch block for runtime errors (exit code 3). Otherwise, parse errors (exit code 2) are thrown as they come up in AST building and calculating.
-            
-            Important Functions:
-                Parser::Parser(): 
-                    Constructor that initializes the token vector. It checks for initial Parse Errors, then calls createTree() to begin constructing the AST. The head of this tree is assinged to a variable.
-                Parser::closedTree():
-                    A function that evaluates a given S expression in the context of opening and closing parenthesis.
-                Parser::opTree():
-                    A function that evaluates a given S expression from the head of it (the Operator).
-                Parser::numTree():
-                    A function that confirms an S expression starting with a number only consists of that number.
-                Parser::parseError():
-                    Prints a parse error with corresponding line, column, and text. Exits with exit code 2. 
-                
-                evaluateNode():
-                    Virtual function that's base class is TreeNode, and is inherited by TreeLeaf and TreeOperator. 
-                    Returns the evaluated S-Expression.
-                
-                TreeOperator::printInfix():
-                    Virtual function that prints the input S-Expression as infix form. Implements recursion to iterate through children vector to aquire values. Keeps parenthesis in original places.
-                    Returns if children vector is empty.
 
 
-Part 2: Persistence
-    The purpose of the second checkpoint for this project is to integrate variables and infix input for the previously constructed calculator. This will allow for assignment and use of variables as well as the capability for either S expressions or infix expressions to be deciphered by the program. This checkpoint will also tackle the ability to evaluate multiple expression at once.
 
-    Variables:
-        The Lexer now supports a new operation, "=", which when incorporated into ASTs will assign a numerical value to variables. Variables are also supported in the Parser and Lexer with the only restriction that the variable names are limited to letters or underscores ("_"). The ability to now create multiple expressions and remember variables across them has also been integrated.
 
-            Important Additions:
-                TreeIdentifier:
-                    This new class inherits from TreeNode similar to TreeOperator and TreeLeaf but carries an important new version of evaluateNode() which will check if a value has been assigned to the current ID.
-                evaluateNode():
-                    This function now takes a hash map of variables so that variables can easily be assigned values through this map or checked to see if an ID has been mapped to a value.
-                Parser::assignTree():
-                    This function works similarly to Parser::opTree() with some unique logic requiring all IDs aside from the final child which can be an expression, ID, or number.
-                Parser::numTree() removed:
-                    This function was only required when only single expression were allowed. Now with multiple expressions the logic is simpler for handling single numbers so it was removed.           
 
-    Infix Notation:
-        The New_Parser now parses expressions in infix notation, supporting equations in order of operations. The program uses the Recursive Descent Parser logic to parse the expression, building the AST top-down. New_Parser also handles variable assignment and usage within expressions.
-            
-            Important Additions:
-                Parse:
-                    This is the base function for parsing an expression or assignment. It looks at the current token and the token ahead of it to decide which parsing function to enter. It throws parse errors from Error.h.
-                    
-                    ParseE and ParseT:
-                        Parses an expression (+ or -), or parses a term (* or /)
-                    ParseF:
-                        Parses factors (integers and identifiers)
-                    ParseA:
-                        Parses assignments, and recursively calls itself if there are many / nested instances of assignments.
-                
-                scanToken:
-                    This implements std::deque to assign the current token to a variable called nextToken, and peek ahead at the next token.
-        
+
+
+

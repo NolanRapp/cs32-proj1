@@ -1,4 +1,5 @@
-#include "lib/Parser.h"
+#include "lib/StateParser.h"
+#include "lib/New_Parser.h"
 #include "lib/Lexer.h"
 
 
@@ -10,9 +11,6 @@ int main() {
     while(std::cin.get(inChar)){
         totalString += inChar;
     }
-    
-    std::deque<Token> tokens; // Holds all standard input
-    std::unordered_map<std::string, double> variables; // Holds all currently assigned variables
 
     // Creates deque by reading user input and feeds into a parser
     Lexer lexer;
@@ -24,7 +22,8 @@ int main() {
         return 1;
     }
 
-    Parser parser;
+    // Parses all input to make a forest of the program
+    StateParser parser;
     try { // Attempts to parse queue
         parser.createForest(lexer.getLexQueue());
     }
@@ -33,16 +32,20 @@ int main() {
         return 2;
     }
 
+    std::unordered_map<std::string, variableVal> vars; // holds all currently assigned variables
+        
     while(!parser.isEmpty()){
         // Evaluates current AST
         TreeNode* ASThead = parser.popHead();
-        ASThead->printInfix();
-        std::cout << std::endl;
 
         try { // Attempts to evaluate AST in forest
-            double calculation = ASThead->evalDouble(variables);
+            if(ASThead->type(vars) == ReturnType::NUM){
+                ASThead->evalDouble(vars);
+            }
+            else{
+                ASThead->evalBool(vars);
+            }
             delete ASThead;
-            std::cout << calculation << std::endl;
         }
         catch (const std::runtime_error& e) {
             delete ASThead;
@@ -50,8 +53,6 @@ int main() {
             return 3;
         }
     }
+
     return 0;
 };
-
-
-

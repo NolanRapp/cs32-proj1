@@ -15,15 +15,20 @@ double TreeLeaf::evalDouble(std::unordered_map<std::string, variableVal>& vars) 
 
 
 
-// Should never return a bool value
+// TreeLeaf should error if evaluated as a boolean
 bool TreeLeaf::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
 
-// Prints number in Leaf
-void TreeLeaf::printInfix() const {
+// Prints number in Leaf with corresponding depth
+void TreeLeaf::printInfix(int depth) const {
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << value;
 }
 
@@ -36,7 +41,7 @@ void TreeLeaf::printInfix() const {
 
 
 
-// Stores single char holding one of the 5 operators (+,-,/,*,=) in Operator
+// Stores the operation string ("+", "-", "/", "*", "%", ">", ">=", "<", "<=", "==", "!=", "&", "|", "^")
 TreeOperator::TreeOperator(std::string operation) {
     op = operation;
 }
@@ -50,9 +55,10 @@ void TreeOperator::addChild(TreeNode* child){
 
 
 
-// Evaluates Operator and children (recursive)
+// Evaluates double Operators and children (recursive)
 double TreeOperator::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
 
+    // Check to see if return is valid
     if(type(vars) != ReturnType::NUM){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
@@ -84,13 +90,12 @@ double TreeOperator::evalDouble(std::unordered_map<std::string, variableVal>& va
             result = fmod(result, children[i]->evalDouble(vars));
         }
     }
-
     else if (op == "+") {
         for (unsigned int i = 1; i < children.size(); i++) {
             result += children[i]->evalDouble(vars);
         }
     }
-    else if (op == "-") {
+    else if (op == "-") { // Redundant "if" for readability
         for (unsigned int i = 1; i < children.size(); i++) {
             result -= children[i]->evalDouble(vars);
         }
@@ -101,8 +106,10 @@ double TreeOperator::evalDouble(std::unordered_map<std::string, variableVal>& va
 
 
 
+// Evaluates boolean Operator and children (recursive)
 bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
 
+    // Check to see if return is valid
     if(type(vars) != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
@@ -148,26 +155,28 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
     else if (op == "=="){
         return (left == right);
     }
-    else if (op == "!="){
+    else if (op == "!="){ // Redundant "if" for readability
         return (left != right);
     } 
 
-    return false; // should not be ran
+    // Should never reach this error
+    throw std::runtime_error("Operator had invalid bool type, programmed wrong");   
 }
 
 
 
-// Prints expression using all children of current Operation (recursive)
-void TreeOperator::printInfix() const {
-    if (children.empty()) {
-        return;
+// Prints expression using all children of current Operation (recursive) using corresponding depth
+void TreeOperator::printInfix(int depth) const {
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
     }
 
     std::cout << '(';
-    children[0]->printInfix();
+    children[0]->printInfix(0);
     for (unsigned int i = 1; i < children.size(); i++) {
         std::cout << ' ' << op << ' ';
-        children[i]->printInfix();
+        children[i]->printInfix(0);
     }
     std::cout << ')';
 }
@@ -188,7 +197,7 @@ TreeIdentifier::TreeIdentifier(std::string name) {
 
 
 
-// Attempts to find value and return, if no value exists throws error
+// Attempts to find double and return, if no correct value exists throws error
 double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::NUM){
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
@@ -197,7 +206,7 @@ double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& 
 }
 
 
-// Variables can't be assigned bools so it will always error
+// Attempts to find bool and return, if no correct value exists throws error
 bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     if (type(vars) != ReturnType::BOOL){ 
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
@@ -206,8 +215,13 @@ bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars
 }
 
 
-// Prints ID name
-void TreeIdentifier::printInfix() const{
+// Prints ID name with corresponding depth
+void TreeIdentifier::printInfix(int depth) const{
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << idName;
 }
 
@@ -227,28 +241,33 @@ std::string TreeIdentifier::getID(){
 
 
 
+// Places either "true" or "false" into the value member variable
 TreeBoolean::TreeBoolean(std::string value) {
     this->value = value;
 }
 
 
 
-// This should always throw an error
+// Boolean nodes should throw errors if ever asked to return a double
 double TreeBoolean::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
     throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
 
-//
+// Returns boolean value corresponding to the value member variable
 bool TreeBoolean::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
     return (value == "true");
 }
 
 
 
-//
-void TreeBoolean::printInfix() const {
+// Prints the boolean with corresponding depth
+void TreeBoolean::printInfix(int depth) const {
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
     std::cout << value;
 }
 
@@ -260,16 +279,13 @@ void TreeBoolean::printInfix() const {
 
 
 
-// Nothing to do here
-TreeAssign::TreeAssign() {
-}
 
 
-
-// This should always throw an error
+// Variable assignment evaluation for doubles
 double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
-    if(children[0]->type(vars) == ReturnType::BOOL
-    || children[1]->type(vars) != ReturnType::NUM){
+
+    // Confirms that right-most child can be evaluated as double
+    if(children[children.size()-1]->type(vars) != ReturnType::NUM){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
 
@@ -286,17 +302,19 @@ double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars
 
 
 
+// Variable assignment evaluation for booleans
 bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) const {
-    if(children[0]->type(vars) == ReturnType::NUM 
-    || children[1]->type(vars) != ReturnType::BOOL){
+
+    // Confirms that right-most child can be evaluated as bool
+    if(children[children.size()-1]->type(vars) != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
 
-    // Sets result to final bool/id which will return double or error
+    // Sets result to final bool/id which will return bool or error
     bool result = children[children.size() - 1]->evalBool(vars);
     variableVal val(result);
 
-    // Changes all child identifiers to the value of the final num/id
+    // Changes all child identifiers to the value of the final bool/id
     for (unsigned int i = 0; i < children.size() - 1; i++) {
         vars[children[i]->getID()] = val;
     }
@@ -305,26 +323,213 @@ bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) co
 
 
 
-void TreeAssign::printInfix() const {
-    if (children.empty()) {
-        return;
+// Prints variable assignment infix with corresponding depth
+void TreeAssign::printInfix(int depth) const {
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
     }
 
     std::cout << '(';
-    children[0]->printInfix();
+    children[0]->printInfix(0);
     for (unsigned int i = 1; i < children.size(); i++) {
         std::cout << " = ";
-        children[i]->printInfix();
+        children[i]->printInfix(0);
     }
     std::cout << ')';
 }
 
 
-
+// Adds a right-most child node
 void TreeAssign::addChild(TreeNode* child){
     children.push_back(child);
 }
 
 
 
-// Incoming logic of TreeStatements
+
+
+
+
+
+
+// stores either "if", "while", "print" in stateStr
+TreeStatement::TreeStatement(std::string statement){
+    stateStr = statement;
+}
+
+
+
+// Evaluates the condition of a "print" statement and prints it
+void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition->type(vars) == ReturnType::NUM){
+        double value = condition->evalDouble(vars);
+        std::cout << value << '\n';
+        return;
+    }
+
+    if(condition->evalBool(vars)){
+        std::cout << "True\n";
+        return;
+    }
+    std::cout << "False\n";
+    return;
+}
+
+
+
+// Evaluates the "while" statement 
+void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{
+    
+    // Special case for non boolean return type for condition
+    if(condition->type(vars) != ReturnType::BOOL){
+        throw std::runtime_error("Runtime error: condition is not a bool.");   
+    }
+
+    // evaluates truths forest until condition tree evaluates to false
+    while(condition->evalBool(vars)){ 
+        for(TreeNode* tree : truths){
+            if(tree->type(vars) == ReturnType::NUM){
+                tree->evalDouble(vars);
+            }
+            else{
+                tree->evalBool(vars);
+            }
+        }
+
+        // Rechecks special case above every loop 
+        if(condition->type(vars) != ReturnType::BOOL){
+            throw std::runtime_error("Runtime error: condition is not a bool.");   
+        }
+    }
+    return;
+}
+
+
+// Evaluates the "if" statement 
+void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
+
+    // Special case for non boolean return type for condition
+    if(condition->type(vars) != ReturnType::BOOL){
+        throw std::runtime_error("Runtime error: condition is not a bool.");   
+    }
+
+    // evaluates truths forest if condition evaluates true
+    if(condition->evalBool(vars)){
+        for(TreeNode* tree : truths){
+            if(tree->type(vars) == ReturnType::NUM){
+                tree->evalDouble(vars);
+            }
+            else{
+                tree->evalBool(vars);
+            }
+        }
+        return;
+    }
+    
+    // evaluates falses forest if condition evaluates false
+    for(TreeNode* tree : falses){
+        if(tree->type(vars) == ReturnType::NUM){
+            tree->evalDouble(vars);
+        }
+        else{
+            tree->evalBool(vars);
+        }
+    }
+    return;
+}
+
+
+
+// Calls the corresponding evaluate function and return dummy value that will never be used
+double TreeStatement::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
+    if(stateStr == "print"){
+        evaluatePrint(vars);
+    }
+    else if(stateStr == "while"){
+        evaluateWhile(vars);
+    }
+    else{
+        evaluateIf(vars);
+    }
+
+    return 0.0; // Dummy return will never be used
+}
+
+
+
+// For predictability statements are not evaluated as bools despite their return type not mattering
+bool TreeStatement::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
+    throw std::runtime_error("Statement called evalBool, programmed wrong"); // should never run   
+}
+
+
+
+// Prints corresponding statement with depth and hands its depth off to its children to format
+void TreeStatement::printInfix(int depth) const{
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
+    if(stateStr == "print"){
+        std::cout << "print ";
+        condition->printInfix(0);
+    }
+    else if(stateStr == "while"){
+        std::cout << "while ";
+        condition->printInfix(0);
+        std::cout << " {";
+
+        for(TreeNode* tree : truths){
+            std::cout << '\n';
+            tree->printInfix(depth + 1);
+        }
+        
+        std::cout << '\n';
+        for(int i = 1; i <= depth; i++){
+            std::cout << "    ";
+        }
+        std::cout << "}";
+    }
+    else{ 
+        std::cout << "if ";
+        condition->printInfix(0);
+        std::cout << " {";
+
+        for(TreeNode* tree : truths){
+            std::cout << '\n';
+            tree->printInfix(depth + 1);
+        }
+        
+        std::cout << '\n';
+        for(int i = 1; i <= depth; i++){
+            std::cout << "    ";
+        }
+        std::cout << "}";
+        
+        if(falses.size() > 0){
+            std::cout << '\n';
+            for(int i = 1; i <= depth; i++){
+
+                std::cout << "    ";
+            }
+            std::cout << "else {";
+    
+            for(TreeNode* tree : falses){
+                std::cout << '\n';
+                tree->printInfix(depth + 1);
+            }
+            
+            std::cout << '\n';
+            for(int i = 1; i <= depth; i++){
+
+                std::cout << "    ";
+            }
+            std::cout << "}";
+        }
+    }
+}
+
+
+

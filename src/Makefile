@@ -9,6 +9,13 @@ CXXFLAGS = -Wall -Wextra -std=c++17 -Wno-unused-parameter
 # #  $< is the first dependency
 
 
+
+Scrypt: scrypt.cpp StateParser.o New_Parser.o AST.o Lexer.o
+	g++ $(CXXFLAGS) $+ -o $@
+
+Format: format.cpp StateParser.o New_Parser.o AST.o Lexer.o
+	g++ $(CXXFLAGS) $+ -o $@
+
 New_Parser: calc.cpp New_Parser.o AST.o Lexer.o
 	g++ $(CXXFLAGS) $+ -o $@
 
@@ -19,6 +26,9 @@ Lexer: lex.cpp Lexer.o
 	g++ $(CXXFLAGS) $+ -o $@
 
 
+
+StateParser.o: lib/StateParser.cpp lib/StateParser.h lib/Token.h	
+	g++ $(CXXFLAGS) -c $<
 
 New_Parser.o: lib/New_Parser.cpp lib/New_Parser.h lib/Token.h
 	g++ $(CXXFLAGS) -c $<
@@ -35,4 +45,4 @@ Lexer.o: lib/Lexer.cpp lib/Lexer.h lib/Token.h
 
 
 clean:
-	rm *.o lib/*.gch Parser Lexer New_Parser
+	rm *.o lib/*.gch Parser Lexer New_Parser Format Scrypt

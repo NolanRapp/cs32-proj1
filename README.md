@@ -19,10 +19,10 @@ Using a `[Program]`:
 `New_Parser`
 > This program takes user input line-by-line and outputs the expression and evaluates it. Errors will not interrupt the program but will ask for new input.
 
-> `Parser` [OUTDATED]
+`Parser` [OUTDATED]
 > This program no longer compiles but used to take all input and parses a single S-expression.
 
-> `Lexer`
+`Lexer`
 > This program reads input and saves all valid inputs as Token objects used by parsers. Will exit if there is an invalid input.
 
 ### Files:
@@ -51,5 +51,22 @@ Using a `[Program]`:
             └── Token.h --------- Fundamental object of Lexer and used for parsing
 
 ## Timeline
+Calculator (Checkpoint 1)
+> The Lexer (Track A)
+>
+>> Test
+>
+> The Parser (Track B)
+
+Checkpoint 2
+
+
+Checkpoint 3
+
+
+
+
+
+
 
 

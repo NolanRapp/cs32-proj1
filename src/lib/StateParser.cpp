@@ -3,10 +3,10 @@
 
 // Pops the first item from the mHeads deque and returns it
 TreeNode* StateParser::popHead(){
-	TreeNode* tempHead = mHeads.front();
-	mHeads.pop_front();
+    TreeNode* tempHead = mHeads.front();
+    mHeads.pop_front();
 
-	return tempHead;
+    return tempHead;
 }
 
 

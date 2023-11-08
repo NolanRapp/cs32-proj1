@@ -30,7 +30,7 @@ std::deque<Token> Lexer::getLexQueue() {
 
 // Constructs the deque based on standard output, stores it in member variable
 void Lexer::lex(std::string& inputString) {
-	std::istringstream stream(inputString);
+    std::istringstream stream(inputString);
     int line = 1;
     int column = 1;
     char i;
@@ -138,10 +138,10 @@ void Lexer::lex(std::string& inputString) {
                     if (stream.peek() == '.') {
                         // checking for multiple decimals
                         if (decimal) {
-							throw LexError(line, column + 1);
+                            throw LexError(line, column + 1);
                         }
                         else {
-							decimal = true;
+                            decimal = true;
                         }
                     }
                     char nextChar;
@@ -152,7 +152,7 @@ void Lexer::lex(std::string& inputString) {
 
                 // checking for trailing decimal
                 if (placeholder.back() == '.') {
-					throw LexError(line, column + 1);
+                    throw LexError(line, column + 1);
                 }
 
                 lexTokens.push_back(Token(line,startingColumn, placeholder, Type::NUM));
@@ -168,7 +168,7 @@ void Lexer::lex(std::string& inputString) {
 
             // if not space, valid operator, or valid number, print error:
             else { 
-				throw LexError(line, column);
+                throw LexError(line, column);
             }
         }
         // if input is space, add column:

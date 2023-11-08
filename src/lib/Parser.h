@@ -1,13 +1,21 @@
 #ifndef PARSE_H
 #define PARSE_H
 
-
 #include "Token.h"
 #include "AST.h"
 #include "Errors.h"
 #include <memory>
 #include <deque>
 #include <set>
+
+
+/*
+ *
+ *
+ * OUTDATED CLASS --- PLEASE SEE NEW_PARSER
+ *
+ *
+ * */
 
 
 class Parser {

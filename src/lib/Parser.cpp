@@ -2,6 +2,15 @@
 #include "AST.h" // redundant
 
 
+/*
+ *
+ *
+ * OUTDATED CLASS --- PLEASE SEE NEW_PARSER
+ *
+ *
+ * */
+
+
 // No Constructor
 Parser::Parser(){}
 

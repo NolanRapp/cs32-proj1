@@ -1,17 +1,8 @@
 #include "New_Parser.h"
 
-New_Parser::New_Parser() {
-    // Nothing to see here...
-}
-New_Parser::~New_Parser() {
-    // Nothing to see here...
-    
-}
 
-
-
+// Function to "consume" current token, moving nextToken to next value on the queue
 void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
-    // Function to "consume" current token, moving nextToken to next value on the queue
 
     if (!tokenizedQ.empty()) {
         nextToken = tokenizedQ.front().text;

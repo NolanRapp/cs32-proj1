@@ -18,10 +18,13 @@ bool StateParser::isEmpty() const{
 
 
 
-// fills mHeads with ASTs representing each command made by the user that is seperated by an "END" token
+// makes forest of user input until "END" token
 void StateParser::createForest(std::deque<Token> oInput){
+
     while(oInput.front().text != "END"){
-        if(oInput.front().type == Type::END){ // "{" and "}" tokens are parsed seperately and their contents are turned into seperate ASTs later in the program, so seeing them now should result in an error
+
+        // "{" and "}" should only be seen after statements 
+        if(oInput.front().type == Type::END){ 
             throw ParseError(oInput.front().line, oInput.front().column, oInput.front().text);
         }
 
@@ -31,8 +34,7 @@ void StateParser::createForest(std::deque<Token> oInput){
 
 
 
-// first checks to see if the statment at the from of the queue is an expression and if so, it is passed to the expression parser and returned as a new tree
-// otherwise, it must be an expression, and it is passed to the statement creator and the statement is returned
+// creates single tree (either statement or expression tree)
 TreeNode* StateParser::createTree(std::deque<Token>& input){
     if(isExp(input.front())){
         New_Parser parser;
@@ -43,7 +45,7 @@ TreeNode* StateParser::createTree(std::deque<Token>& input){
 }
 
 
-// takes an input token that is confirmed as an expression statement and turns it into a tree containing the commands that exist within the statement
+// takes an input token that is confirmed as statement and turns it into a tree with required parts
 TreeNode* StateParser::createStatement(std::deque<Token>& input){
     std::string stateStr = input.front().text;
     input.pop_front(); // Reads statement command
@@ -53,20 +55,25 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
         throw ParseError(input.front().line, input.front().column, input.front().text);
         // Expects expression
     }
-    New_Parser parser;
-    stateHead->condition = parser.parseForState(input); // evaluates the condition expression in if and while statements to know when to execute the commands within the statement
 
+    New_Parser parser;
+    stateHead->condition = parser.parseForState(input);
+
+    // "print" statement should only have condition
     if(stateStr == "print"){
         return stateHead.release();
     }
+
 
     if(input.front().text != "{"){
         throw ParseError(input.front().line, input.front().column, input.front().text);
         // Expects "{"
     }
+
     stateHead->truths = createBlock(input); // adds trees until "}" token is found
 
-    if(stateStr == "while" || input.front().text != "else"){ // only continues if the statement is an if statement with an else following it
+    // only continues if the statement is an if statement with an else following it
+    if(stateStr == "while" || input.front().text != "else"){
         return stateHead.release();
     }
     input.pop_front(); // Reads "else"

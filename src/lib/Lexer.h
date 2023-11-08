@@ -18,6 +18,7 @@ class Lexer {
 	This class is used to construct a de-queue using standard input. This
 	de queue will be made of Tokens which are readable by the Parser class.
 	*/
+
     public: 
         void createEnd(std::deque<Token>& inputq, int line, int column, Type t);
         void printTokens();

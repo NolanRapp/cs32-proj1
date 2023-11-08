@@ -158,7 +158,7 @@ void Lexer::lex(std::string& inputString) {
                 lexTokens.push_back(Token(line,startingColumn, placeholder, Type::NUM));
             }
 
-            //
+            // store brackets as Type::END tokens for uniqueness
             else if (i == '{'){
                 lexTokens.push_back(Token(line, column, "{", Type::END));
             }
@@ -171,10 +171,8 @@ void Lexer::lex(std::string& inputString) {
                 throw LexError(line, column);
             }
         }
-        // if input is space, add column:
         column++;
     }
-
     createEnd(lexTokens, line, column, Type::END);
 }
 

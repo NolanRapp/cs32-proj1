@@ -9,6 +9,7 @@
 #include <cmath>
 
 
+// For predicting output of node
 enum class ReturnType {
     BOOL,
     NUM,
@@ -17,6 +18,7 @@ enum class ReturnType {
 
 
 
+// Used to store both doubles and booleans in the variable map
 struct variableVal {
     double  doubleVal;
     bool    boolVal;
@@ -56,7 +58,7 @@ class TreeLeaf : public TreeNode {
     */
 
     public:
-        TreeLeaf(double val);
+                            TreeLeaf(double val);
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::NUM;}
@@ -79,17 +81,17 @@ class TreeOperator : public TreeNode {
     */
 
     public:
-        TreeOperator(std::string operation);
+                            TreeOperator(std::string operation);
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const { 
+            // ReturnType depends on which operator is being held
             if(op == "+" || op == "-" || op == "*" ||
                op == "/" || op == "%"){
                 return ReturnType::NUM;
             }
             return ReturnType::BOOL;
         }
-
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
         virtual std::string getID() { // Should only be called on TreeIdentifiers
@@ -114,11 +116,11 @@ class TreeIdentifier : public TreeNode {
     /*
     This class is used to store, evaluate, and print an identifier.
     The identifier points to its value so it can be used across multiple AST trees.
-    Valid identifiers can hold values of Type::NUM or Type::BOOL. 
+    Valid identifiers can hold values of Type::NUM or Type::BOOL (will use Type::NONE for empty id)
     */
 
     public:
-        TreeIdentifier(std::string name);
+                            TreeIdentifier(std::string name);
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {
@@ -134,7 +136,6 @@ class TreeIdentifier : public TreeNode {
                 return ReturnType::NONE;
             }
         }
-
         virtual void        printInfix(int depth) const;
                 void        addChild(TreeNode* child);
         virtual std::string getID(); 
@@ -152,8 +153,8 @@ class TreeBoolean : public TreeNode {
     */
 
     public:
-        TreeBoolean(std::string value);
-        void addChild(TreeNode* child);
+                            TreeBoolean(std::string value);
+        void                addChild(TreeNode* child);
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::BOOL;}
@@ -175,8 +176,8 @@ class TreeAssign : public TreeNode {
     It handles both double and boolean assignments.
     */
 
-   public:
-        TreeAssign(){}
+    public:
+                            TreeAssign(){} // No constructor needed
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const{ return children[children.size()-1]->type(vars); }
@@ -201,9 +202,14 @@ class TreeAssign : public TreeNode {
 
 
 class TreeStatement : public TreeNode {
+    /*
+    This class is used to store statement commands: "if", "while", and "print".
+    This class has a special structure as it is not meant to return any specific
+    value and instead evaluates forests and uses their values.
+    */    
 
-   public:
-        TreeStatement(std::string statement);
+    public:
+                            TreeStatement(std::string statement);
                 void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;
@@ -227,10 +233,10 @@ class TreeStatement : public TreeNode {
             falses.clear();
         }
 
-        std::string stateStr;
-        TreeNode* condition;
-        std::vector<TreeNode*> truths;
-        std::vector<TreeNode*> falses;
+        std::string             stateStr;   // stores type of statement
+        TreeNode*               condition;  // Tree for condition
+        std::vector<TreeNode*>  truths;     // Forest for evaluation when condition is true
+        std::vector<TreeNode*>  falses;     // Forest for evaluation when condition is false
 };
 
 

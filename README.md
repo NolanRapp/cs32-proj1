@@ -5,25 +5,25 @@
 > Jesse Cobb, Chloe Andersen, Nolan Rapp, Christy Yu
 
 ### Programs:
-Using a [Program]:
+Using a `[Program]`:
 - Please run all program commands in `src/` and replace `[Program]` with one of the program names.
 - Compiling: `cd src/ && [Program]`
 - Running: `./[Program]`
 
-    Scrypt:
-        This program takes in user input in the form of a program using "if", "while", and "print" statements along with infix expressions then evaluates the program.
+`Scrypt`:
+> This program takes in user input in the form of a program using "if", "while", and "print" statements along with infix expressions then evaluates the program.
 
-    Format
-        This program takes in user input in the form of a program using "if", "while", and "print" statements along with infix expressions then prints the program in standard format.
+`Format`
+> This program takes in user input in the form of a program using "if", "while", and "print" statements along with infix expressions then prints the program in standard format.
 
-    New_Parser
-        This program takes user input line-by-line and outputs the expression and evaluates it. Errors will not interrupt the program but will ask for new input.
+`New_Parser`
+> This program takes user input line-by-line and outputs the expression and evaluates it. Errors will not interrupt the program but will ask for new input.
 
-    Parser [OUTDATED]
-        This program no longer compiles but used to take all input and parses a single S-expression.
+> `Parser` [OUTDATED]
+> This program no longer compiles but used to take all input and parses a single S-expression.
 
-    Lexer
-        This program reads input and saves all valid inputs as Token objects used by parsers. Will exit if there is an invalid input.
+> `Lexer`
+> This program reads input and saves all valid inputs as Token objects used by parsers. Will exit if there is an invalid input.
 
 ### Files:
     cs32-scrypt

@@ -9,6 +9,11 @@ Using a `[Program]`:
 - Please run all program commands in `src/` and replace `[Program]` with one of the program names.
 - Compiling: `cd src/ && [Program]`
 - Running: `./[Program]`
+- Valid Tokens:
+    - Arithmatic Operations: `*`, `/`, `%`, `+`, `-`, `(`, `)`
+    - Booleans Operations: `<`, `<=`, `>`, `>=`, `==`, `!=`, `&`, `^`, `|`, `=`, 
+    - Statements: `{`, `}`, `if`, `else`, `while`, `print`
+    - Numbers, `true`, `false`
 
 `Scrypt`:
 > This program takes in user input in the form of a program using "if", "while", and "print" statements along with infix expressions then evaluates the program.
@@ -18,9 +23,11 @@ Using a `[Program]`:
 
 `New_Parser`
 > This program takes user input line-by-line and outputs the expression and evaluates it. Errors will not interrupt the program but will ask for new input.
+> Doesn't accept Statement Tokens
 
 `Parser` [OUTDATED]
-> This program no longer compiles but used to take all input and parses a single S-expression.
+> Takes all input and parses a single S-expression.
+> No longer compiles due to changes in ASTs [Refer to New_Parser]
 
 `Lexer`
 > This program reads input and saves all valid inputs as Token objects used by parsers. Will exit if there is an invalid input.
@@ -54,14 +61,31 @@ Using a `[Program]`:
 Calculator (Checkpoint 1)
 > The Lexer (Track A)
 >
->> Test
+>> This makes use of the `Lexer` which takes in user input and allows for standard S-expression notation: "(", ")", "+", "-", "/", "*", and numbers. This program outputs the build queue of Tokens.
 >
 > The Parser (Track B)
+>
+>> This makes use of the `Parser` which takes the queue built by the lexer and attempts to parse a single S-expression. Has error handling for parse errors as well as evaluation errors such as dividing by 0.
 
 Checkpoint 2
+> Variables (Track A)
+>
+>> This uses both `Lexer` and `Parser` after altering the valid input of the user. The user can now submit strings of letters and underscores as well as the assignment operator "=". This is used for assigning double values to these variable. Multiple expressions are now supported.
+>
+> Infix Notation (Track B)
+>
+>> This uses `New_Parser` which takes user input and parses a single infix expression per line. No errors interrupt the program but will request a new input. This also supports assignment of variables. This parser was created using Recursive-Descent Parser logic.
+
+Conditionals (Checkpoint 3)
+> Booleans (Track A)
+>
+>> This uses `New_Parser` with many new operations and tokens added: "%", "<", ">", "<=", ">=", "==", "!=", "&", "^", "|", "true", and "false". This requires the implementation of booleans as well as boolean assigning.
+>
+> Statements (Track B)
+>
+>> This uses `Scrypt` and `Format` and allows for "if", "else", "while", "print", "{", and "}" to allow for an entire program to be written using fundamental statements. It can output the forest of ASTs built in standard formatting and can also evaluate this forest.
 
 
-Checkpoint 3
 
 
 

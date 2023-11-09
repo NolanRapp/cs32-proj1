@@ -69,7 +69,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 // Inclusive operator parser "=". Lowest precedence operator.
 TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
-    std::unique_ptr<TreeNode> left(parseExclusive(tokenizedQ));
+    std::unique_ptr<TreeNode> left(parseInclusive(tokenizedQ));
 
     while (nextToken == "=" ) {
         scanToken(tokenizedQ);

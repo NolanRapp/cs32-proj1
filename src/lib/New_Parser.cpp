@@ -59,29 +59,40 @@ TreeNode* New_Parser::parseForState(std::deque<Token>& tokenizedQ) {
 TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
     scanToken(tokenizedQ); // Initial consumption
-    std::unique_ptr<TreeNode> rootTree;
+    std::unique_ptr<TreeNode> rootTree(parseA(tokenizedQ));
 
-    if ((tokenType == Type::ID) && (lookahead == "=")) {
-        rootTree.reset(parseA(tokenizedQ));
-        if (rootTree == nullptr) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-    }
-    else if ((tokenType == Type::ID) && (lookahead != "=")) {
-        rootTree.reset(parseInclusive(tokenizedQ));
-    }
-    else {
-        rootTree.reset(parseInclusive(tokenizedQ));
-        if (rootTree == nullptr) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-    }
     return rootTree.release();
 }
 
 
 
-// Inclusive operator parser "|". Lowest precedence operator.
+// Inclusive operator parser "=". Lowest precedence operator.
+TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
+
+    std::unique_ptr<TreeNode> left(parseExclusive(tokenizedQ));
+
+    while (nextToken == "=" ) {
+        scanToken(tokenizedQ);
+
+        std::unique_ptr<TreeNode> right(parseA(tokenizedQ));
+
+        if (right == nullptr || left == nullptr) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+
+        std::unique_ptr<TreeAssign> assignNode(new TreeAssign());
+
+        assignNode->addChild(left.release());
+        assignNode->addChild(right.release());
+
+        left.reset(assignNode.release());
+    }
+    return left.release();
+}
+
+
+
+// Inclusive operator parser "|".
 TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseExclusive(tokenizedQ));
@@ -96,12 +107,12 @@ TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
-        std::unique_ptr<TreeOperator> nodeOperator(new TreeOperator(op));
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
 
-        nodeOperator->addChild(left.release());
-        nodeOperator->addChild(right.release());
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        left.reset(nodeOperator.release());
+        left.reset(opNode.release());
     }
     return left.release();
 }
@@ -123,11 +134,11 @@ TreeNode* New_Parser::parseExclusive(std::deque<Token>& tokenizedQ) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
-        std::unique_ptr<TreeOperator> nodeOperator(new TreeOperator(op));
-        nodeOperator->addChild(left.release());
-        nodeOperator->addChild(right.release());
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        left.reset(nodeOperator.release());
+        left.reset(opNode.release());
     }
     return left.release();
 }
@@ -149,11 +160,11 @@ TreeNode* New_Parser::parseAnd(std::deque<Token>& tokenizedQ) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
 
-        std::unique_ptr<TreeOperator> nodeOperator(new TreeOperator(op));
-        nodeOperator->addChild(left.release());
-        nodeOperator->addChild(right.release());
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        left.reset(nodeOperator.release());
+        left.reset(opNode.release());
     }
     return left.release();
 }
@@ -166,20 +177,20 @@ TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
     std::unique_ptr<TreeNode> left(parseComparison(tokenizedQ));
 
     while ((nextToken == "==") || (nextToken == "!=")) {
-
         std::string op = nextToken;
         scanToken(tokenizedQ);
+
         std::unique_ptr<TreeNode> right(parseComparison(tokenizedQ));
 
         if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
         
-        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(op));
-        operatorNode->addChild(left.release());
-        operatorNode->addChild(right.release());
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        left.reset(operatorNode.release());
+        left.reset(opNode.release());
     }
 
     return left.release();
@@ -203,11 +214,11 @@ TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
         
-        std::unique_ptr<TreeOperator> comparisonNode(new TreeOperator(op));
-        comparisonNode->addChild(left.release());
-        comparisonNode->addChild(right.release());
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        left.reset(comparisonNode.release());
+        left.reset(opNode.release());
     }
     return left.release();
 }
@@ -217,27 +228,25 @@ TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
 // Expression operator parser "+" and "-"
 TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 
-    std::unique_ptr<TreeNode> node(parseT(tokenizedQ));
-
-    if (node == nullptr) {
-        throw ParseError(currentLine, currentColumn, nextToken);
-    }
+    std::unique_ptr<TreeNode> left(parseT(tokenizedQ));
 
     while (nextToken == "+" || nextToken == "-") {
-        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
-        operatorNode->addChild(node.release());
+        
+        std::string op = nextToken;
         scanToken(tokenizedQ);
-
         std::unique_ptr<TreeNode> right(parseT(tokenizedQ));
 
-        if (right == nullptr) {
+        if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
+        
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        operatorNode->addChild(right.release());
-        node.reset(operatorNode.release());
+        left.reset(opNode.release());
     }
-    return node.release();
+    return left.release();
 }
 
 
@@ -245,27 +254,25 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 // Term operator parser "*", "/", "%"
 TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
-    std::unique_ptr<TreeNode> node(parseF(tokenizedQ));
+    std::unique_ptr<TreeNode> left(parseF(tokenizedQ));
 
     while (nextToken == "*" || nextToken == "/" || nextToken == "%") {
-        std::unique_ptr<TreeOperator> operatorNode(new TreeOperator(nextToken));
-        operatorNode->addChild(node.release());
+        
+        std::string op = nextToken;
         scanToken(tokenizedQ);
-
-        if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-
         std::unique_ptr<TreeNode> right(parseF(tokenizedQ));
 
-        if (right == nullptr) {
+        if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
         }
+        
+        std::unique_ptr<TreeOperator> opNode(new TreeOperator(op));
+        opNode->addChild(left.release());
+        opNode->addChild(right.release());
 
-        operatorNode->addChild(right.release());
-        node.reset(operatorNode.release());
+        left.reset(opNode.release());
     }
-    return node.release();
+    return left.release();
 }
 
 
@@ -281,50 +288,28 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean(nextToken));
         scanToken(tokenizedQ); // Consume true or false
         return boolVal.release();
-
     }
     else if (tokenType == Type::NUM) {
         std::unique_ptr<TreeLeaf> leaf(new TreeLeaf(std::stold(nextToken)));
-
-        if (leaf == nullptr) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-
         scanToken(tokenizedQ); // Consume digit
         return leaf.release();
     }
     else if (nextToken == "(") {
         scanToken(tokenizedQ); // Consume open parenthesis
-        std::unique_ptr<TreeNode> node;
-
-        if (nextToken == "END") {
-            throw ParseError(currentLine, currentColumn, nextToken); // Missing closing parenthesis
-        }
-
-        if ((tokenType == Type::ID) && (lookahead == "=")) {
-            node.reset(parseA(tokenizedQ));
-        }
-        else {
-            node.reset(parseInclusive(tokenizedQ));
-        }
+        std::unique_ptr<TreeNode> node(parseA(tokenizedQ));
 
         if (nextToken == ")") {
-            scanToken(tokenizedQ); // Consume "("
+            scanToken(tokenizedQ); // Consume ")"
             return node.release();
         }
         else {
-            throw ParseError(currentLine, currentColumn, nextToken); // missing closing parenthesis
+            throw ParseError(currentLine, currentColumn, nextToken);
+            // Expects ")"
         }
     }
-
     else if (tokenType == Type::ID) {
         std::unique_ptr<TreeIdentifier> leaf(new TreeIdentifier(nextToken));
         scanToken(tokenizedQ); // Consume variable 
-
-        if (leaf == nullptr) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-
         return leaf.release();
     }
     else {
@@ -332,64 +317,6 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
     }
 
     return nullptr; // Should never reach here
-}
-
-
-
-// Assignment operator parser "=". Recursively calls itself if assignments are nested.
-TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
-
-    std::unique_ptr<TreeIdentifier> id(new TreeIdentifier(nextToken));
-
-    scanToken(tokenizedQ); // Consume "=" 
-    scanToken(tokenizedQ); // Consumes next
-
-    std::unique_ptr<TreeAssign> assignmentNode(new TreeAssign());
-    assignmentNode->addChild(id.release());
-
-    std::unique_ptr<TreeNode> rhs;
-
-    // Dealing with parenthetic nested assignments: (a=(b=3))
-    if ((!tokenizedQ.empty()) && (nextToken == "(") && (lookaheadType == Type::ID)) {
-        scanToken(tokenizedQ); // Consume "("
-
-        if (lookahead == "=") {
-            rhs.reset(parseA(tokenizedQ));
-        }
-        else {
-            rhs.reset(parseInclusive(tokenizedQ));
-
-            if (rhs == nullptr) {
-                throw ParseError(currentLine, currentColumn, nextToken);
-            }
-        }
-
-        if (tokenizedQ.empty() || nextToken != ")") {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-        scanToken(tokenizedQ); // Consume ")"
-    }
-
-    // Dealing with simple nested assignments: a = b = 5
-    else if ((!tokenizedQ.empty()) && (tokenType == Type::ID) && (lookahead == "=")) {
-        rhs.reset(parseA(tokenizedQ));
-    }
-
-    else {
-        rhs.reset(parseInclusive(tokenizedQ));
-
-        if (rhs == nullptr) {
-            throw ParseError(currentLine, currentColumn, nextToken);
-        }
-
-    }
-    
-    if (rhs == nullptr) {
-        throw ParseError(currentLine, currentColumn, nextToken);
-    }
-
-    assignmentNode->addChild(rhs.release());
-    return assignmentNode.release();
 }
 
 

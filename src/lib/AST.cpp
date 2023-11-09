@@ -187,7 +187,7 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
         } 
     }
 
-    // Will run if right operand is not a number or boolean
+    // Will run if left operand is not a number or boolean
     throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
@@ -392,6 +392,7 @@ TreeStatement::TreeStatement(std::string statement){
 void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition->type(vars) == ReturnType::NUM){
         condition->evalDouble(vars);
+        return;
     }
 
     condition->evalBool(vars);

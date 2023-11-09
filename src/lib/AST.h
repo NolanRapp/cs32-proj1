@@ -63,9 +63,8 @@ class TreeLeaf : public TreeNode {
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::NUM;}
         virtual void        printInfix(int depth) const;
-        virtual std::string getID() { // Should only be called on TreeIdentifiers
-            throw std::runtime_error("Runtime error: getID() called on Leaf");
-            return "";
+        virtual std::string getID() { 
+            throw std::runtime_error("Runtime error: invalid assignee");
         } 
 
     private:
@@ -94,9 +93,8 @@ class TreeOperator : public TreeNode {
         }
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
-        virtual std::string getID() { // Should only be called on TreeIdentifiers
-            throw std::runtime_error("Runtime error: getID() called on Operator");
-            return "";
+        virtual std::string getID() {
+            throw std::runtime_error("Runtime error: invalid assignee");
         } 
         ~TreeOperator() {
             for (auto child : children) {
@@ -159,9 +157,8 @@ class TreeBoolean : public TreeNode {
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::BOOL;}
         virtual void        printInfix(int depth) const;
-        virtual std::string getID() { // Should only be called on TreeIdentifiers
-            throw std::runtime_error("Runtime error: getID() called on Bool");
-            return "";
+        virtual std::string getID() {
+            throw std::runtime_error("Runtime error: invalid assignee");
         };
 
     private:
@@ -183,9 +180,8 @@ class TreeAssign : public TreeNode {
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const{ return children[children.size()-1]->type(vars); }
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
-        virtual std::string getID() { // Should only be called on TreeIdentifiers
-            throw std::runtime_error("Runtime error: getID() called on Assign");
-            return "";
+        virtual std::string getID() {
+            throw std::runtime_error("Runtime error: invalid assignee");
         }; 
         ~TreeAssign() {
             for (auto child : children) {
@@ -218,9 +214,8 @@ class TreeStatement : public TreeNode {
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const { return ReturnType::NUM; } // Dummy return type, doesn't matter
         virtual void        printInfix(int depth) const; 
-        virtual std::string getID() { // Should only be called on TreeIdentifiers
-            throw std::runtime_error("Runtime error: getID() called on Statement");
-            return "";
+        virtual std::string getID() { 
+            throw std::runtime_error("Runtime error: invalid assignee");
         }; 
         ~TreeStatement() {
             delete condition;

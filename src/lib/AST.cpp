@@ -113,10 +113,33 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
     if(type(vars) != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
-    
+
+
+    union Value{
+        bool    b;
+        double  d;
+    };
+    Value left;
+    Value right;
+
     ReturnType lReturn = children[0]->type(vars);
     ReturnType rReturn = children[1]->type(vars);
-    
+   
+    if (lReturn == ReturnType::NUM){
+        left.d = children[0]->evalDouble(vars);
+    }
+    else{
+        left.b = children[0]->evalBool(vars);
+    }
+
+    if (rReturn == ReturnType::NUM){
+        right.d = children[1]->evalDouble(vars);
+    }
+    else{
+        right.b = children[1]->evalBool(vars);
+    }
+
+ 
     // Order Comparison (Only numbers)
     if (lReturn == ReturnType::NUM){
 
@@ -128,67 +151,60 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
             else if(op == "!="){
                 return true;
             }
+            throw std::runtime_error("Runtime error: invalid operand type.");   
         } 
-
-        // Evaluates children
-        double left  = children[0]->evalDouble(vars);
-        double right = children[1]->evalDouble(vars);
 
         if (op == "<") {
-            return (left < right);
+            return (left.d < right.d);
         }
         else if (op == ">") {
-            return (left > right);
+            return (left.d > right.d);
         }
         else if (op == "<=") {
-            return (left <= right);
+            return (left.d <= right.d);
         }
         else if (op == ">=") {
-            return (left >= right);
+            return (left.d >= right.d);
         }
         else if (op == "=="){
-            return (left == right);
+            return (left.d == right.d);
         }
         else if (op == "!="){
-            return (left != right);
+            return (left.d != right.d);
         }
     }
+
+
     // Logical comparison (Only bools)
-    else if (lReturn == ReturnType::BOOL){
 
-        // Special case
-        if(rReturn != ReturnType::BOOL){
-            if(op == "=="){
-                return false;
-            }
-            else if(op == "!="){
-                return true;
-            }
-        } 
+    // Special case
+    if(rReturn != ReturnType::BOOL){
+        if(op == "=="){
+            return false;
+        }
+        else if(op == "!="){
+            return true;
+        }
+        throw std::runtime_error("Runtime error: invalid operand type.");   
+    } 
 
-        // Evaluates children
-        bool left  = children[0]->evalBool(vars);
-        bool right = children[1]->evalBool(vars);
-
-        if (op == "|"){
-            return (left || right);
-        }
-        else if (op == "^"){
-            return ((left && !right) || (!left && right));
-        }
-        else if (op == "&"){
-            return (left && right);
-        }
-        else if (op == "=="){
-            return (left == right);
-        }
-        else if (op == "!="){ // Redundant "if" for readability
-            return (left != right);
-        } 
+    if (op == "|"){
+        return (left.b || right.b);
     }
+    else if (op == "^"){
+        return ((left.b && !right.b) || (!left.b && right.b));
+    }
+    else if (op == "&"){
+        return (left.b && right.b);
+    }
+    else if (op == "=="){
+        return (left.b == right.b);
+    }
+    else if (op == "!="){ // Redundant "if" for readability
+        return (left.b != right.b);
+    } 
 
-    // Will run if left operand is not a number or boolean
-    throw std::runtime_error("Runtime error: invalid operand type.");   
+    throw std::runtime_error("Reached end of evalBool on bool operator, programmed wrong"); // should never run   
 }
 
 

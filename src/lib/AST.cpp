@@ -113,9 +113,24 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
     if(type(vars) != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: invalid operand type.");   
     }
-
+    
+    ReturnType lReturn = children[0]->type(vars);
+    ReturnType rReturn = children[1]->type(vars);
+    
     // Order Comparison (Only numbers)
-    if (children[0]->type(vars) == ReturnType::NUM){
+    if (lReturn == ReturnType::NUM){
+
+        // Special case
+        if(rReturn != ReturnType::NUM){
+            if(op == "=="){
+                return false;
+            }
+            else if(op == "!="){
+                return true;
+            }
+        } 
+
+        // Evaluates children
         double left  = children[0]->evalDouble(vars);
         double right = children[1]->evalDouble(vars);
 
@@ -138,29 +153,42 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
             return (left != right);
         }
     }
-
     // Logical comparison (Only bools)
-    bool left  = children[0]->evalBool(vars);
-    bool right = children[1]->evalBool(vars);
+    else if (lReturn == ReturnType::BOOL){
 
-    if (op == "|"){
-        return (left || right);
-    }
-    else if (op == "^"){
-        return ((left && !right) || (!left && right));
-    }
-    else if (op == "&"){
-        return (left && right);
-    }
-    else if (op == "=="){
-        return (left == right);
-    }
-    else if (op == "!="){ // Redundant "if" for readability
-        return (left != right);
-    } 
+        // Special case
+        if(rReturn != ReturnType::BOOL){
+            if(op == "=="){
+                return false;
+            }
+            else if(op == "!="){
+                return true;
+            }
+        } 
 
-    // Should never reach this error
-    throw std::runtime_error("Operator had invalid bool type, programmed wrong");   
+        // Evaluates children
+        bool left  = children[0]->evalBool(vars);
+        bool right = children[1]->evalBool(vars);
+
+        if (op == "|"){
+            return (left || right);
+        }
+        else if (op == "^"){
+            return ((left && !right) || (!left && right));
+        }
+        else if (op == "&"){
+            return (left && right);
+        }
+        else if (op == "=="){
+            return (left == right);
+        }
+        else if (op == "!="){ // Redundant "if" for readability
+            return (left != right);
+        } 
+    }
+
+    // Will run if right operand is not a number or boolean
+    throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
@@ -361,6 +389,18 @@ TreeStatement::TreeStatement(std::string statement){
 
 
 // Evaluates the condition of a "print" statement and prints it
+void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition->type(vars) == ReturnType::NUM){
+        condition->evalDouble(vars);
+    }
+
+    condition->evalBool(vars);
+    return;
+}
+
+
+
+// Evaluates the condition of a "print" statement and prints it
 void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition->type(vars) == ReturnType::NUM){
         double value = condition->evalDouble(vars);
@@ -443,7 +483,10 @@ void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& var
 
 // Calls the corresponding evaluate function and return dummy value that will never be used
 double TreeStatement::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
-    if(stateStr == "print"){
+    if(stateStr == "expression"){
+        evaluateExp(vars);
+    }
+    else if(stateStr == "print"){
         evaluatePrint(vars);
     }
     else if(stateStr == "while"){
@@ -472,9 +515,14 @@ void TreeStatement::printInfix(int depth) const{
         std::cout << "    ";
     }
 
-    if(stateStr == "print"){
+    if(stateStr == "expression"){
+        condition->printInfix(0);
+        std::cout << ";";
+    }
+    else if(stateStr == "print"){
         std::cout << "print ";
         condition->printInfix(0);
+        std::cout << ";";
     }
     else if(stateStr == "while"){
         std::cout << "while ";

@@ -210,6 +210,7 @@ class TreeStatement : public TreeNode {
 
     public:
                             TreeStatement(std::string statement);
+                void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;

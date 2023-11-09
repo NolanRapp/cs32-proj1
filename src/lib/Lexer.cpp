@@ -159,11 +159,10 @@ void Lexer::lex(std::string& inputString) {
             }
 
             // store brackets as Type::END tokens for uniqueness
-            else if (i == '{'){
-                lexTokens.push_back(Token(line, column, "{", Type::END));
-            }
-            else if (i == '}'){
-                lexTokens.push_back(Token(line, column, "}", Type::END));
+            else if (i == '{' || i == '}' || i == ',' || i == ';'){
+                std::string c = "";
+                c += i;
+                lexTokens.push_back(Token(line, column, c, Type::MISC));
             }
 
             // if not space, valid operator, or valid number, print error:

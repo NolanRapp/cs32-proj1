@@ -37,7 +37,7 @@ TreeNode* New_Parser::parseForCalc(std::deque<Token>& tokenizedQ) {
     if (nextToken != "END") {
         throw ParseError(currentLine, currentColumn, nextToken);;
     }
-    return (ast.release());
+    return ast.release();
 }
 
 
@@ -46,11 +46,11 @@ TreeNode* New_Parser::parseForState(std::deque<Token>& tokenizedQ) {
     std::unique_ptr<TreeNode> ast;
     ast.reset(parse(tokenizedQ));
 
+    // Reattaches interrupting token to queue for check
     Token pushTok(currentLine, currentColumn, nextToken, tokenType);
-
     tokenizedQ.push_front(pushTok);
 
-    return (ast.release());
+    return ast.release();
 }
 
 

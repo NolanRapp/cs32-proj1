@@ -11,7 +11,8 @@ enum class Type {
     OP,
     ID,
     END,
-    STATE
+    STATE,
+    MISC
 };
 
 

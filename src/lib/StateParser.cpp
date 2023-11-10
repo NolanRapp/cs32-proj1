@@ -38,7 +38,19 @@ void StateParser::createForest(std::deque<Token> oInput){
 TreeNode* StateParser::createTree(std::deque<Token>& input){
     if(isExp(input.front())){
         New_Parser parser;
-        return parser.parseForState(input);
+        std::unique_ptr<TreeNode> expression(parser.parseForState(input));
+
+        if(input.front().text != ";"){ 
+            throw ParseError(input.front().line, input.front().column, input.front().text);
+            // Expects ";" after stand-alone expressions
+        }
+        input.pop_front(); // Reads ";"
+
+        // Places expression into statement
+        std::unique_ptr<TreeStatement> exHolder(new TreeStatement("expression"));
+        exHolder-> condition = expression.release();
+
+        return exHolder.release();
     }
 
     return createStatement(input);
@@ -61,6 +73,12 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
 
     // "print" statement should only have condition
     if(stateStr == "print"){
+        if(input.front().text != ";"){
+            throw ParseError(input.front().line, input.front().column, input.front().text);
+            // Expects ";" after stand-alone expressions
+        }
+        input.pop_front(); // Reads ";"
+
         return stateHead.release();
     }
 

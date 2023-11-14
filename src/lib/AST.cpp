@@ -246,7 +246,7 @@ double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& 
     if (type(vars) != ReturnType::NUM){
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
-    return vars[idName].doubleVal;
+    return vars[idName].value.d;
 }
 
 
@@ -255,7 +255,7 @@ bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars
     if (type(vars) != ReturnType::BOOL){ 
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
-    return vars[idName].boolVal;
+    return vars[idName].value.b;
 }
 
 
@@ -404,7 +404,24 @@ TreeStatement::TreeStatement(std::string statement){
 
 
 
-// Evaluates the condition of a "print" statement and prints it
+// Evaluates the condition of a "return" statement and throws it to be caught by function
+void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition == nullptr){
+        // Throw NUL type
+    }
+
+    if(condition->type(vars) == ReturnType::NUM){
+        condition->evalDouble(vars);
+        // Throw NUM type
+    }
+
+    condition->evalBool(vars);
+    // Throw BOOL type
+}
+
+
+
+// Evaluates the condition of an expression 
 void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition->type(vars) == ReturnType::NUM){
         condition->evalDouble(vars);
@@ -500,7 +517,10 @@ void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& var
 
 // Calls the corresponding evaluate function and return dummy value that will never be used
 double TreeStatement::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
-    if(stateStr == "expression"){
+    if(stateStr == "return"){
+        evaluateReturn(vars);
+    }
+    else if(stateStr == "expression"){
         evaluateExp(vars);
     }
     else if(stateStr == "print"){
@@ -532,7 +552,17 @@ void TreeStatement::printInfix(int depth) const{
         std::cout << "    ";
     }
 
-    if(stateStr == "expression"){
+    if(stateStr == "return"){
+        std::cout << "return ";
+        if(condition == nullptr){
+            std::cout << "null";
+        }
+        else{
+            condition->printInfix(0);
+        }
+        std::cout << ";";
+    }
+    else if(stateStr == "expression"){
         condition->printInfix(0);
         std::cout << ";";
     }

@@ -32,7 +32,7 @@ int main() {
         return 2;
     }
 
-    std::unordered_map<std::string, variableVal> vars; // holds all currently assigned variables
+    std::unordered_map<std::string, TreeNode::variableVal> vars; // holds all currently assigned variables
         
     while(!parser.isEmpty()){
         // Evaluates current AST

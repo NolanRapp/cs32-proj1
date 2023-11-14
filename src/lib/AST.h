@@ -11,24 +11,12 @@
 
 // For predicting output of node
 enum class ReturnType {
-    BOOL,
-    NUM,
-    NONE
+    BOOL, // Booleans
+    NUM,  // Doubles
+    NUL,  // null
+    FUNC, // Functions
+    NONE  // Undefined var
 };
-
-
-
-// Used to store both doubles and booleans in the variable map
-struct variableVal {
-    double  doubleVal;
-    bool    boolVal;
-    bool    isBool;
-
-    variableVal()               : doubleVal(0), boolVal(false), isBool(false) {}
-    variableVal(double number)  : doubleVal(number), boolVal(false), isBool(false) {} // num constructor
-    variableVal(bool boolean)   : doubleVal(0), boolVal(boolean), isBool(true) {} // bool constructor
-};
-
 
 
 
@@ -41,6 +29,31 @@ class TreeNode {
     */
 
     public:
+        // Used to store both doubles and booleans in the variable map
+        struct variableVal {
+            struct Func {
+                std::string name;
+                TreeNode*   tree;
+                std::unordered_map<std::string, variableVal> funcVars;
+            };
+
+            union Value {
+                double  d;
+                bool    b;
+                Func*   f;
+                // Can add arrays later
+            };
+
+            ReturnType  type;
+            Value       value;
+
+            variableVal()           : type(ReturnType::NUL)   {}
+            variableVal(double val) : type(ReturnType::NUM)   { value.d = val; }
+            variableVal(bool val)   : type(ReturnType::BOOL)  { value.b = val; }
+            variableVal(Func* val)  : type(ReturnType::FUNC) { value.f = val; }
+        };
+
+
         virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const = 0;
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const = 0;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const = 0; 
@@ -123,12 +136,7 @@ class TreeIdentifier : public TreeNode {
         virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
         virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {
             if (vars.find(idName) != vars.end()) {
-                if (vars[idName].isBool) {
-                    return ReturnType::BOOL;
-                }
-                else {
-                    return ReturnType::NUM;
-                }
+                return vars[idName].type;
             }
             else {
                 return ReturnType::NONE;
@@ -206,6 +214,7 @@ class TreeStatement : public TreeNode {
 
     public:
                             TreeStatement(std::string statement);
+                void        evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;

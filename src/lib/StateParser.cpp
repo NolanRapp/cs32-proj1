@@ -68,11 +68,33 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
         // Expects expression
     }
 
+    if(stateStr == "return"){
+        if(input.front().text == ";"){
+            input.pop_front(); // Reads ";"
+            stateHead->condition = nullptr;
+            return stateHead.release();
+        }
+        
+        if(input.front().text == "null"){
+            input.pop_front(); // Reads "null"
+
+            if(input.front().text == ";"){
+                input.pop_front(); // Reads ";"
+                stateHead->condition = nullptr;
+                return stateHead.release();
+            }
+            else{
+                throw ParseError(input.front().line, input.front().column, input.front().text);
+                // Expects ";"
+            }
+        }
+    }
+
     New_Parser parser;
     stateHead->condition = parser.parseForState(input);
 
     // "print" statement should only have condition
-    if(stateStr == "print"){
+    if(stateStr == "print" || stateStr == "return"){
         if(input.front().text != ";"){
             throw ParseError(input.front().line, input.front().column, input.front().text);
             // Expects ";" after stand-alone expressions

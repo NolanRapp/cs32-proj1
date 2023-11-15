@@ -32,9 +32,9 @@ class TreeNode {
         // Used to store both doubles and booleans in the variable map
         struct variableVal {
             struct Func {
-                std::string name;
-                TreeNode*   tree;
-                std::unordered_map<std::string, variableVal> funcVars;
+                std::string              name;
+                std::vector<TreeNode*>   forest;
+                std::vector<std::string> params;
             };
 
             union Value {

@@ -5,8 +5,8 @@
 int main(){ 
 
     std::deque<Token>                            tokens;    // holds all standard input
-    std::unordered_map<std::string, variableVal> variables; // holds all currently assigned variables
-    std::unordered_map<std::string, variableVal> tempVars;  // Temporary map to store variables in (will be deleted if runtime_error)
+    std::unordered_map<std::string, TreeNode::variableVal> variables; // holds all currently assigned variables
+    std::unordered_map<std::string, TreeNode::variableVal> tempVars;  // Temporary map to store variables in (will be deleted if runtime_error)
     
     std::string line;       // string to hold a line of user input
     New_Parser  infix;      // parser object for parsing lines

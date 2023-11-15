@@ -23,15 +23,20 @@ public:
                             StateParser(){};
                             ~StateParser(){};
     void                    createForest(std::deque<Token> oInput);
-    TreeNode*               createStatement(std::deque<Token>& input);
-    std::vector<TreeNode*>  createBlock(std::deque<Token>& input);
-    TreeNode*               createTree(std::deque<Token>& input);
     TreeNode*               popHead();
     bool                    isEmpty() const;
 
 private:
     std::deque<TreeNode*>   mHeads;
     bool                    isExp(Token& token) const;
+    TreeNode*               createStatement(std::deque<Token>& input);
+    std::vector<TreeNode*>  createBlock(std::deque<Token>& input);
+    TreeNode*               createDef(std::deque<Token>& input);
+    TreeNode*               createIf(std::deque<Token>& input);
+    TreeNode*               createWhile(std::deque<Token>& input);
+    TreeNode*               createPrint(std::deque<Token>& input);
+    TreeNode*               createReturn(std::deque<Token>& input);
+    TreeNode*               createExp(std::deque<Token>& input);
 
 };
 

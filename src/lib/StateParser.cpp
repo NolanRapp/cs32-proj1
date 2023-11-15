@@ -28,82 +28,77 @@ void StateParser::createForest(std::deque<Token> oInput){
             throw ParseError(oInput.front().line, oInput.front().column, oInput.front().text);
         }
 
-        mHeads.push_back(createTree(oInput));
+        mHeads.push_back(createStatement(oInput));
     }
 }
 
-
-
-// creates single tree (either statement or expression tree)
-TreeNode* StateParser::createTree(std::deque<Token>& input){
-    if(isExp(input.front())){
-        New_Parser parser;
-        std::unique_ptr<TreeNode> expression(parser.parseForState(input));
-
-        if(input.front().text != ";"){ 
-            throw ParseError(input.front().line, input.front().column, input.front().text);
-            // Expects ";" after stand-alone expressions
-        }
-        input.pop_front(); // Reads ";"
-
-        // Places expression into statement
-        std::unique_ptr<TreeStatement> exHolder(new TreeStatement("expression"));
-        exHolder-> condition = expression.release();
-
-        return exHolder.release();
-    }
-
-    return createStatement(input);
-}
 
 
 // takes an input token that is confirmed as statement and turns it into a tree with required parts
 TreeNode* StateParser::createStatement(std::deque<Token>& input){
+    if(isExp(input.front())){
+        return createExp(input);
+    }
+
     std::string stateStr = input.front().text;
     input.pop_front(); // Reads statement command
-    std::unique_ptr<TreeStatement> stateHead(new TreeStatement(stateStr));
+    std::unique_ptr<TreeNode> originalHead(nullptr);
 
-    if(!isExp(input.front())){
-        throw ParseError(input.front().line, input.front().column, input.front().text);
-        // Expects expression
+    if(stateStr == "def"){
+        originalHead.reset(createIf(input));
+    }
+    else if(stateStr == "if"){
+        originalHead.reset(createIf(input));
+    }
+    else if(stateStr == "while"){
+        originalHead.reset(createWhile(input));
+    }
+    else if(stateStr == "print"){
+        originalHead.reset(createPrint(input));
+    }
+    else if(stateStr == "return"){ // Redundant for readability
+        originalHead.reset(createReturn(input));
+    }
+    else{
+        throw std::runtime_error("Called createStatement on invalid statement."); // should never run
     }
 
-    if(stateStr == "return"){
-        if(input.front().text == ";"){
-            input.pop_front(); // Reads ";"
-            stateHead->condition = nullptr;
-            return stateHead.release();
-        }
-        
-        if(input.front().text == "null"){
-            input.pop_front(); // Reads "null"
+    return originalHead.release();
+}
 
-            if(input.front().text == ";"){
-                input.pop_front(); // Reads ";"
-                stateHead->condition = nullptr;
-                return stateHead.release();
-            }
-            else{
-                throw ParseError(input.front().line, input.front().column, input.front().text);
-                // Expects ";"
-            }
-        }
-    }
 
-    New_Parser parser;
-    stateHead->condition = parser.parseForState(input);
+// within a statement, turns all the commants between "{" and "}" tokens
+std::vector<TreeNode*> StateParser::createBlock(std::deque<Token>& input){
+    std::vector<TreeNode*> forest;
 
-    // "print" statement should only have condition
-    if(stateStr == "print" || stateStr == "return"){
-        if(input.front().text != ";"){
+    input.pop_front(); // Reads "{"
+
+    while(input.front().text != "}"){
+        if(input.front().text == "{" || input.front().text == "END"){ 
             throw ParseError(input.front().line, input.front().column, input.front().text);
-            // Expects ";" after stand-alone expressions
+            // Doesn't expect "{" or "END"
         }
-        input.pop_front(); // Reads ";"
-
-        return stateHead.release();
+        forest.push_back(createStatement(input));
     }
 
+    input.pop_front(); // Reads "}"
+
+    return forest;
+}
+
+
+// Checks if next character indicates the beginning of an expression
+bool StateParser::isExp(Token& token) const{
+    return (token.type != Type::STATE && token.type != Type::END);
+}
+
+
+
+// Parses a function (the "def" statement)
+TreeNode* StateParser::createDef(std::deque<Token>& input){ 
+    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("def"));
+
+    // Read parameters
 
     if(input.front().text != "{"){
         throw ParseError(input.front().line, input.front().column, input.front().text);
@@ -112,12 +107,29 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
 
     stateHead->truths = createBlock(input); // adds trees until "}" token is found
 
-    // only continues if the statement is an if statement with an else following it
-    if(stateStr == "while" || input.front().text != "else"){
+    return stateHead.release();
+}
+
+
+
+// Parses "if" and "if-else" statements
+TreeNode* StateParser::createIf(std::deque<Token>& input){
+    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("if"));
+ 
+    New_Parser parser;
+    stateHead->condition = parser.parseForState(input);
+
+    if(input.front().text != "{"){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects "{"
+    }
+
+    stateHead->truths = createBlock(input); // adds trees until "}" token is found
+
+    if(input.front().text != "else"){
         return stateHead.release();
     }
     input.pop_front(); // Reads "else"
-
 
     // "else" is followed by "if" statement
     if(input.front().text == "if"){
@@ -136,29 +148,96 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
 }
 
 
-// within a statement, turns all the commants between "{" and "}" tokens
-std::vector<TreeNode*> StateParser::createBlock(std::deque<Token>& input){
-    std::vector<TreeNode*> forest;
 
-    input.pop_front(); // Reads "{"
+// Parses "while" statement
+TreeNode* StateParser::createWhile(std::deque<Token>& input){
+    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("while"));
+ 
+    New_Parser parser;
+    stateHead->condition = parser.parseForState(input);
 
-    while(input.front().text != "}"){
-        if(input.front().text == "{" || input.front().text == "END"){ 
-            throw ParseError(input.front().line, input.front().column, input.front().text);
-            // Doesn't expect "{" or "END"
-        }
-        forest.push_back(createTree(input));
+    if(input.front().text != "{"){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects "{"
     }
 
-    input.pop_front(); // Reads "}"
+    stateHead->truths = createBlock(input); // adds trees until "}" token is found
 
-    return forest;
+    return stateHead.release();
 }
 
 
-// Checks if next character indicates the beginning of an expression
-bool StateParser::isExp(Token& token) const{
-    return (token.type != Type::STATE && token.type != Type::END);
+
+// Parses the "print" statement
+TreeNode* StateParser::createPrint(std::deque<Token>& input){
+    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("print"));
+ 
+    New_Parser parser;
+    stateHead->condition = parser.parseForState(input);
+
+    if(input.front().text != ";"){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects ";" after stand-alone expressions
+    }
+    input.pop_front(); // Reads ";"
+
+    return stateHead.release();
+}
+
+
+
+// Parses the "return" statement
+TreeNode* StateParser::createReturn(std::deque<Token>& input){
+    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("return"));
+ 
+    if(input.front().text == ";"){
+        input.pop_front(); // Reads ";"
+        stateHead->condition = nullptr;
+        return stateHead.release();
+    }
+    
+    if(input.front().text == "null"){
+        input.pop_front(); // Reads "null"
+
+        if(input.front().text == ";"){
+            input.pop_front(); // Reads ";"
+            stateHead->condition = nullptr;
+            return stateHead.release();
+        }
+        else{
+            throw ParseError(input.front().line, input.front().column, input.front().text);
+            // Expects ";"
+        }
+    }
+
+    New_Parser parser;
+    stateHead->condition = parser.parseForState(input);
+
+    if(input.front().text != ";"){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects ";" after stand-alone expressions
+    }
+    input.pop_front(); // Reads ";"
+
+    return stateHead.release();
+}
+
+
+
+// Parses single expression as statement
+TreeNode* StateParser::createExp(std::deque<Token>& input){ 
+    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("expression"));
+
+    New_Parser parser;
+    stateHead->condition = parser.parseForState(input);
+
+    if(input.front().text != ";"){ 
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects ";" after stand-alone expressions
+    }
+    input.pop_front(); // Reads ";"
+
+    return stateHead.release();
 }
 
 

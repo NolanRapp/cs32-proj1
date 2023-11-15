@@ -238,10 +238,11 @@ class TreeStatement : public TreeNode {
             falses.clear();
         }
 
-        std::string             stateStr;   // stores type of statement
-        TreeNode*               condition;  // Tree for condition
-        std::vector<TreeNode*>  truths;     // Forest for evaluation when condition is true
-        std::vector<TreeNode*>  falses;     // Forest for evaluation when condition is false
+        std::string               stateStr;   // stores type of statement
+        TreeNode*                 condition;  // Tree for condition
+        std::vector<TreeNode*>    truths;     // Forest for evaluation when condition is true
+        std::vector<TreeNode*>    falses;     // Forest for evaluation when condition is false
+        std::vector<std::string>  params;     // Forest of parameters (only used in "def" statement)
 };
 
 

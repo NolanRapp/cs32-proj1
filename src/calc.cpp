@@ -10,7 +10,6 @@ int main(){
     
     std::string line;       // string to hold a line of user input
     New_Parser  infix;      // parser object for parsing lines
-    double      boolDouble; // stores evaluated value (will store bools as 0 or 1)
         
     // Parses line by line (errors will not interrupt program)
     while(getline(std::cin, line)) {
@@ -28,12 +27,12 @@ int main(){
             std::cout << std::endl;
 
             // attempts to evaluate expression
-            variableVal treeVal(rootTree->evaluate(vars));
+            variableVal treeVal(rootTree->evaluate(tempVars));
             if (treeVal.type == ReturnType::NUM) {
-                std::cout << treeVal.d << std::endl;
+                std::cout << treeVal.value.d << std::endl;
             }
             else if (treeVal.type == ReturnType::BOOL) {
-                if (treeVal.b) {
+                if (treeVal.value.b) {
                     std::cout << "true" << std::endl;
                 }
                 else {

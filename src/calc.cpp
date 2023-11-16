@@ -5,8 +5,8 @@
 int main(){ 
 
     std::deque<Token>                            tokens;    // holds all standard input
-    std::unordered_map<std::string, TreeNode::variableVal> variables; // holds all currently assigned variables
-    std::unordered_map<std::string, TreeNode::variableVal> tempVars;  // Temporary map to store variables in (will be deleted if runtime_error)
+    std::unordered_map<std::string, variableVal> variables; // holds all currently assigned variables
+    std::unordered_map<std::string, variableVal> tempVars;  // Temporary map to store variables in (will be deleted if runtime_error)
     
     std::string line;       // string to hold a line of user input
     New_Parser  infix;      // parser object for parsing lines
@@ -23,18 +23,17 @@ int main(){
             std::deque<Token> tokenizedQ = lexer.getLexQueue();
 
             rootTree.reset(infix.parseForCalc(tokenizedQ));
-            ReturnType returnType = rootTree->type(tempVars); // determines the evaluation function to use
 
             rootTree->printInfix(0); // prints parsed expression
             std::cout << std::endl;
 
             // attempts to evaluate expression
-            if (returnType == ReturnType::NUM) {
-                std::cout << rootTree->evalDouble(tempVars) << std::endl;
+            variableVal treeVal(rootTree->evaluate(vars));
+            if (treeVal.type == ReturnType::NUM) {
+                std::cout << treeVal.d << std::endl;
             }
-            else if (returnType == ReturnType::BOOL) {
-                boolDouble = rootTree->evalBool(tempVars);
-                if (boolDouble) {
+            else if (treeVal.type == ReturnType::BOOL) {
+                if (treeVal.b) {
                     std::cout << "true" << std::endl;
                 }
                 else {
@@ -48,4 +47,7 @@ int main(){
             std::cout << e.what() << std::endl;
         }
     }
-};
+}
+
+
+

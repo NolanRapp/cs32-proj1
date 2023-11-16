@@ -8,16 +8,9 @@ TreeLeaf::TreeLeaf(double val) {
 
 
 
-// Returns number in Leaf
-double TreeLeaf::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
-    return value;
-}
-
-
-
-// TreeLeaf should error if evaluated as a boolean
-bool TreeLeaf::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
-    throw std::runtime_error("Runtime error: invalid operand type.");   
+// Returns a double value in Leaf
+variableVal TreeLeaf::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    return variableVal(value);
 }
 
 
@@ -55,94 +48,96 @@ void TreeOperator::addChild(TreeNode* child){
 
 
 
-// Evaluates double Operators and children (recursive)
-double TreeOperator::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
-
-    // Check to see if return is valid
-    if(type(vars) != ReturnType::NUM){
-        throw std::runtime_error("Runtime error: invalid operand type.");   
+//
+variableVal TreeOperator::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    if(op == "+" || op == "-" || op == "*" ||
+       op == "/" || op == "%"){
+        return evalOp(vars);
     }
+    return evalComp(vars);
+}
 
-    double result = children[0]->evalDouble(vars);
+
+
+// Evaluates double Operators and children (recursive)
+variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& vars) const{
+
+    variableVal lVal(children[0]->evaluate(vars));
+    if(lVal.type != ReturnType::NUM){
+        throw std::runtime_error("Runtime error: invalid operand type.");
+        // Needs only numbers
+    }
+    double result = lVal.value.d;
 
     if (op == "*") { 
-        for (unsigned int i = 1; i < children.size(); i++) {
-            result *= children[i]->evalDouble(vars);
+        variableVal rVal(children[1]->evaluate(vars));
+        if(rVal.type != ReturnType::NUM){
+            throw std::runtime_error("Runtime error: invalid operand type.");
+            // Needs only numbers
         }
+        result *= rVal.value.d;
     }
     else if (op == "/") {
-        for (unsigned int i = 1; i < children.size(); i++) {
-            // Special case of dividing by 0
-            if (children[i]->evalDouble(vars) == 0){
-                throw std::runtime_error("Runtime error: division by zero.");   
-            }
-
-            result /= children[i]->evalDouble(vars);
+        variableVal rVal(children[1]->evaluate(vars));
+        if(rVal.type != ReturnType::NUM){
+            throw std::runtime_error("Runtime error: invalid operand type.");
+            // Needs only numbers
         }
+
+        // Special case of dividing by 0
+        if (rVal.value.d == 0){
+            throw std::runtime_error("Runtime error: division by zero.");   
+        }
+
+        result /= rVal.value.d;
     }
     else if (op == "%") {
-        for (unsigned int i = 1; i < children.size(); i++) {
-            // Special case of dividing by 0
-            if (children[i]->evalDouble(vars) == 0){
-                throw std::runtime_error("Runtime error: division by zero.");   
-            }
-
-            result = fmod(result, children[i]->evalDouble(vars));
+        variableVal rVal(children[1]->evaluate(vars));
+        if(rVal.type != ReturnType::NUM){
+            throw std::runtime_error("Runtime error: invalid operand type.");
+            // Needs only numbers
         }
+
+        // Special case of dividing by 0
+        if (rVal.value.d == 0){
+            throw std::runtime_error("Runtime error: division by zero.");   
+        }
+
+        result = fmod(result, rVal.value.d);
     }
     else if (op == "+") {
-        for (unsigned int i = 1; i < children.size(); i++) {
-            result += children[i]->evalDouble(vars);
+        variableVal rVal(children[1]->evaluate(vars));
+        if(rVal.type != ReturnType::NUM){
+            throw std::runtime_error("Runtime error: invalid operand type.");
+            // Needs only numbers
         }
+        result += rVal.value.d;
     }
     else if (op == "-") { // Redundant "if" for readability
-        for (unsigned int i = 1; i < children.size(); i++) {
-            result -= children[i]->evalDouble(vars);
+        variableVal rVal(children[1]->evaluate(vars));
+        if(rVal.type != ReturnType::NUM){
+            throw std::runtime_error("Runtime error: invalid operand type.");
+            // Needs only numbers
         }
+        result -= rVal.value.d;
     }
 
-    return result;
+    return variableVal(result);
 }
 
 
 
 // Evaluates boolean Operator and children (recursive)
-bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
+variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>& vars) const{
 
-    // Check to see if return is valid
-    if(type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: invalid operand type.");   
-    }
+    variableVal lVal(children[0]->evaluate(vars));
+    variableVal rVal(children[1]->evaluate(vars));
 
-
-    union Value{
-        bool    b;
-        double  d;
-    };
-    Value left;
-    Value right;
-
-    ReturnType lReturn = children[0]->type(vars);
-    ReturnType rReturn = children[1]->type(vars);
-   
-    if (lReturn == ReturnType::NUM){
-        left.d = children[0]->evalDouble(vars);
-    }
-    else{
-        left.b = children[0]->evalBool(vars);
-    }
-
-    if (rReturn == ReturnType::NUM){
-        right.d = children[1]->evalDouble(vars);
-    }
-    else{
-        right.b = children[1]->evalBool(vars);
-    }
-
- 
+    ReturnType lReturn = lVal.type;
+    ReturnType rReturn = rVal.type;
+    
     // Order Comparison (Only numbers)
     if (lReturn == ReturnType::NUM){
-
         // Special case
         if(rReturn != ReturnType::NUM){
             if(op == "=="){
@@ -155,56 +150,64 @@ bool TreeOperator::evalBool(std::unordered_map<std::string, variableVal>& vars) 
         } 
 
         if (op == "<") {
-            return (left.d < right.d);
+            return variableVal(lVal.value.d < rVal.value.d);
         }
         else if (op == ">") {
-            return (left.d > right.d);
+            return variableVal(lVal.value.d > rVal.value.d);
         }
         else if (op == "<=") {
-            return (left.d <= right.d);
+            return variableVal(lVal.value.d <= rVal.value.d);
         }
         else if (op == ">=") {
-            return (left.d >= right.d);
+            return variableVal(lVal.value.d >= rVal.value.d);
         }
         else if (op == "=="){
-            return (left.d == right.d);
+            return variableVal(lVal.value.d == rVal.value.d);
         }
         else if (op == "!="){
-            return (left.d != right.d);
+            return variableVal(lVal.value.d != rVal.value.d);
         }
     }
-
-
     // Logical comparison (Only bools)
+    else if(lReturn == ReturnType::BOOL){
+        // Special case
+        if(rReturn != ReturnType::BOOL){
+            if(op == "=="){
+                return false;
+            }
+            else if(op == "!="){
+                return true;
+            }
+            throw std::runtime_error("Runtime error: invalid operand type.");   
+        } 
 
-    // Special case
-    if(rReturn != ReturnType::BOOL){
-        if(op == "=="){
-            return false;
+        if (op == "|"){
+            return variableVal(lVal.value.b || rVal.value.b);
         }
-        else if(op == "!="){
-            return true;
+        else if (op == "^"){
+            return variableVal((lVal.value.b && !rVal.value.b) || (!lVal.value.b && rVal.value.b));
         }
-        throw std::runtime_error("Runtime error: invalid operand type.");   
-    } 
+        else if (op == "&"){
+            return variableVal(lVal.value.b && rVal.value.b);
+        }
+        else if (op == "=="){
+            return variableVal(lVal.value.b == rVal.value.b);
+        }
+        else if (op == "!="){ // Redundant "if" for readability
+            return variableVal(lVal.value.b != rVal.value.b);
+        }
+    }
 
-    if (op == "|"){
-        return (left.b || right.b);
+    // This is only required if compariosn of non-number and non-bool values are allowed
+    if(op == "=="){
+        return false;
     }
-    else if (op == "^"){
-        return ((left.b && !right.b) || (!left.b && right.b));
+    else if(op == "!="){
+        return true;
     }
-    else if (op == "&"){
-        return (left.b && right.b);
-    }
-    else if (op == "=="){
-        return (left.b == right.b);
-    }
-    else if (op == "!="){ // Redundant "if" for readability
-        return (left.b != right.b);
-    } 
 
-    throw std::runtime_error("Reached end of evalBool on bool operator, programmed wrong"); // should never run   
+    // Fails if non-number or non-bool exists without equality comparison
+    throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
 
@@ -218,7 +221,7 @@ void TreeOperator::printInfix(int depth) const {
 
     std::cout << '(';
     children[0]->printInfix(0);
-    for (unsigned int i = 1; i < children.size(); i++) {
+    for (size_t i = 1; i < children.size(); i++) {
         std::cout << ' ' << op << ' ';
         children[i]->printInfix(0);
     }
@@ -241,22 +244,15 @@ TreeIdentifier::TreeIdentifier(std::string name) {
 
 
 
-// Attempts to find double and return, if no correct value exists throws error
-double TreeIdentifier::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
-    if (type(vars) != ReturnType::NUM){
+//
+variableVal TreeIdentifier::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    if(vars.find(idName) == vars.end()){ 
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
     }
-    return vars[idName].value.d;
+
+    return vars[idName];
 }
 
-
-// Attempts to find bool and return, if no correct value exists throws error
-bool TreeIdentifier::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
-    if (type(vars) != ReturnType::BOOL){ 
-        throw std::runtime_error("Runtime error: unknown identifier " + idName);
-    }
-    return vars[idName].value.b;
-}
 
 
 // Prints ID name with corresponding depth
@@ -292,16 +288,9 @@ TreeBoolean::TreeBoolean(std::string value) {
 
 
 
-// Boolean nodes should throw errors if ever asked to return a double
-double TreeBoolean::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
-    throw std::runtime_error("Runtime error: invalid operand type.");   
-}
-
-
-
-// Returns boolean value corresponding to the value member variable
-bool TreeBoolean::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
-    return (value == "true");
+//
+variableVal TreeBoolean::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    return variableVal(value == "true");
 }
 
 
@@ -325,44 +314,14 @@ void TreeBoolean::printInfix(int depth) const {
 
 
 
-// Variable assignment evaluation for doubles
-double TreeAssign::evalDouble(std::unordered_map<std::string, variableVal>& vars) const {
+//
+variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    variableVal rVal(children[children.size()-1]->evaluate(vars));
 
-    // Confirms that right-most child can be evaluated as double
-    if(children[children.size()-1]->type(vars) != ReturnType::NUM){
-        throw std::runtime_error("Runtime error: invalid operand type.");   
+    for (size_t i = 0; i < children.size() - 1; i++) {
+        vars[children[i]->getID()] = rVal;
     }
-
-    // Sets result to final num/id which will return double or error
-    double result = children[children.size() - 1]->evalDouble(vars);
-    variableVal val(result);
-
-    // Changes all child identifiers to the value of the final num/id
-    for (unsigned int i = 0; i < children.size() - 1; i++) {
-        vars[children[i]->getID()] = val;
-    }
-    return result;
-}
-
-
-
-// Variable assignment evaluation for booleans
-bool TreeAssign::evalBool(std::unordered_map<std::string, variableVal>& vars) const {
-
-    // Confirms that right-most child can be evaluated as bool
-    if(children[children.size()-1]->type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: invalid operand type.");   
-    }
-
-    // Sets result to final bool/id which will return bool or error
-    bool result = children[children.size() - 1]->evalBool(vars);
-    variableVal val(result);
-
-    // Changes all child identifiers to the value of the final bool/id
-    for (unsigned int i = 0; i < children.size() - 1; i++) {
-        vars[children[i]->getID()] = val;
-    }
-    return result;
+    return rVal;
 }
 
 
@@ -376,7 +335,7 @@ void TreeAssign::printInfix(int depth) const {
 
     std::cout << '(';
     children[0]->printInfix(0);
-    for (unsigned int i = 1; i < children.size(); i++) {
+    for (size_t i = 1; i < children.size(); i++) {
         std::cout << " = ";
         children[i]->printInfix(0);
     }
@@ -404,49 +363,61 @@ TreeStatement::TreeStatement(std::string statement){
 
 
 
-// Evaluates the condition of a "return" statement and throws it to be caught by function
-void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const{
-    if(condition == nullptr){
-        // Throw NUL type
+// Calls the corresponding evaluate function and return dummy value that will never be used
+variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    if(stateStr == "def"){
+        evaluateDef(vars);
+    }
+    else if(stateStr == "if"){
+        evaluateIf(vars);
+    }
+    else if(stateStr == "while"){
+        evaluateWhile(vars);
+    }
+    else if(stateStr == "print"){
+        evaluatePrint(vars);
+    }
+    else if(stateStr == "return"){
+        evaluateReturn(vars);
+    }
+    else if(stateStr == "expression"){ // Redundant for readability
+        evaluateExp(vars);
     }
 
-    if(condition->type(vars) == ReturnType::NUM){
-        condition->evalDouble(vars);
-        // Throw NUM type
-    }
-
-    condition->evalBool(vars);
-    // Throw BOOL type
+    return variableVal(); // Dummy return will never be used
 }
 
 
 
-// Evaluates the condition of an expression 
-void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& vars) const{
-    if(condition->type(vars) == ReturnType::NUM){
-        condition->evalDouble(vars);
-        return;
-    }
-
-    condition->evalBool(vars);
-    return;
+// Evaluates the condition of a "def" statement (functions)
+void TreeStatement::evaluateDef(std::unordered_map<std::string, variableVal>& vars) const{
+    // Implement function eval
 }
 
 
 
-// Evaluates the condition of a "print" statement and prints it
-void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const{
-    if(condition->type(vars) == ReturnType::NUM){
-        double value = condition->evalDouble(vars);
-        std::cout << value << '\n';
-        return;
+// Evaluates the "if" statement 
+void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
+
+    variableVal cVal(condition->evaluate(vars));
+
+    // Special case for non boolean return type for condition
+    if(cVal.type != ReturnType::BOOL){
+        throw std::runtime_error("Runtime error: condition is not a bool.");   
     }
 
-    if(condition->evalBool(vars)){
-        std::cout << "True\n";
+    // evaluates truths forest if condition evaluates true
+    if(cVal.value.b){
+        for(TreeNode* tree : truths){
+            tree->evaluate(vars);
+        }
         return;
     }
-    std::cout << "False\n";
+    
+    // evaluates falses forest if condition evaluates false
+    for(TreeNode* tree : falses){
+        tree->evaluate(vars);
+    }
     return;
 }
 
@@ -455,24 +426,23 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 // Evaluates the "while" statement 
 void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{
     
+    variableVal cVal(condition->evaluate(vars));
+
     // Special case for non boolean return type for condition
-    if(condition->type(vars) != ReturnType::BOOL){
+    if(cVal.type != ReturnType::BOOL){
         throw std::runtime_error("Runtime error: condition is not a bool.");   
     }
 
     // evaluates truths forest until condition tree evaluates to false
-    while(condition->evalBool(vars)){ 
+    while(cVal.value.b){
         for(TreeNode* tree : truths){
-            if(tree->type(vars) == ReturnType::NUM){
-                tree->evalDouble(vars);
-            }
-            else{
-                tree->evalBool(vars);
-            }
+            tree->evaluate(vars);
         }
 
-        // Rechecks special case above every loop 
-        if(condition->type(vars) != ReturnType::BOOL){
+        cVal = variableVal(condition->evaluate(vars));
+
+        // Special case for non boolean return type for condition
+        if(cVal.type != ReturnType::BOOL){
             throw std::runtime_error("Runtime error: condition is not a bool.");   
         }
     }
@@ -480,67 +450,52 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
 }
 
 
-// Evaluates the "if" statement 
-void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
 
-    // Special case for non boolean return type for condition
-    if(condition->type(vars) != ReturnType::BOOL){
-        throw std::runtime_error("Runtime error: condition is not a bool.");   
-    }
+// Evaluates the condition of a "print" statement and prints it
+void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const{
+    variableVal cVal(condition->evaluate(vars));
 
-    // evaluates truths forest if condition evaluates true
-    if(condition->evalBool(vars)){
-        for(TreeNode* tree : truths){
-            if(tree->type(vars) == ReturnType::NUM){
-                tree->evalDouble(vars);
-            }
-            else{
-                tree->evalBool(vars);
-            }
-        }
+    if(cVal.type == ReturnType::NUM){
+        double value = cVal.value.d;
+        std::cout << value << '\n';
         return;
     }
-    
-    // evaluates falses forest if condition evaluates false
-    for(TreeNode* tree : falses){
-        if(tree->type(vars) == ReturnType::NUM){
-            tree->evalDouble(vars);
+
+    if(cVal.type == ReturnType::BOOL){
+        if(cVal.value.b){
+            std::cout << "True\n";
+            return;
         }
-        else{
-            tree->evalBool(vars);
-        }
+        std::cout << "False\n";
+        return;
     }
+
+    throw std::runtime_error("Called print on non-number or non-bool"); // May need to change to specific syntax
+}
+
+
+
+// Evaluates the condition of a "return" statement and throws it to be caught by function
+void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const{
+    if(condition == nullptr){
+        // Throw NUL type
+    }
+
+    variableVal cVal(condition->evaluate(vars));
+    if(cVal.type == ReturnType::NUM){
+        // Throw NUM type
+    }
+
+    // Throw BOOL type
+}
+
+
+
+// Evaluates the condition of an expression 
+void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& vars) const{
+    condition->evaluate(vars);
+
     return;
-}
-
-
-
-// Calls the corresponding evaluate function and return dummy value that will never be used
-double TreeStatement::evalDouble(std::unordered_map<std::string, variableVal>& vars) const{
-    if(stateStr == "return"){
-        evaluateReturn(vars);
-    }
-    else if(stateStr == "expression"){
-        evaluateExp(vars);
-    }
-    else if(stateStr == "print"){
-        evaluatePrint(vars);
-    }
-    else if(stateStr == "while"){
-        evaluateWhile(vars);
-    }
-    else{
-        evaluateIf(vars);
-    }
-
-    return 0.0; // Dummy return will never be used
-}
-
-
-
-// For predictability statements are not evaluated as bools despite their return type not mattering
-bool TreeStatement::evalBool(std::unordered_map<std::string, variableVal>& vars) const{
-    throw std::runtime_error("Statement called evalBool, programmed wrong"); // should never run   
 }
 
 
@@ -552,29 +507,15 @@ void TreeStatement::printInfix(int depth) const{
         std::cout << "    ";
     }
 
-    if(stateStr == "return"){
-        std::cout << "return ";
-        if(condition == nullptr){
-            std::cout << "null";
+    if(stateStr == "def"){
+        std::cout << "def " << params[0] << "(";
+        for(size_t i = 1; i < params.size(); i++){
+            std::cout << params[i];
+            if(i != params.size()){
+                std::cout << ", ";
+            }
         }
-        else{
-            condition->printInfix(0);
-        }
-        std::cout << ";";
-    }
-    else if(stateStr == "expression"){
-        condition->printInfix(0);
-        std::cout << ";";
-    }
-    else if(stateStr == "print"){
-        std::cout << "print ";
-        condition->printInfix(0);
-        std::cout << ";";
-    }
-    else if(stateStr == "while"){
-        std::cout << "while ";
-        condition->printInfix(0);
-        std::cout << " {";
+        std::cout << ") {";
 
         for(TreeNode* tree : truths){
             std::cout << '\n';
@@ -585,9 +526,9 @@ void TreeStatement::printInfix(int depth) const{
         for(int i = 1; i <= depth; i++){
             std::cout << "    ";
         }
-        std::cout << "}";
+        std::cout << "}"; 
     }
-    else{ 
+    else if(stateStr == "if"){ 
         std::cout << "if ";
         condition->printInfix(0);
         std::cout << " {";
@@ -623,6 +564,41 @@ void TreeStatement::printInfix(int depth) const{
             }
             std::cout << "}";
         }
+    }
+    else if(stateStr == "while"){
+        std::cout << "while ";
+        condition->printInfix(0);
+        std::cout << " {";
+
+        for(TreeNode* tree : truths){
+            std::cout << '\n';
+            tree->printInfix(depth + 1);
+        }
+        
+        std::cout << '\n';
+        for(int i = 1; i <= depth; i++){
+            std::cout << "    ";
+        }
+        std::cout << "}";
+    }
+    else if(stateStr == "print"){
+        std::cout << "print ";
+        condition->printInfix(0);
+        std::cout << ";";
+    }
+    else if(stateStr == "return"){
+        std::cout << "return ";
+        if(condition == nullptr){
+            std::cout << "null";
+        }
+        else{
+            condition->printInfix(0);
+        }
+        std::cout << ";";
+    }
+    else if(stateStr == "expression"){ // Redundant for readability
+        condition->printInfix(0);
+        std::cout << ";";
     }
 }
 

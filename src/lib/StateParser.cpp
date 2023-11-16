@@ -45,7 +45,7 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
     std::unique_ptr<TreeNode> originalHead(nullptr);
 
     if(stateStr == "def"){
-        originalHead.reset(createIf(input));
+        originalHead.reset(createDef(input));
     }
     else if(stateStr == "if"){
         originalHead.reset(createIf(input));
@@ -98,7 +98,43 @@ bool StateParser::isExp(Token& token) const{
 TreeNode* StateParser::createDef(std::deque<Token>& input){ 
     std::unique_ptr<TreeStatement> stateHead(new TreeStatement("def"));
 
-    // Read parameters
+    if(input.front().type != Type::ID){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects identifier
+    }
+    stateHead->params.push_back(input.front().text); // First slot in parameters is function name
+    input.pop_front(); // Reads name of function
+
+    if(input.front().text != "("){
+        throw ParseError(input.front().line, input.front().column, input.front().text);
+        // Expects "("
+    }
+    input.pop_front(); // Reads "("
+
+    while(input.front().text != ")"){ 
+        if(input.front().type != Type::ID){
+            throw ParseError(input.front().line, input.front().column, input.front().text);
+            // Expects identifier for parameter
+        }
+        stateHead->params.push_back(input.front().text);
+        input.pop_front(); // Reads parameter
+
+        if(input.front().text == ")"){
+            break;
+        }
+
+        if(input.front().text != ","){
+            throw ParseError(input.front().line, input.front().column, input.front().text);
+            // Expects identifier for parameter
+        }
+        input.pop_front(); // Reads ","
+
+        if(input.front().type != Type::ID){
+            throw ParseError(input.front().line, input.front().column, input.front().text);
+            // Expects identifier after ","
+        }
+    }
+    input.pop_front(); // Reads ")"
 
     if(input.front().text != "{"){
         throw ParseError(input.front().line, input.front().column, input.front().text);

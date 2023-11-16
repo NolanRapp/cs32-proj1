@@ -19,6 +19,31 @@ enum class ReturnType {
 };
 
 
+class TreeNode;
+struct variableVal {
+    struct Func {
+        std::string              name;
+        std::vector<TreeNode*>   forest;
+        std::vector<std::string> params;
+    };
+
+    union Value {
+        double  d;
+        bool    b;
+        Func*   f;
+        // Can add arrays later
+    };
+
+    ReturnType  type;
+    Value       value;
+
+    variableVal()           : type(ReturnType::NUL)   {}
+    variableVal(double val) : type(ReturnType::NUM)   { value.d = val; }
+    variableVal(bool val)   : type(ReturnType::BOOL)  { value.b = val; }
+    variableVal(Func* val)  : type(ReturnType::FUNC) { value.f = val; }
+};
+
+
 
 class TreeNode {
     /* 
@@ -30,33 +55,8 @@ class TreeNode {
 
     public:
         // Used to store both doubles and booleans in the variable map
-        struct variableVal {
-            struct Func {
-                std::string              name;
-                std::vector<TreeNode*>   forest;
-                std::vector<std::string> params;
-            };
 
-            union Value {
-                double  d;
-                bool    b;
-                Func*   f;
-                // Can add arrays later
-            };
-
-            ReturnType  type;
-            Value       value;
-
-            variableVal()           : type(ReturnType::NUL)   {}
-            variableVal(double val) : type(ReturnType::NUM)   { value.d = val; }
-            variableVal(bool val)   : type(ReturnType::BOOL)  { value.b = val; }
-            variableVal(Func* val)  : type(ReturnType::FUNC) { value.f = val; }
-        };
-
-
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const = 0;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const = 0;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const = 0; 
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const = 0;
         virtual void        printInfix(int depth) const = 0;
         virtual std::string getID() = 0; // Should only be called on TreeIdentifiers
         virtual ~TreeNode() {};
@@ -72,9 +72,7 @@ class TreeLeaf : public TreeNode {
 
     public:
                             TreeLeaf(double val);
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::NUM;}
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const;
         virtual std::string getID() { 
             throw std::runtime_error("Runtime error: invalid assignee.");
@@ -94,16 +92,9 @@ class TreeOperator : public TreeNode {
 
     public:
                             TreeOperator(std::string operation);
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const { 
-            // ReturnType depends on which operator is being held
-            if(op == "+" || op == "-" || op == "*" ||
-               op == "/" || op == "%"){
-                return ReturnType::NUM;
-            }
-            return ReturnType::BOOL;
-        }
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
+        variableVal         evalOp(std::unordered_map<std::string, variableVal>& vars) const;
+        variableVal         evalComp(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
         virtual std::string getID() {
@@ -132,18 +123,8 @@ class TreeIdentifier : public TreeNode {
 
     public:
                             TreeIdentifier(std::string name);
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {
-            if (vars.find(idName) != vars.end()) {
-                return vars[idName].type;
-            }
-            else {
-                return ReturnType::NONE;
-            }
-        }
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const;
-                void        addChild(TreeNode* child);
         virtual std::string getID(); 
 
     private:
@@ -161,9 +142,7 @@ class TreeBoolean : public TreeNode {
     public:
                             TreeBoolean(std::string value);
         void                addChild(TreeNode* child);
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const {return ReturnType::BOOL;}
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const;
         virtual std::string getID() {
             throw std::runtime_error("Runtime error: invalid assignee.");
@@ -183,9 +162,7 @@ class TreeAssign : public TreeNode {
 
     public:
                             TreeAssign(){} // No constructor needed
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const{ return children[children.size()-1]->type(vars); }
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const; 
                 void        addChild(TreeNode* child);
         virtual std::string getID() {
@@ -204,6 +181,21 @@ class TreeAssign : public TreeNode {
 
 
 
+class TreeFunction : public TreeNode {
+
+    public:
+                            TreeFunction(std::string name);
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual void        printInfix(int depth) const;
+        virtual std::string getID() {
+            throw std::runtime_error("Runtime error: invalid assignee.");
+        }; 
+
+    private:
+        std::string funcName;
+};
+
+
 
 class TreeStatement : public TreeNode {
     /*
@@ -214,14 +206,13 @@ class TreeStatement : public TreeNode {
 
     public:
                             TreeStatement(std::string statement);
+                void        evaluateDef(std::unordered_map<std::string, variableVal>& vars) const;
+                void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;
+                void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;
+                void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual double      evalDouble(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual bool        evalBool(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual ReturnType  type(std::unordered_map<std::string, variableVal>& vars) const { return ReturnType::NUM; } // Dummy return type, doesn't matter
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const; 
         virtual std::string getID() { 
             throw std::runtime_error("Runtime error: invalid assignee.");

@@ -327,6 +327,11 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         scanToken(tokenizedQ); // Consume variable 
         return leaf.release();
     }
+    else if (nextToken == "null"){
+        std::unique_ptr<TreeStatement> nullPtr(new TreeStatement("null"));
+        scanToken(tokenizedQ); // Consume "null"
+        return nullPtr.release();
+    }
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
     }

@@ -356,6 +356,54 @@ void TreeAssign::addChild(TreeNode* child){
 
 
 
+//
+TreeCall::TreeCall(TreeNode* func){
+    this->func = func;
+}
+
+
+
+//
+variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    return variableVal();
+}
+
+
+
+// Prints variable assignment infix with corresponding depth
+void TreeCall::printInfix(int depth) const {
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
+    func->printInfix(0);
+    std::cout << "(";
+    for (size_t i = 0; i < args.size(); i++) {
+        args[i]->printInfix(0);
+        if(i != (args.size() - 1)){
+            std::cout << ", ";
+        }
+    }
+    std::cout << ")";
+}
+
+
+
+//
+void TreeCall::setArgs(std::vector<TreeNode*> args){
+    this->args = args;
+}
+
+
+
+
+
+
+
+
+
+
 // stores either "if", "while", "print" in stateStr
 TreeStatement::TreeStatement(std::string statement){
     stateStr = statement;
@@ -392,8 +440,17 @@ variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>
 
 
 // Evaluates the condition of a "def" statement (functions)
-void TreeStatement::evaluateDef(std::unordered_map<std::string, variableVal>& vars) const{
-    // Implement function eval
+void TreeStatement::evaluateDef(std::unordered_map<std::string, variableVal>& vars) const{ 
+    // Makes function object
+    variableVal::Func* func =  new variableVal::Func(truths, params);
+
+    // Makes value out of function
+    variableVal funcVal(func);
+
+    // Passed value into variable map
+    vars[params[0]] = funcVal;
+
+    return;
 }
 
 

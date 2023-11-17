@@ -7,6 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <cmath>
+#include <memory>
 
 
 // For predicting output of node
@@ -22,9 +23,13 @@ enum class ReturnType {
 class TreeNode;
 struct variableVal {
     struct Func {
-        std::string              name;
-        std::vector<TreeNode*>   forest;
-        std::vector<std::string> params;
+        std::vector<TreeNode*>   mForest;
+        std::vector<std::string> mParams; // First index is function name
+
+        Func(std::vector<TreeNode*> forest, std::vector<std::string> params){
+            mForest = forest;
+            mParams = params;
+        }
     };
 
     union Value {
@@ -182,18 +187,20 @@ class TreeAssign : public TreeNode {
 
 
 
-class TreeFunction : public TreeNode {
+class TreeCall : public TreeNode {
 
     public:
-                            TreeFunction(std::string name);
+                            TreeCall(TreeNode* func);
         virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const;
+                void        setArgs(std::vector<TreeNode*> args);
         virtual std::string getID() {
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
 
     private:
-        std::string funcName;
+        TreeNode*               func;
+        std::vector<TreeNode*>  args;
 };
 
 

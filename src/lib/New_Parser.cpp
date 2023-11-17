@@ -254,13 +254,13 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 // Term operator parser "*", "/", "%"
 TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
-    std::unique_ptr<TreeNode> left(parseF(tokenizedQ));
+    std::unique_ptr<TreeNode> left(parseCall(tokenizedQ));
 
     while (nextToken == "*" || nextToken == "/" || nextToken == "%") {
         
         std::string op = nextToken;
         scanToken(tokenizedQ);
-        std::unique_ptr<TreeNode> right(parseF(tokenizedQ));
+        std::unique_ptr<TreeNode> right(parseCall(tokenizedQ));
 
         if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -277,13 +277,28 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
 
 
+//
+TreeNode* New_Parser::parseCall(std::deque<Token>& tokenizedQ) {
+    std::unique_ptr<TreeNode> left(parseF(tokenizedQ));
+
+    while (nextToken == "("){
+        std::unique_ptr<TreeCall> callNode(new TreeCall(left.release()));
+        callNode->setArgs(parseArgs(tokenizedQ));
+
+        left.reset(callNode.release());
+    }
+    return left.release();
+}
+
+
+
 // Factor operator parser (integers, identifiers, and parenthesis)
 TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
     if (nextToken.empty()) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
-
+    
     if (tokenType == Type::BOOL) { 
         std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean(nextToken));
         scanToken(tokenizedQ); // Consume true or false
@@ -318,6 +333,45 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
     return nullptr; // Should never reach here
 }
+
+
+
+// Parses arguments for arrays and function calls
+std::vector<TreeNode*> New_Parser::parseArgs(std::deque<Token>& tokenizedQ) {
+    std::string boundL = nextToken; // Either "(" or "[" depending on where its called
+    scanToken(tokenizedQ); // Reads left bound
+    std::string boundR = (boundL == "(") ? ")" : "]"; // Finds what pair bound should be
+    std::vector<TreeNode*> argForest;
+
+    // No args case
+    if(nextToken == boundR){
+        return argForest;
+    }
+
+    argForest.push_back(parseA(tokenizedQ));
+    if(nextToken != "," && nextToken != boundR){
+        throw ParseError(currentLine, currentColumn, nextToken);
+    }
+
+    // Non-first args are led by a ","
+    while(nextToken != boundR){
+        scanToken(tokenizedQ); // Reads ","
+        argForest.push_back(parseA(tokenizedQ));
+
+        if(nextToken == boundR){
+            break;
+        }
+        if(nextToken != ","){
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+    }
+    scanToken(tokenizedQ); // Reads right bound
+
+    return argForest;
+}
+
+
+
 
 
 

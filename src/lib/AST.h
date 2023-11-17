@@ -24,17 +24,22 @@ enum class ReturnType {
 class TreeNode;
 struct variableVal {
     struct Func {
-        std::shared_ptr<std::vector<TreeNode*>> mForest;
-        std::vector<std::string>                mParams;
+        std::shared_ptr<std::vector<TreeNode*>>         mForest;
+        std::vector<std::string>                        mParams;
+        std::unordered_map<std::string, variableVal>    mVars;
 
-        Func(std::shared_ptr<std::vector<TreeNode*>> forest, std::vector<std::string> params){
+        Func(std::shared_ptr<std::vector<TreeNode*>> forest, std::vector<std::string> params, std::unordered_map<std::string, variableVal> vars){
             mForest = forest;
             mParams = params;
+            mVars   = vars;
         }
     };
 
     ReturnType                                          type;
     std::variant<double, bool, std::shared_ptr<Func>>   value;
+
+    bool operator == (const variableVal& lVal) const;
+    bool operator != (const variableVal& lVal) const;
 
     variableVal()                               : type(ReturnType::NONE) {}
     variableVal(std::nullptr_t)                 : type(ReturnType::NUL)  {} // used specifically for return statement

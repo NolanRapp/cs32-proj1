@@ -1,6 +1,42 @@
 #include "AST.h"
 
 
+bool variableVal::operator == (const variableVal& rVal) const{ 
+    if(type != rVal.type){
+        return false;
+    }
+
+    switch(type){
+        case ReturnType::NONE:
+            throw std::runtime_error("Compared NONE type, programmed wrong");
+        case ReturnType::NUL:
+            return true;
+        case ReturnType::NUM:
+            return (std::get<double>(value) == std::get<double>(rVal.value));
+        case ReturnType::BOOL:
+            return (std::get<bool>(value) == std::get<bool>(rVal.value));
+        case ReturnType::FUNC:
+            return (std::get<std::shared_ptr<Func>>(value)->mForest == std::get<std::shared_ptr<Func>>(rVal.value)->mForest);
+        default:
+            throw std::runtime_error("Compared type not in variableVals, programmed wrong");
+    }
+}
+
+
+
+bool variableVal::operator != (const variableVal& rVal) const{
+    return !(*this == rVal);
+}
+
+
+
+
+
+
+
+
+
+
 // Stores single number in Leaf
 TreeLeaf::TreeLeaf(double val) {
     value = val;
@@ -133,22 +169,16 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
     variableVal lVal(children[0]->evaluate(vars));
     variableVal rVal(children[1]->evaluate(vars));
 
-    ReturnType lReturn = lVal.type;
-    ReturnType rReturn = rVal.type;
-    
-    // Order Comparison (Only numbers)
-    if (lReturn == ReturnType::NUM){
-        // Special case
-        if(rReturn != ReturnType::NUM){
-            if(op == "=="){
-                return false;
-            }
-            else if(op == "!="){
-                return true;
-            }
-            throw std::runtime_error("Runtime error: invalid operand type.");   
-        } 
+    // This is only required if compariosn of non-number and non-bool values are allowed
+    if(op == "=="){
+        return (lVal == rVal);
+    }
+    else if(op == "!="){
+        return (lVal != rVal);
+    }
 
+    // Order Comparison (Only numbers)
+    if (lVal.type == ReturnType::NUM){
         if (op == "<") {
             return variableVal(std::get<double>(lVal.value) < std::get<double>(rVal.value));
         }
@@ -161,26 +191,9 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
         else if (op == ">=") {
             return variableVal(std::get<double>(lVal.value) >= std::get<double>(rVal.value));
         }
-        else if (op == "=="){
-            return variableVal(std::get<double>(lVal.value) == std::get<double>(rVal.value));
-        }
-        else if (op == "!="){
-            return variableVal(std::get<double>(lVal.value) != std::get<double>(rVal.value));
-        }
     }
     // Logical comparison (Only bools)
-    else if(lReturn == ReturnType::BOOL){
-        // Special case
-        if(rReturn != ReturnType::BOOL){
-            if(op == "=="){
-                return false;
-            }
-            else if(op == "!="){
-                return true;
-            }
-            throw std::runtime_error("Runtime error: invalid operand type.");   
-        } 
-
+    else if(lVal.type == ReturnType::BOOL){
         if (op == "|"){
             return variableVal(std::get<bool>(lVal.value) || std::get<bool>(rVal.value));
         }
@@ -190,23 +203,8 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
         else if (op == "&"){
             return variableVal(std::get<bool>(lVal.value) && std::get<bool>(rVal.value));
         }
-        else if (op == "=="){
-            return variableVal(std::get<bool>(lVal.value) == std::get<bool>(rVal.value));
-        }
-        else if (op == "!="){ // Redundant "if" for readability
-            return variableVal(std::get<bool>(lVal.value) != std::get<bool>(rVal.value));
-        }
     }
 
-    // This is only required if compariosn of non-number and non-bool values are allowed
-    if(op == "=="){
-        return false;
-    }
-    else if(op == "!="){
-        return true;
-    }
-
-    // Fails if non-number or non-bool exists without equality comparison
     throw std::runtime_error("Runtime error: invalid operand type.");   
 }
 
@@ -385,15 +383,20 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
         throw std::runtime_error("Runtime error: incorrect argument count.");
     }
 
+    for(size_t i = 0; i < args.size(); i++){
+        function->mVars[function->mParams[i]] = args[i]->evaluate(vars);
+    }
+
     try{
         for(TreeNode* tree : *function->mForest){
-            tree->evaluate(vars);
+            tree->evaluate(function->mVars);
         }
     }
     catch(const ReturnVal& returned){
         return variableVal(returned.getVal());
     }
 
+    std::cout << "here\n";
     return variableVal(nullptr);
 }
 
@@ -443,7 +446,7 @@ TreeDefinition::TreeDefinition(std::string name){
 //
 variableVal TreeDefinition::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     // Makes function object
-    std::shared_ptr<variableVal::Func> func(new variableVal::Func(forest, params));
+    std::shared_ptr<variableVal::Func> func(new variableVal::Func(forest, params, vars));
 
     // Makes value out of function
     variableVal funcVal(func);
@@ -596,6 +599,11 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
             return;
         }
         std::cout << "False\n";
+        return;
+    }
+
+    if(cVal.type == ReturnType::NUL){
+        std::cout << "null\n";
         return;
     }
 

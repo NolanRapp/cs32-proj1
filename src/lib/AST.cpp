@@ -67,7 +67,7 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
         throw std::runtime_error("Runtime error: invalid operand type.");
         // Needs only numbers
     }
-    double result = lVal.value.d;
+    double result = std::get<double>(lVal.value);
 
     if (op == "*") { 
         variableVal rVal(children[1]->evaluate(vars));
@@ -75,7 +75,7 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
             throw std::runtime_error("Runtime error: invalid operand type.");
             // Needs only numbers
         }
-        result *= rVal.value.d;
+        result *= std::get<double>(rVal.value);
     }
     else if (op == "/") {
         variableVal rVal(children[1]->evaluate(vars));
@@ -85,11 +85,11 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
         }
 
         // Special case of dividing by 0
-        if (rVal.value.d == 0){
+        if (std::get<double>(rVal.value) == 0){
             throw std::runtime_error("Runtime error: division by zero.");   
         }
 
-        result /= rVal.value.d;
+        result /= std::get<double>(rVal.value);
     }
     else if (op == "%") {
         variableVal rVal(children[1]->evaluate(vars));
@@ -99,11 +99,11 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
         }
 
         // Special case of dividing by 0
-        if (rVal.value.d == 0){
+        if (std::get<double>(rVal.value) == 0){
             throw std::runtime_error("Runtime error: division by zero.");   
         }
 
-        result = fmod(result, rVal.value.d);
+        result = fmod(result, std::get<double>(rVal.value));
     }
     else if (op == "+") {
         variableVal rVal(children[1]->evaluate(vars));
@@ -111,7 +111,7 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
             throw std::runtime_error("Runtime error: invalid operand type.");
             // Needs only numbers
         }
-        result += rVal.value.d;
+        result += std::get<double>(rVal.value);
     }
     else if (op == "-") { // Redundant "if" for readability
         variableVal rVal(children[1]->evaluate(vars));
@@ -119,7 +119,7 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
             throw std::runtime_error("Runtime error: invalid operand type.");
             // Needs only numbers
         }
-        result -= rVal.value.d;
+        result -= std::get<double>(rVal.value);
     }
 
     return variableVal(result);
@@ -150,22 +150,22 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
         } 
 
         if (op == "<") {
-            return variableVal(lVal.value.d < rVal.value.d);
+            return variableVal(std::get<double>(lVal.value) < std::get<double>(rVal.value));
         }
         else if (op == ">") {
-            return variableVal(lVal.value.d > rVal.value.d);
+            return variableVal(std::get<double>(lVal.value) > std::get<double>(rVal.value));
         }
         else if (op == "<=") {
-            return variableVal(lVal.value.d <= rVal.value.d);
+            return variableVal(std::get<double>(lVal.value) <= std::get<double>(rVal.value));
         }
         else if (op == ">=") {
-            return variableVal(lVal.value.d >= rVal.value.d);
+            return variableVal(std::get<double>(lVal.value) >= std::get<double>(rVal.value));
         }
         else if (op == "=="){
-            return variableVal(lVal.value.d == rVal.value.d);
+            return variableVal(std::get<double>(lVal.value) == std::get<double>(rVal.value));
         }
         else if (op == "!="){
-            return variableVal(lVal.value.d != rVal.value.d);
+            return variableVal(std::get<double>(lVal.value) != std::get<double>(rVal.value));
         }
     }
     // Logical comparison (Only bools)
@@ -182,19 +182,19 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
         } 
 
         if (op == "|"){
-            return variableVal(lVal.value.b || rVal.value.b);
+            return variableVal(std::get<bool>(lVal.value) || std::get<bool>(rVal.value));
         }
         else if (op == "^"){
-            return variableVal((lVal.value.b && !rVal.value.b) || (!lVal.value.b && rVal.value.b));
+            return variableVal((std::get<bool>(lVal.value) && !std::get<bool>(rVal.value)) || (!std::get<bool>(lVal.value) && std::get<bool>(rVal.value)));
         }
         else if (op == "&"){
-            return variableVal(lVal.value.b && rVal.value.b);
+            return variableVal(std::get<bool>(lVal.value) && std::get<bool>(rVal.value));
         }
         else if (op == "=="){
-            return variableVal(lVal.value.b == rVal.value.b);
+            return variableVal(std::get<bool>(lVal.value) == std::get<bool>(rVal.value));
         }
         else if (op == "!="){ // Redundant "if" for readability
-            return variableVal(lVal.value.b != rVal.value.b);
+            return variableVal(std::get<bool>(lVal.value) != std::get<bool>(rVal.value));
         }
     }
 
@@ -365,7 +365,36 @@ TreeCall::TreeCall(TreeNode* func){
 
 //
 variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
-    return variableVal();
+    std::string funcName;
+
+    try{ 
+        // Will throw unless func is an identifier
+        funcName = func->getID();
+    }
+    catch (const std::runtime_error& e) {
+        // Gives error message new syntax
+        throw std::runtime_error("Runtime error: not a function.");
+    }
+    // Will throw if identifier doesn't have a value or its not a function
+    if(vars.find(funcName) == vars.end() || vars[funcName].type != ReturnType::FUNC){
+        throw std::runtime_error("Runtime error: not a function.");
+    }
+
+    std::shared_ptr<variableVal::Func> function = std::get<std::shared_ptr<variableVal::Func>>(vars[funcName].value);
+    if(args.size() != function->mParams.size()){
+        throw std::runtime_error("Runtime error: incorrect argument count.");
+    }
+
+    try{
+        for(TreeNode* tree : *function->mForest){
+            tree->evaluate(vars);
+        }
+    }
+    catch(const ReturnVal& returned){
+        return variableVal(returned.getVal());
+    }
+
+    return variableVal(nullptr);
 }
 
 
@@ -404,6 +433,66 @@ void TreeCall::setArgs(std::vector<TreeNode*> args){
 
 
 
+//
+TreeDefinition::TreeDefinition(std::string name){
+    funcName = name;
+}
+
+
+
+//
+variableVal TreeDefinition::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+    // Makes function object
+    std::shared_ptr<variableVal::Func> func(new variableVal::Func(forest, params));
+
+    // Makes value out of function
+    variableVal funcVal(func);
+
+    // Passed value into variable map
+    vars[funcName] = funcVal;
+
+    return variableVal(); // Dummy val
+}
+
+
+
+// Prints variable assignment infix with corresponding depth
+void TreeDefinition::printInfix(int depth) const {
+
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+
+    std::cout << "def " << funcName << "(";
+    for(size_t i = 0; i < params.size(); i++){
+        std::cout << params[i];
+        if(i != (params.size() - 1)){
+            std::cout << ", ";
+        }
+    }
+    std::cout << ") {";
+
+    for(TreeNode* tree : *forest){
+        std::cout << '\n';
+        tree->printInfix(depth + 1);
+    }
+    
+    std::cout << '\n';
+    for(int i = 1; i <= depth; i++){
+        std::cout << "    ";
+    }
+    std::cout << "}"; 
+}
+
+
+
+
+
+
+
+
+
+
 // stores either "if", "while", "print" in stateStr
 TreeStatement::TreeStatement(std::string statement){
     stateStr = statement;
@@ -413,10 +502,7 @@ TreeStatement::TreeStatement(std::string statement){
 
 // Calls the corresponding evaluate function and return dummy value that will never be used
 variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
-    if(stateStr == "def"){
-        evaluateDef(vars);
-    }
-    else if(stateStr == "if"){
+    if(stateStr == "if"){
         evaluateIf(vars);
     }
     else if(stateStr == "while"){
@@ -439,22 +525,6 @@ variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>
 
 
 
-// Evaluates the condition of a "def" statement (functions)
-void TreeStatement::evaluateDef(std::unordered_map<std::string, variableVal>& vars) const{ 
-    // Makes function object
-    variableVal::Func* func =  new variableVal::Func(truths, params);
-
-    // Makes value out of function
-    variableVal funcVal(func);
-
-    // Passed value into variable map
-    vars[params[0]] = funcVal;
-
-    return;
-}
-
-
-
 // Evaluates the "if" statement 
 void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
 
@@ -466,7 +536,7 @@ void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& var
     }
 
     // evaluates truths forest if condition evaluates true
-    if(cVal.value.b){
+    if(std::get<bool>(cVal.value)){
         for(TreeNode* tree : truths){
             tree->evaluate(vars);
         }
@@ -493,7 +563,7 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
     }
 
     // evaluates truths forest until condition tree evaluates to false
-    while(cVal.value.b){
+    while(std::get<bool>(cVal.value)){
         for(TreeNode* tree : truths){
             tree->evaluate(vars);
         }
@@ -515,13 +585,13 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
     variableVal cVal(condition->evaluate(vars));
 
     if(cVal.type == ReturnType::NUM){
-        double value = cVal.value.d;
+        double value = std::get<double>(cVal.value);
         std::cout << value << '\n';
         return;
     }
 
     if(cVal.type == ReturnType::BOOL){
-        if(cVal.value.b){
+        if(std::get<bool>(cVal.value)){
             std::cout << "True\n";
             return;
         }
@@ -537,18 +607,11 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 // Evaluates the condition of a "return" statement and throws it to be caught by function
 void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition == nullptr){
-        // Throw NUL type
+        throw ReturnVal(variableVal(nullptr));
     }
 
     variableVal cVal(condition->evaluate(vars));
-    if(cVal.type == ReturnType::NUL){
-        // Throw NUL type
-    }
-    if(cVal.type == ReturnType::NUM){
-        // Throw NUM type
-    }
-
-    // Throw BOOL type
+    throw ReturnVal(cVal);
 }
 
 
@@ -569,28 +632,7 @@ void TreeStatement::printInfix(int depth) const{
         std::cout << "    ";
     }
 
-    if(stateStr == "def"){
-        std::cout << "def " << params[0] << "(";
-        for(size_t i = 1; i < params.size(); i++){
-            std::cout << params[i];
-            if(i != (params.size() - 1)){
-                std::cout << ", ";
-            }
-        }
-        std::cout << ") {";
-
-        for(TreeNode* tree : truths){
-            std::cout << '\n';
-            tree->printInfix(depth + 1);
-        }
-        
-        std::cout << '\n';
-        for(int i = 1; i <= depth; i++){
-            std::cout << "    ";
-        }
-        std::cout << "}"; 
-    }
-    else if(stateStr == "if"){ 
+    if(stateStr == "if"){ 
         std::cout << "if ";
         condition->printInfix(0);
         std::cout << " {";

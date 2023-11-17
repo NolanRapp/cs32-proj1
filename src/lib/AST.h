@@ -8,6 +8,7 @@
 #include <unordered_map>
 #include <cmath>
 #include <memory>
+#include <variant>
 
 
 // For predicting output of node
@@ -23,30 +24,34 @@ enum class ReturnType {
 class TreeNode;
 struct variableVal {
     struct Func {
-        std::vector<TreeNode*>   mForest;
-        std::vector<std::string> mParams; // First index is function name
+        std::shared_ptr<std::vector<TreeNode*>> mForest;
+        std::vector<std::string>                mParams;
 
-        Func(std::vector<TreeNode*> forest, std::vector<std::string> params){
+        Func(std::shared_ptr<std::vector<TreeNode*>> forest, std::vector<std::string> params){
             mForest = forest;
             mParams = params;
         }
     };
 
-    union Value {
-        double  d;
-        bool    b;
-        Func*   f;
-        // Can add arrays later
-    };
+    ReturnType                                          type;
+    std::variant<double, bool, std::shared_ptr<Func>>   value;
 
-    ReturnType  type;
-    Value       value;
+    variableVal()                               : type(ReturnType::NONE) {}
+    variableVal(std::nullptr_t)                 : type(ReturnType::NUL)  {} // used specifically for return statement
+    variableVal(double val)                     : type(ReturnType::NUM)  { value = val; }
+    variableVal(bool val)                       : type(ReturnType::BOOL) { value = val; }
+    variableVal(std::shared_ptr<Func> val)      : type(ReturnType::FUNC) { value = val; }
+};
 
-    variableVal()               : type(ReturnType::NONE) {}
-    variableVal(std::nullptr_t) : type(ReturnType::NUL)  {} // used specifically for return statement
-    variableVal(double val)     : type(ReturnType::NUM)  { value.d = val; }
-    variableVal(bool val)       : type(ReturnType::BOOL) { value.b = val; }
-    variableVal(Func* val)      : type(ReturnType::FUNC) { value.f = val; }
+
+
+class ReturnVal: public std::runtime_error {
+        variableVal mVal;
+    public:
+        ReturnVal(variableVal reVal): std::runtime_error("Runtime error: unexpected return."){
+            mVal = reVal;
+        }
+        variableVal getVal() const{ return mVal; }
 };
 
 
@@ -205,6 +210,26 @@ class TreeCall : public TreeNode {
 
 
 
+class TreeDefinition : public TreeNode {
+
+    public:
+                            TreeDefinition(std::string name);
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual void        printInfix(int depth) const; 
+        virtual std::string getID() { 
+            throw std::runtime_error("Runtime error: invalid assignee.");
+        }; 
+        ~TreeDefinition() {
+
+        }
+
+        std::string               funcName;
+        std::vector<std::string>  params;
+        std::shared_ptr<std::vector<TreeNode*>> forest;
+};
+
+
+
 class TreeStatement : public TreeNode {
     /*
     This class is used to store statement commands: "if", "while", and "print".
@@ -214,7 +239,6 @@ class TreeStatement : public TreeNode {
 
     public:
                             TreeStatement(std::string statement);
-                void        evaluateDef(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;
                 void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
@@ -237,11 +261,10 @@ class TreeStatement : public TreeNode {
             falses.clear();
         }
 
-        std::string               stateStr;   // stores type of statement
-        TreeNode*                 condition = nullptr;  // Tree for condition
-        std::vector<TreeNode*>    truths;     // Forest for evaluation when condition is true
-        std::vector<TreeNode*>    falses;     // Forest for evaluation when condition is false
-        std::vector<std::string>  params;     // Forest of parameters (only used in "def" statement)
+        std::string             stateStr;   // stores type of statement
+        TreeNode*               condition = nullptr;  // Tree for condition
+        std::vector<TreeNode*>  truths; // Forest for evaluation when condition is true
+        std::vector<TreeNode*>  falses; // Forest for evaluation when condition is true
 };
 
 

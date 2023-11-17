@@ -96,13 +96,12 @@ bool StateParser::isExp(Token& token) const{
 
 // Parses a function (the "def" statement)
 TreeNode* StateParser::createDef(std::deque<Token>& input){ 
-    std::unique_ptr<TreeStatement> stateHead(new TreeStatement("def"));
-
     if(input.front().type != Type::ID){
         throw ParseError(input.front().line, input.front().column, input.front().text);
         // Expects identifier
     }
-    stateHead->params.push_back(input.front().text); // First slot in parameters is function name
+
+    std::unique_ptr<TreeDefinition> defHead(new TreeDefinition(input.front().text));
     input.pop_front(); // Reads name of function
 
     if(input.front().text != "("){
@@ -116,7 +115,7 @@ TreeNode* StateParser::createDef(std::deque<Token>& input){
             throw ParseError(input.front().line, input.front().column, input.front().text);
             // Expects identifier for parameter
         }
-        stateHead->params.push_back(input.front().text);
+        defHead->params.push_back(input.front().text);
         input.pop_front(); // Reads parameter
 
         if(input.front().text == ")"){
@@ -141,9 +140,10 @@ TreeNode* StateParser::createDef(std::deque<Token>& input){
         // Expects "{"
     }
 
-    stateHead->truths = createBlock(input); // adds trees until "}" token is found
+    std::shared_ptr<std::vector<TreeNode*>> tmpForest = std::make_shared<std::vector<TreeNode*>>(createBlock(input));
+    defHead->forest = tmpForest; // adds trees until "}" token is found
 
-    return stateHead.release();
+    return defHead.release();
 }
 
 
@@ -159,7 +159,7 @@ TreeNode* StateParser::createIf(std::deque<Token>& input){
         throw ParseError(input.front().line, input.front().column, input.front().text);
         // Expects "{"
     }
-
+    
     stateHead->truths = createBlock(input); // adds trees until "}" token is found
 
     if(input.front().text != "else"){

@@ -29,10 +29,10 @@ int main(){
             // attempts to evaluate expression
             variableVal treeVal(rootTree->evaluate(tempVars));
             if (treeVal.type == ReturnType::NUM) {
-                std::cout << treeVal.value.d << std::endl;
+                std::cout << std::get<double>(treeVal.value) << std::endl;
             }
             else if (treeVal.type == ReturnType::BOOL) {
-                if (treeVal.value.b) {
+                if (std::get<bool>(treeVal.value)) {
                     std::cout << "true" << std::endl;
                 }
                 else {

@@ -37,10 +37,11 @@ struct variableVal {
     ReturnType  type;
     Value       value;
 
-    variableVal()           : type(ReturnType::NUL)   {}
-    variableVal(double val) : type(ReturnType::NUM)   { value.d = val; }
-    variableVal(bool val)   : type(ReturnType::BOOL)  { value.b = val; }
-    variableVal(Func* val)  : type(ReturnType::FUNC) { value.f = val; }
+    variableVal()               : type(ReturnType::NONE) {}
+    variableVal(std::nullptr_t) : type(ReturnType::NUL)  {} // used specifically for return statement
+    variableVal(double val)     : type(ReturnType::NUM)  { value.d = val; }
+    variableVal(bool val)       : type(ReturnType::BOOL) { value.b = val; }
+    variableVal(Func* val)      : type(ReturnType::FUNC) { value.f = val; }
 };
 
 

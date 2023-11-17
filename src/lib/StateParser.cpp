@@ -237,7 +237,8 @@ TreeNode* StateParser::createReturn(std::deque<Token>& input){
 
         if(input.front().text == ";"){
             input.pop_front(); // Reads ";"
-            stateHead->condition = nullptr;
+            std::unique_ptr<TreeStatement> nullPtr(new TreeStatement("null"));
+            stateHead->condition = nullPtr.release();
             return stateHead.release();
         }
         else{

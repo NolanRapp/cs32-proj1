@@ -383,8 +383,10 @@ variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>
     else if(stateStr == "expression"){ // Redundant for readability
         evaluateExp(vars);
     }
-
-    return variableVal(); // Dummy return will never be used
+    else{ // For "null" statement
+        return variableVal(nullptr);
+    }
+    return variableVal();
 }
 
 
@@ -482,6 +484,9 @@ void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>&
     }
 
     variableVal cVal(condition->evaluate(vars));
+    if(cVal.type == ReturnType::NUL){
+        // Throw NUL type
+    }
     if(cVal.type == ReturnType::NUM){
         // Throw NUM type
     }
@@ -511,7 +516,7 @@ void TreeStatement::printInfix(int depth) const{
         std::cout << "def " << params[0] << "(";
         for(size_t i = 1; i < params.size(); i++){
             std::cout << params[i];
-            if(i != params.size()){
+            if(i != (params.size() - 1)){
                 std::cout << ", ";
             }
         }
@@ -587,18 +592,19 @@ void TreeStatement::printInfix(int depth) const{
         std::cout << ";";
     }
     else if(stateStr == "return"){
-        std::cout << "return ";
-        if(condition == nullptr){
-            std::cout << "null";
-        }
-        else{
+        std::cout << "return";
+        if(condition != nullptr){
+            std::cout << " ";
             condition->printInfix(0);
         }
         std::cout << ";";
     }
-    else if(stateStr == "expression"){ // Redundant for readability
+    else if(stateStr == "expression"){
         condition->printInfix(0);
         std::cout << ";";
+    }
+    else{ // "null" statement
+        std::cout << "null";
     }
 }
 

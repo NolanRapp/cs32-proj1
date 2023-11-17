@@ -345,6 +345,7 @@ std::vector<TreeNode*> New_Parser::parseArgs(std::deque<Token>& tokenizedQ) {
 
     // No args case
     if(nextToken == boundR){
+        scanToken(tokenizedQ); // Reads right bound
         return argForest;
     }
 

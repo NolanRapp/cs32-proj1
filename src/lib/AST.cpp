@@ -397,7 +397,6 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
         return variableVal(returned.getVal());
     }
 
-    std::cout << "here\n";
     return variableVal(nullptr);
 }
 
@@ -596,10 +595,10 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 
     if(cVal.type == ReturnType::BOOL){
         if(std::get<bool>(cVal.value)){
-            std::cout << "True\n";
+            std::cout << "true\n";
             return;
         }
-        std::cout << "False\n";
+        std::cout << "false\n";
         return;
     }
 

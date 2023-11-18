@@ -21,30 +21,44 @@ enum class ReturnType {
 };
 
 
+
+//Forward declaration for variableVal
 class TreeNode;
 struct variableVal {
-    struct Func {
-        std::shared_ptr<std::vector<TreeNode*>>         mForest;
-        std::vector<std::string>                        mParams;
-        std::unordered_map<std::string, variableVal>*   mVars;
+    /*
+    A struct to properly represent the return value of a given node
+    as well as identifiers stored in variable maps.
+    */
 
-        Func(std::shared_ptr<std::vector<TreeNode*>> forest, std::vector<std::string> params, std::unordered_map<std::string, variableVal> vars){
+    struct Func {
+        /*
+        A struct to properly store all information pretaining to a
+        function so a function can be assigned the variables and
+        easily called from those variables
+        */
+
+        std::shared_ptr<std::vector<TreeNode*>>         mForest; // A ptr to a forest to be evaluated when the function is called
+        std::vector<std::string>                        mParams; // A vector of parameters that will be assigned values when called
+        std::unordered_map<std::string, variableVal>*   mVars;   // A map that stores a function scope which is limited to when it was declared and allows parameters to be stored locally
+
+        Func(std::shared_ptr<std::vector<TreeNode*>> forest, 
+                std::vector<std::string> params, 
+                std::unordered_map<std::string, variableVal> vars){
             mForest = forest;
             mParams = params;
             mVars   = new std::unordered_map<std::string, variableVal>(vars);
         }
-
-        ~Func();
+        ~Func(); 
     };
 
-    ReturnType                                          type;
-    std::variant<double, bool, std::shared_ptr<Func>>   value;
+    ReturnType                                          type;    // Stores current ReturnType so the right value can be returned
+    std::variant<double, bool, std::shared_ptr<Func>>   value;   // Stores actual value in a std::variant (a union)
 
-    bool operator == (const variableVal& lVal) const;
-    bool operator != (const variableVal& lVal) const;
+    bool operator == (const variableVal& lVal) const;            // Evaluates equality between values
+    bool operator != (const variableVal& lVal) const;            // Evaluates inequality between values
 
     variableVal()                               : type(ReturnType::NONE) {}
-    variableVal(std::nullptr_t)                 : type(ReturnType::NUL)  {} // used specifically for return statement
+    variableVal(std::nullptr_t)                 : type(ReturnType::NUL)  {} 
     variableVal(double val)                     : type(ReturnType::NUM)  { value = val; }
     variableVal(bool val)                       : type(ReturnType::BOOL) { value = val; }
     variableVal(std::shared_ptr<Func> val)      : type(ReturnType::FUNC) { value = val; }
@@ -52,6 +66,7 @@ struct variableVal {
 
 
 
+// Special error that is meant the be caught by function calls to convey a return value
 class ReturnVal: public std::runtime_error {
         variableVal mVal;
     public:
@@ -68,15 +83,12 @@ class TreeNode {
     This class is the BASE of the Tree Forest inheritance.
     It initializes our virtual functions to be utilized in their respective classes.
     TreeNode also contains a destructor, which gets inherited as well.
-        If a variable goes out of the inherited functions scope, ~TreeNode will be called 
     */
 
     public:
-        // Used to store both doubles and booleans in the variable map
-
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const = 0;
-        virtual void        printInfix(int depth) const = 0;
-        virtual std::string getID() = 0; // Should only be called on TreeIdentifiers
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const = 0; // Evaluates value based on type of node
+        virtual void        printInfix(int depth) const = 0;                                        // Prints node is desired format with depth (indentation)
+        virtual std::string getID() = 0;                                                            // Will error on all nodes except TreeIdentifiers
         virtual ~TreeNode() {};
 };
 
@@ -89,15 +101,15 @@ class TreeLeaf : public TreeNode {
     */
 
     public:
-                            TreeLeaf(double val);
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const;
-        virtual std::string getID() { 
+                            TreeLeaf(double val);                                                   // Stores a double inside node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Returns a variableVal holding the the node's double value
+        virtual void        printInfix(int depth) const;                                            // Prints double value
+        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         } 
 
     private:
-        double value;
+        double value;                                                                               // Stored double value
 };
 
 
@@ -106,16 +118,17 @@ class TreeOperator : public TreeNode {
     /*
     This class is used to store, evaluate, and print operators of the AST.
     The operator nodes vector of type TreeNode* storing their operands.
+    ("+", "-", "/", "*", "%", ">", ">=", "<", "<=", "==", "!=", "&", "|", "^")
     */
 
     public:
-                            TreeOperator(std::string operation);
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        variableVal         evalOp(std::unordered_map<std::string, variableVal>& vars) const;
-        variableVal         evalComp(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const; 
-                void        addChild(TreeNode* child);
-        virtual std::string getID() {
+                            TreeOperator(std::string operation);                                    // Stores operator as string inside node
+                void        addChild(TreeNode* child);                                              // Adds children to node (left and right child)
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Returns either a variableVal based on operator and its children
+        variableVal         evalOp(std::unordered_map<std::string, variableVal>& vars) const;       // Called by evaluate to return a double variableVal determined by children
+        variableVal         evalComp(std::unordered_map<std::string, variableVal>& vars) const;     // Called by evaluate to return a bool variableVal determined by children
+        virtual void        printInfix(int depth) const;                                            // Print in format "([left child] [operator] [right child])"
+        virtual std::string getID(){                                                                // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         } 
         ~TreeOperator() {
@@ -125,8 +138,8 @@ class TreeOperator : public TreeNode {
         }
 
     private:
-        std::string op;
-        std::vector<TreeNode*> children;
+        std::string op;                                                                             // Stored operator as string
+        std::vector<TreeNode*> children;                                                            // Children stored in vector (first index is left child and second index is right child)
 };
 
 
@@ -135,17 +148,17 @@ class TreeIdentifier : public TreeNode {
     /*
     This class is used to store, evaluate, and print an identifier.
     The identifier points to its value so it can be used across multiple AST trees.
-    Valid identifiers can hold values of Type::NUM or Type::BOOL (will use Type::NONE for empty id)
+    Valid identifiers can be mapped to a variableVal holding any type.
     */
 
     public:
-                            TreeIdentifier(std::string name);
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const;
-        virtual std::string getID(); 
+                            TreeIdentifier(std::string name);                                       // Stores identifier name as string inside node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Return variableVal that the identifiers name maps to in the variable map
+        virtual void        printInfix(int depth) const;                                            // Prints identifier name
+        virtual std::string getID();                                                                // Returns the variable name, also used to see if a node is a TreeIdentifier
 
     private:
-        std::string idName;
+        std::string idName;                                                                         // Identifier name as string
 };
 
 
@@ -153,20 +166,19 @@ class TreeIdentifier : public TreeNode {
 class TreeBoolean : public TreeNode {
     /*
     This class is used to store, evaluate, and print booleans.
-    It prints booleans at "true" or "false".
+    It prints booleans at "True" or "False".
     */
 
     public:
-                            TreeBoolean(std::string value);
-        void                addChild(TreeNode* child);
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const;
-        virtual std::string getID() {
+                            TreeBoolean(std::string value);                                         // Stores "true" or "false" as string inside node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Returns variableVal True or False depending on node's value string
+        virtual void        printInfix(int depth) const;                                            // Prints "True" or "False" depending on node's value string
+        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         };
 
     private:
-        std::string value;
+        std::string value;                                                                          // Node's boolean value stored as "true" or "false"
 };
 
 
@@ -174,15 +186,15 @@ class TreeBoolean : public TreeNode {
 class TreeAssign : public TreeNode {
     /*
     This class is used to store, evaluate, and print assignment operations only.
-    It handles both double and boolean assignments.
+    It handles assignments of variableVal which can store any type..
     */
 
     public:
-                            TreeAssign(){} // No constructor needed
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const; 
-                void        addChild(TreeNode* child);
-        virtual std::string getID() {
+                            TreeAssign(){}                                                          // No constructor needed
+                void        addChild(TreeNode* child);                                              // Adds children to node (left and right child)
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Attempts to assign left child (identifier or error) the value of its right child
+        virtual void        printInfix(int depth) const;                                            // Print in format "([left child] = [right child])"
+        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
         ~TreeAssign() {
@@ -192,19 +204,23 @@ class TreeAssign : public TreeNode {
         }
 
     private:
-        std::vector<TreeNode*> children;
+        std::vector<TreeNode*> children;                                                            // Children stored in vector (first index is left child and second index is right child)
 };
 
 
 
 class TreeCall : public TreeNode {
+    /*
+    This class stores a function call. Can be evaluated to return
+    the return value of a Func stored in the variable map.
+    */
 
     public:
-                            TreeCall(TreeNode* func);
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const;
-                void        setArgs(std::vector<TreeNode*> args);
-        virtual std::string getID() {
+                            TreeCall(TreeNode* func);                                               // Stores a ptr to a node as the name of the TreeCall (runtime error when name isn't an identifier)
+                void        setArgs(std::vector<TreeNode*> args);                                   // Sets args vector given a vector of expressions
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Evaluates a Func from the variable map corresponding to name of TreeCall
+        virtual void        printInfix(int depth) const;                                            // Prints in format "[func]([args])"
+        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
         ~TreeCall() {
@@ -215,22 +231,27 @@ class TreeCall : public TreeNode {
         }
 
     private:
-        TreeNode*               func;
-        std::vector<TreeNode*>  args;
+        TreeNode*               func;                                                               // Stored function name (TreeIdentifier or will error when called)
+        std::vector<TreeNode*>  args;                                                               // Vector of expression that will return values for the parameters of the Func called
 };
 
 
 
 class TreeDefinition : public TreeNode {
+    /*
+    This class stores a function definition. When evaluated it stores
+    its information as a Func object in the variable map.
+    */
 
     public:
-                            TreeDefinition(std::string name);
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const; 
-        virtual std::string getID() { 
+                            TreeDefinition(std::string name);                                       // Stored a string as the name of the function defined
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Makes a Func object from member variables and stores in variable map under funcName
+        virtual void        printInfix(int depth) const;                                            // Prints in format "def [funcName]([params]){[forest]}" with proper newlines and indentation
+        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
         ~TreeDefinition() {
+            // Only deleted forest if it is the only object using the forest
             if(forest.use_count() == 1){
                 for (TreeNode* child : *forest) {
                     delete child;
@@ -239,30 +260,30 @@ class TreeDefinition : public TreeNode {
             forest.reset();
         }
 
-        std::string               funcName;
-        std::vector<std::string>  params;
-        std::shared_ptr<std::vector<TreeNode*>> forest;
+        std::string               funcName;                                                         // Name of function defined
+        std::vector<std::string>  params;                                                           // Vector of identifier names
+        std::shared_ptr<std::vector<TreeNode*>> forest;                                             // shared_ptr to a forest to be based to a Func
 };
 
 
 
 class TreeStatement : public TreeNode {
     /*
-    This class is used to store statement commands: "if", "while", and "print".
-    This class has a special structure as it is not meant to return any specific
-    value and instead evaluates forests and uses their values.
+    This class is used to store statement commands: "if", "while", "print", "return", "null", 
+    and standalone expressions. This class has a special structure as it is not meant to 
+    return any specific value (except for "null") and instead evaluates forests.
     */    
 
     public:
-                            TreeStatement(std::string statement);
-                void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const;
-                void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const; 
-        virtual std::string getID() { 
+                            TreeStatement(std::string statement);                                       // Stores command string in node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;         // Will call a function based on stateStr or return a NUL type variableVal
+                void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;       // Evaluates an "if" statement
+                void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;    // Evaluates a "while" statement
+                void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;    // Evaluates a "print" statement
+                void        evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const;   // Evaluates a "return" statement
+                void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;      // Evaluates a standalone expression
+        virtual void        printInfix(int depth) const;                                                // Complicated print to print statement based on stateStr
+        virtual std::string getID() {                                                                   // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
         ~TreeStatement() {
@@ -275,10 +296,10 @@ class TreeStatement : public TreeNode {
             }
         }
 
-        std::string             stateStr;   // stores type of statement
-        TreeNode*               condition = nullptr;  // Tree for condition
-        std::vector<TreeNode*>  truths; // Forest for evaluation when condition is true
-        std::vector<TreeNode*>  falses; // Forest for evaluation when condition is true
+        std::string             stateStr;                                                           // Stored type of statement as string
+        TreeNode*               condition = nullptr;                                                // Tree for condition
+        std::vector<TreeNode*>  truths;                                                             // Forest for evaluation when condition is true
+        std::vector<TreeNode*>  falses;                                                             // Forest for evaluation when condition is false
 };
 
 

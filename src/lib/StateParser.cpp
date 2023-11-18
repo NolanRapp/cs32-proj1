@@ -1,7 +1,7 @@
 #include "StateParser.h"
 
 
-// Pops the first item from the mHeads deque and returns it
+// Returns and pops first tree in forest
 TreeNode* StateParser::popHead(){
     TreeNode* tempHead = mHeads.front();
     mHeads.pop_front();
@@ -11,20 +11,21 @@ TreeNode* StateParser::popHead(){
 
 
 
-// checks to see if there are any ASTs remaining in the mHeads deque
+// Checks if forest is empty
 bool StateParser::isEmpty() const{
     return mHeads.empty();
 }
 
 
 
-// makes forest of user input until "END" token
+
+// Creates a deque of statements as trees
 void StateParser::createForest(std::deque<Token> oInput){
 
     while(oInput.front().text != "END"){
 
-        // "{" and "}" should only be seen after statements 
-        if(oInput.front().type == Type::END){ 
+        // MISC tokens should never start a statement
+        if(oInput.front().type == Type::MISC){ 
             throw ParseError(oInput.front().line, oInput.front().column, oInput.front().text);
         }
 
@@ -34,7 +35,7 @@ void StateParser::createForest(std::deque<Token> oInput){
 
 
 
-// takes an input token that is confirmed as statement and turns it into a tree with required parts
+// Creates single expression as a tree
 TreeNode* StateParser::createStatement(std::deque<Token>& input){
     if(isExp(input.front())){
         return createExp(input);
@@ -56,18 +57,19 @@ TreeNode* StateParser::createStatement(std::deque<Token>& input){
     else if(stateStr == "print"){
         originalHead.reset(createPrint(input));
     }
-    else if(stateStr == "return"){ // Redundant for readability
+    else if(stateStr == "return"){
         originalHead.reset(createReturn(input));
     }
-    else{
-        throw std::runtime_error("Called createStatement on invalid statement."); // should never run
+    else{ // Redundant, for debugging (should never run)
+        throw std::runtime_error("Called createStatement on invalid statement.");
     }
 
     return originalHead.release();
 }
 
 
-// within a statement, turns all the commants between "{" and "}" tokens
+
+// Makes forest of statements between "{}"
 std::vector<TreeNode*> StateParser::createBlock(std::deque<Token>& input){
     std::vector<TreeNode*> forest;
 
@@ -94,7 +96,7 @@ bool StateParser::isExp(Token& token) const{
 
 
 
-// Parses a function (the "def" statement)
+// Parses and creates a "def" statement (a function definition)
 TreeNode* StateParser::createDef(std::deque<Token>& input){ 
     if(input.front().type != Type::ID){
         throw ParseError(input.front().line, input.front().column, input.front().text);
@@ -140,15 +142,16 @@ TreeNode* StateParser::createDef(std::deque<Token>& input){
         // Expects "{"
     }
 
+    // Makes block into shared_ptr since this forest may be shared
     std::shared_ptr<std::vector<TreeNode*>> tmpForest = std::make_shared<std::vector<TreeNode*>>(createBlock(input));
-    defHead->forest = tmpForest; // adds trees until "}" token is found
+    defHead->forest = tmpForest; 
 
     return defHead.release();
 }
 
 
 
-// Parses "if" and "if-else" statements
+// Parses and creates an "if" statement (including "if-else")
 TreeNode* StateParser::createIf(std::deque<Token>& input){
     std::unique_ptr<TreeStatement> stateHead(new TreeStatement("if"));
  
@@ -185,7 +188,7 @@ TreeNode* StateParser::createIf(std::deque<Token>& input){
 
 
 
-// Parses "while" statement
+// Parses and creates a "while" statement
 TreeNode* StateParser::createWhile(std::deque<Token>& input){
     std::unique_ptr<TreeStatement> stateHead(new TreeStatement("while"));
  
@@ -197,14 +200,14 @@ TreeNode* StateParser::createWhile(std::deque<Token>& input){
         // Expects "{"
     }
 
-    stateHead->truths = createBlock(input); // adds trees until "}" token is found
+    stateHead->truths = createBlock(input);
 
     return stateHead.release();
 }
 
 
 
-// Parses the "print" statement
+// Parses and creates a "print" statement
 TreeNode* StateParser::createPrint(std::deque<Token>& input){
     std::unique_ptr<TreeStatement> stateHead(new TreeStatement("print"));
  
@@ -222,7 +225,7 @@ TreeNode* StateParser::createPrint(std::deque<Token>& input){
 
 
 
-// Parses the "return" statement
+// Parses and creates a "return" statement
 TreeNode* StateParser::createReturn(std::deque<Token>& input){
     std::unique_ptr<TreeStatement> stateHead(new TreeStatement("return"));
  
@@ -261,7 +264,7 @@ TreeNode* StateParser::createReturn(std::deque<Token>& input){
 
 
 
-// Parses single expression as statement
+// Parses and creates an empty "expression" statement and stores an expression in it
 TreeNode* StateParser::createExp(std::deque<Token>& input){ 
     std::unique_ptr<TreeStatement> stateHead(new TreeStatement("expression"));
 

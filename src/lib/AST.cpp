@@ -1,6 +1,7 @@
 #include "AST.h"
 
 
+// Evaluates equality between values
 bool variableVal::operator == (const variableVal& rVal) const{ 
     if(type != rVal.type){
         return false;
@@ -24,12 +25,14 @@ bool variableVal::operator == (const variableVal& rVal) const{
 
 
 
+// Evaluates inequality between values
 bool variableVal::operator != (const variableVal& rVal) const{
     return !(*this == rVal);
 }
 
 
 
+// Makes sure nothing else is using this forest
 variableVal::Func::~Func(){
     delete mVars;
     if(mForest.use_count() == 1){
@@ -49,23 +52,22 @@ variableVal::Func::~Func(){
 
 
 
-// Stores single number in Leaf
+// Stores a double inside node
 TreeLeaf::TreeLeaf(double val) {
     value = val;
 }
 
 
 
-// Returns a double value in Leaf
+// Returns a variableVal holding the the node's double value
 variableVal TreeLeaf::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     return variableVal(value);
 }
 
 
 
-// Prints number in Leaf with corresponding depth
+// Prints double value
 void TreeLeaf::printInfix(int depth) const {
-
     for(int i = 1; i <= depth; i++){
         std::cout << "    ";
     }
@@ -82,21 +84,21 @@ void TreeLeaf::printInfix(int depth) const {
 
 
 
-// Stores the operation string ("+", "-", "/", "*", "%", ">", ">=", "<", "<=", "==", "!=", "&", "|", "^")
+// Stores operator as string inside node
 TreeOperator::TreeOperator(std::string operation) {
     op = operation;
 }
 
 
 
-// Adds a right-most child for the sake of order of operations
+// Adds children to node (left and right child)
 void TreeOperator::addChild(TreeNode* child){
     children.push_back(child);
 }
 
 
 
-//
+// Returns either a variableVal based on operator and its children
 variableVal TreeOperator::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     if(op == "+" || op == "-" || op == "*" ||
        op == "/" || op == "%"){
@@ -107,9 +109,8 @@ variableVal TreeOperator::evaluate(std::unordered_map<std::string, variableVal>&
 
 
 
-// Evaluates double Operators and children (recursive)
+// Called by evaluate to return a double variableVal determined by children
 variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& vars) const{
-
     variableVal lVal(children[0]->evaluate(vars));
     if(lVal.type != ReturnType::NUM){
         throw std::runtime_error("Runtime error: invalid operand type.");
@@ -175,9 +176,8 @@ variableVal TreeOperator::evalOp(std::unordered_map<std::string, variableVal>& v
 
 
 
-// Evaluates boolean Operator and children (recursive)
+// Called by evaluate to return a bool variableVal determined by children
 variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>& vars) const{
-
     variableVal lVal(children[0]->evaluate(vars));
     variableVal rVal(children[1]->evaluate(vars));
 
@@ -222,9 +222,8 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
 
 
 
-// Prints expression using all children of current Operation (recursive) using corresponding depth
+// Print in format "([left child] [operator] [right child])"
 void TreeOperator::printInfix(int depth) const {
-
     for(int i = 1; i <= depth; i++){
         std::cout << "    ";
     }
@@ -247,14 +246,14 @@ void TreeOperator::printInfix(int depth) const {
 
 
 
-// Initializes with name of ID used for assigning and returning values
+// Stores identifier name as string inside node
 TreeIdentifier::TreeIdentifier(std::string name) {
     idName = name;
 }
 
 
 
-//
+// Return variableVal that the identifiers name maps to in the variable map
 variableVal TreeIdentifier::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     if(vars.find(idName) == vars.end()){ 
         throw std::runtime_error("Runtime error: unknown identifier " + idName);
@@ -265,9 +264,8 @@ variableVal TreeIdentifier::evaluate(std::unordered_map<std::string, variableVal
 
 
 
-// Prints ID name with corresponding depth
+// Prints identifier name
 void TreeIdentifier::printInfix(int depth) const{
-
     for(int i = 1; i <= depth; i++){
         std::cout << "    ";
     }
@@ -277,7 +275,7 @@ void TreeIdentifier::printInfix(int depth) const{
 
 
 
-// Important for assigning a value to the ID on the variables table
+// Returns the variable name, also used to see if a node is a TreeIdentifier
 std::string TreeIdentifier::getID(){
     return idName;  
 }
@@ -291,21 +289,21 @@ std::string TreeIdentifier::getID(){
 
 
 
-// Places either "true" or "false" into the value member variable
+// Stores "true" or "false" as string inside node
 TreeBoolean::TreeBoolean(std::string value) {
     this->value = value;
 }
 
 
 
-//
+// Returns variableVal True or False depending on node's value string
 variableVal TreeBoolean::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     return variableVal(value == "true");
 }
 
 
 
-// Prints the boolean with corresponding depth
+// Prints "True" or "False" depending on node's value string
 void TreeBoolean::printInfix(int depth) const {
     for(int i = 1; i <= depth; i++){
         std::cout << "    ";
@@ -323,8 +321,14 @@ void TreeBoolean::printInfix(int depth) const {
 
 
 
+// Adds children to node (left and right child)
+void TreeAssign::addChild(TreeNode* child){
+    children.push_back(child);
+}
 
-//
+
+
+// Attempts to assign left child (identifier or error) the value of its right child
 variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     variableVal rVal(children[children.size()-1]->evaluate(vars));
 
@@ -336,7 +340,7 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
 
 
 
-// Prints variable assignment infix with corresponding depth
+// Print in format "([left child] = [right child])"
 void TreeAssign::printInfix(int depth) const {
 
     for(int i = 1; i <= depth; i++){
@@ -353,10 +357,6 @@ void TreeAssign::printInfix(int depth) const {
 }
 
 
-// Adds a right-most child node
-void TreeAssign::addChild(TreeNode* child){
-    children.push_back(child);
-}
 
 
 
@@ -365,15 +365,21 @@ void TreeAssign::addChild(TreeNode* child){
 
 
 
-
-//
+// Stores a ptr to a node as the name of the TreeCall (runtime error when name isn't an identifier)
 TreeCall::TreeCall(TreeNode* func){
     this->func = func;
 }
 
 
 
-//
+// Sets args vector given a vector of expressions
+void TreeCall::setArgs(std::vector<TreeNode*> args){
+    this->args = args;
+}
+
+
+
+// Evaluates a Func from the variable map corresponding to name of TreeCall
 variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     std::string funcName;
 
@@ -414,7 +420,7 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
 
 
 
-// Prints variable assignment infix with corresponding depth
+// Prints in format "[func]([args])"
 void TreeCall::printInfix(int depth) const {
 
     for(int i = 1; i <= depth; i++){
@@ -434,10 +440,6 @@ void TreeCall::printInfix(int depth) const {
 
 
 
-//
-void TreeCall::setArgs(std::vector<TreeNode*> args){
-    this->args = args;
-}
 
 
 
@@ -445,17 +447,14 @@ void TreeCall::setArgs(std::vector<TreeNode*> args){
 
 
 
-
-
-
-//
+// Stored a string as the name of the function defined
 TreeDefinition::TreeDefinition(std::string name){
     funcName = name;
 }
 
 
 
-//
+// Makes a Func object from member variables and stores in variable map under funcName
 variableVal TreeDefinition::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     // Makes function object
     std::shared_ptr<variableVal::Func> func(new variableVal::Func(forest, params, vars));
@@ -471,7 +470,7 @@ variableVal TreeDefinition::evaluate(std::unordered_map<std::string, variableVal
 
 
 
-// Prints variable assignment infix with corresponding depth
+// Prints in format "def [funcName]([params]){[forest]}" with proper newlines and indentation
 void TreeDefinition::printInfix(int depth) const {
 
     for(int i = 1; i <= depth; i++){
@@ -508,14 +507,14 @@ void TreeDefinition::printInfix(int depth) const {
 
 
 
-// stores either "if", "while", "print" in stateStr
+// Stores command string in node
 TreeStatement::TreeStatement(std::string statement){
     stateStr = statement;
 }
 
 
 
-// Calls the corresponding evaluate function and return dummy value that will never be used
+// Will call a function based on stateStr or return a NUL type variableVal
 variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     if(stateStr == "if"){
         evaluateIf(vars);
@@ -540,9 +539,8 @@ variableVal TreeStatement::evaluate(std::unordered_map<std::string, variableVal>
 
 
 
-// Evaluates the "if" statement 
+// Evaluates an "if" statement
 void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& vars) const{
-
     variableVal cVal(condition->evaluate(vars));
 
     // Special case for non boolean return type for condition
@@ -567,9 +565,8 @@ void TreeStatement::evaluateIf(std::unordered_map<std::string, variableVal>& var
 
 
 
-// Evaluates the "while" statement 
-void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{
-    
+// Evaluates a "while" statement
+void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const{    
     variableVal cVal(condition->evaluate(vars));
 
     // Special case for non boolean return type for condition
@@ -595,7 +592,7 @@ void TreeStatement::evaluateWhile(std::unordered_map<std::string, variableVal>& 
 
 
 
-// Evaluates the condition of a "print" statement and prints it
+// Evaluates a "print" statement
 void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const{
     variableVal cVal(condition->evaluate(vars));
 
@@ -624,7 +621,7 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 
 
 
-// Evaluates the condition of a "return" statement and throws it to be caught by function
+// Evaluates a "return" statement
 void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const{
     if(condition == nullptr){
         throw ReturnVal(variableVal(nullptr));
@@ -636,7 +633,7 @@ void TreeStatement::evaluateReturn(std::unordered_map<std::string, variableVal>&
 
 
 
-// Evaluates the condition of an expression 
+// Evaluates a standalone expression
 void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& vars) const{
     condition->evaluate(vars);
 
@@ -645,7 +642,7 @@ void TreeStatement::evaluateExp(std::unordered_map<std::string, variableVal>& va
 
 
 
-// Prints corresponding statement with depth and hands its depth off to its children to format
+// Complicated print to print statement based on stateStr
 void TreeStatement::printInfix(int depth) const{
 
     for(int i = 1; i <= depth; i++){

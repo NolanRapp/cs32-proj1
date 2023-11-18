@@ -20,13 +20,13 @@ class Lexer {
 	*/
 
     public: 
-        void createEnd(std::deque<Token>& inputq, int line, int column, Type t);
-        void printTokens();
-        void lex(std::string& inputString);
-        std::deque<Token> getLexQueue();
+        void createEnd(std::deque<Token>& inputq, int line, int column, Type t); // Creates END type token at end of input
+        void printTokens();                                                      // Prints tokens for debugging input
+        std::deque<Token> getLexQueue();                                         // Retrieves the deque made from the input's tokens
+        void lex(std::string& inputString);                                      // Reads a string and lexes input into tokens stored in deque
 
     private:
-        std::deque<Token> lexTokens;
+        std::deque<Token> lexTokens;                                             // Deque of input in token form
 
 };
 

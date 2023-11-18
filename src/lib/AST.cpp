@@ -383,13 +383,14 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
         throw std::runtime_error("Runtime error: incorrect argument count.");
     }
 
+    std::unordered_map<std::string, variableVal> tempVars = *function->mVars;
     for(size_t i = 0; i < args.size(); i++){
-        function->mVars[function->mParams[i]] = args[i]->evaluate(vars);
+        tempVars[function->mParams[i]] = args[i]->evaluate(vars);
     }
 
     try{
         for(TreeNode* tree : *function->mForest){
-            tree->evaluate(function->mVars);
+            tree->evaluate(tempVars);
         }
     }
     catch(const ReturnVal& returned){

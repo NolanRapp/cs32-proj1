@@ -26,12 +26,12 @@ struct variableVal {
     struct Func {
         std::shared_ptr<std::vector<TreeNode*>>         mForest;
         std::vector<std::string>                        mParams;
-        std::unordered_map<std::string, variableVal>    mVars;
+        std::unordered_map<std::string, variableVal>*    mVars;
 
         Func(std::shared_ptr<std::vector<TreeNode*>> forest, std::vector<std::string> params, std::unordered_map<std::string, variableVal> vars){
             mForest = forest;
             mParams = params;
-            mVars   = vars;
+            mVars   = new std::unordered_map<std::string, variableVal>(vars);
         }
     };
 

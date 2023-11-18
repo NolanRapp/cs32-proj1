@@ -44,6 +44,10 @@ int main() {
         }
         catch (const std::runtime_error& e) {
             delete ASThead;
+            while(!parser.isEmpty()){
+                ASThead = parser.popHead();
+                delete ASThead;
+            }
             std::cout << e.what() << std::endl;
             return 3;
         }

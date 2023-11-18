@@ -26,13 +26,15 @@ struct variableVal {
     struct Func {
         std::shared_ptr<std::vector<TreeNode*>>         mForest;
         std::vector<std::string>                        mParams;
-        std::unordered_map<std::string, variableVal>*    mVars;
+        std::unordered_map<std::string, variableVal>*   mVars;
 
         Func(std::shared_ptr<std::vector<TreeNode*>> forest, std::vector<std::string> params, std::unordered_map<std::string, variableVal> vars){
             mForest = forest;
             mParams = params;
             mVars   = new std::unordered_map<std::string, variableVal>(vars);
         }
+
+        ~Func();
     };
 
     ReturnType                                          type;
@@ -117,10 +119,9 @@ class TreeOperator : public TreeNode {
             throw std::runtime_error("Runtime error: invalid assignee.");
         } 
         ~TreeOperator() {
-            for (auto child : children) {
+            for (TreeNode* child : children) {
                 delete child;
             }
-            children.clear();
         }
 
     private:
@@ -185,10 +186,9 @@ class TreeAssign : public TreeNode {
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
         ~TreeAssign() {
-            for (auto child : children) {
+            for (TreeNode* child : children) {
                 delete child;
             }
-            children.clear();
         }
 
     private:
@@ -207,6 +207,12 @@ class TreeCall : public TreeNode {
         virtual std::string getID() {
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
+        ~TreeCall() {
+            delete func;
+            for (TreeNode* child : args) {
+                delete child;
+            }
+        }
 
     private:
         TreeNode*               func;
@@ -225,7 +231,12 @@ class TreeDefinition : public TreeNode {
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
         ~TreeDefinition() {
-
+            if(forest.use_count() == 1){
+                for (TreeNode* child : *forest) {
+                    delete child;
+                }
+            }
+            forest.reset();
         }
 
         std::string               funcName;
@@ -256,14 +267,12 @@ class TreeStatement : public TreeNode {
         }; 
         ~TreeStatement() {
             delete condition;
-            for (auto child : truths) {
+            for (TreeNode* child : truths) {
                 delete child;
             }
-            for (auto child : falses) {
+            for (TreeNode* child : falses) {
                 delete child;
             }
-            truths.clear();
-            falses.clear();
         }
 
         std::string             stateStr;   // stores type of statement

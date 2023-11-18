@@ -30,6 +30,18 @@ bool variableVal::operator != (const variableVal& rVal) const{
 
 
 
+variableVal::Func::~Func(){
+    delete mVars;
+    if(mForest.use_count() == 1){
+        for (TreeNode* child : *mForest) {
+            delete child;
+        }
+    }
+    mForest.reset();
+}
+
+
+
 
 
 

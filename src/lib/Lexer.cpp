@@ -169,6 +169,13 @@ void Lexer::lex(std::string& inputString) {
                 lexTokens.push_back(Token(line, column, c, Type::MISC));
             }
 
+            else if (i == '[' || i == ']'){
+                std::string c = "";
+                c += i;
+                lexTokens.push_back(Token(line, column, c, Type::ARRAY));
+            }
+
+
             // if not space, valid operator, or valid number, print error:
             else { 
                 throw LexError(line, column);

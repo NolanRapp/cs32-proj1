@@ -12,6 +12,7 @@ enum class Type {
     ID,
     END,
     STATE,
+    ARRAY,
     MISC
 };
 

@@ -17,6 +17,7 @@ enum class ReturnType {
     NUM,  // Doubles
     NUL,  // null
     FUNC, // Functions
+    ARRAY, // Arrays
     NONE  // Undefined var
 };
 
@@ -51,6 +52,13 @@ struct variableVal {
         ~Func(); 
     };
 
+    /*struct Array {
+        
+        A struct to properly store all information pretaining to arrays
+        so a arrays can be assigned variables, reassigned, and properly handeled.
+            
+    };*/
+
     ReturnType                                          type;    // Stores current ReturnType so the right value can be returned
     std::variant<double, bool, std::shared_ptr<Func>>   value;   // Stores actual value in a std::variant (a union)
 
@@ -62,6 +70,7 @@ struct variableVal {
     variableVal(double val)                     : type(ReturnType::NUM)  { value = val; }
     variableVal(bool val)                       : type(ReturnType::BOOL) { value = val; }
     variableVal(std::shared_ptr<Func> val)      : type(ReturnType::FUNC) { value = val; }
+    //variableVal(std::shared_ptr<Array> val)     : type(ReturnType::ARRAY) { value = val; }
 };
 
 

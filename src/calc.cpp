@@ -10,7 +10,6 @@ int main(){
     
     std::string line;       // string to hold a line of user input
     New_Parser  infix;      // parser object for parsing lines
-    double      boolDouble; // stores evaluated value (will store bools as 0 or 1)
         
     // Parses line by line (errors will not interrupt program)
     while(getline(std::cin, line)) {
@@ -23,18 +22,17 @@ int main(){
             std::deque<Token> tokenizedQ = lexer.getLexQueue();
 
             rootTree.reset(infix.parseForCalc(tokenizedQ));
-            ReturnType returnType = rootTree->type(tempVars); // determines the evaluation function to use
 
             rootTree->printInfix(0); // prints parsed expression
             std::cout << std::endl;
 
             // attempts to evaluate expression
-            if (returnType == ReturnType::NUM) {
-                std::cout << rootTree->evalDouble(tempVars) << std::endl;
+            variableVal treeVal(rootTree->evaluate(tempVars));
+            if (treeVal.type == ReturnType::NUM) {
+                std::cout << std::get<double>(treeVal.value) << std::endl;
             }
-            else if (returnType == ReturnType::BOOL) {
-                boolDouble = rootTree->evalBool(tempVars);
-                if (boolDouble) {
+            else if (treeVal.type == ReturnType::BOOL) {
+                if (std::get<bool>(treeVal.value)) {
                     std::cout << "true" << std::endl;
                 }
                 else {
@@ -48,4 +46,7 @@ int main(){
             std::cout << e.what() << std::endl;
         }
     }
-};
+}
+
+
+

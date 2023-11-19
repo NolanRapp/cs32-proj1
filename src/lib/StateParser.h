@@ -10,6 +10,7 @@
 #include <deque>
 #include <memory>
 
+
 class StateParser {
 
 public:
@@ -21,18 +22,28 @@ public:
     */
 
                             StateParser(){};
-                            ~StateParser(){};
-    void                    createForest(std::deque<Token> oInput);
-    TreeNode*               createStatement(std::deque<Token>& input);
-    std::vector<TreeNode*>  createBlock(std::deque<Token>& input);
-    TreeNode*               createTree(std::deque<Token>& input);
-    TreeNode*               popHead();
-    bool                    isEmpty() const;
+                            ~StateParser(){                             // Incase evaluation is interupted
+                                while(!isEmpty()){
+                                    TreeNode* currTree;
+                                    currTree = popHead();
+                                    delete currTree;
+                                }
+                            }
+    void                    createForest(std::deque<Token> oInput);     // Creates a deque of statements as trees
+    TreeNode*               popHead();                                  // Returns and pops first tree in forest
+    bool                    isEmpty() const;                            // Checks if forest is empty
 
 private:
-    std::deque<TreeNode*>   mHeads;
-    bool                    isExp(Token& token) const;
-
+    std::deque<TreeNode*>   mHeads;                                     // Stores statements as trees
+    bool                    isExp(Token& token) const;                  // Checks if next character indicates the beginning of an expression
+    TreeNode*               createStatement(std::deque<Token>& input);  // Creates single expression as a tree
+    std::vector<TreeNode*>  createBlock(std::deque<Token>& input);      // Makes forest of statements between "{}"
+    TreeNode*               createDef(std::deque<Token>& input);        // Parses and creates a "def" statement (a function definition)
+    TreeNode*               createIf(std::deque<Token>& input);         // Parses and creates an "if" statement (including "if-else")
+    TreeNode*               createWhile(std::deque<Token>& input);      // Parses and creates a "while" statement
+    TreeNode*               createPrint(std::deque<Token>& input);      // Parses and creates a "print" statement
+    TreeNode*               createReturn(std::deque<Token>& input);     // Parses and creates a "return" statement
+    TreeNode*               createExp(std::deque<Token>& input);        // Parses and creates an empty "expression" statement and stores an expression in it
 };
 
 

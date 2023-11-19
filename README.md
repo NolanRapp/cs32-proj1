@@ -10,9 +10,10 @@ Using a `[Program]`:
 - Compiling: `cd src/ && [Program]`
 - Running: `./[Program]`
 - Valid Tokens:
-    - Arithmatic Operations: `*`, `/`, `%`, `+`, `-`, `(`, `)`
-    - Booleans Operations: `<`, `<=`, `>`, `>=`, `==`, `!=`, `&`, `^`, `|`, `=`, 
-    - Statements: `{`, `}`, `if`, `else`, `while`, `print`
+    - Arithmatic Operations: `*`, `/`, `%`, `+`, `-`, `(`, `)`, `=`
+    - Booleans Operations: `<`, `<=`, `>`, `>=`, `==`, `!=`, `&`, `^`, `|`
+    - Statements: `if`, `else`, `while`, `print`, `def`
+    - Misc.: `null`, `{`, `}`, `,`, `;`, `[`, `]`
     - Numbers, Identifiers (Any non-resevred string of letters and underscore), `true`, `false`
 
 `Scrypt`:
@@ -85,10 +86,19 @@ Conditionals (Checkpoint 3)
 >
 >> This uses `Scrypt` and `Format` and allows for `if`, `else`, `while`, `print`, `{`, and `}` to allow for an entire program to be written using fundamental statements. It can output the forest of ASTs built in standard formatting and can also evaluate this forest.
 
-
-
-
-
+Completion (Checkpoint 4)
+>
+> Support (Track A)
+>
+>> This uses `Scrypt` and `Format`. Added support for new tokens such as `;` and `,` as well as required most statements to end with `;`. Changed errors and the behaviour of `==` and `!=` to be able to evaluate two children of different types.
+>
+> Functions (Track B)
+>
+>> This uses `Scrypt` amd `Format` and implements function definitions and function call. Variables can now store functions, numbers, bools, and null types. The null type was implemented a unique type. Functions use scope based on parameters of function calls and the scope of when the function was defined. Also implemented `shared_ptr`s in order to allow functions to move forests of statement trees around without memory problems.
+>
+> Arrays (Track C)
+>
+>> [Array documentation here]
 
 
 

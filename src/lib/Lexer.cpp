@@ -1,14 +1,14 @@
 #include "Lexer.h"
 
 
-// Creates "END" token, prevents the queue from being empty
+// Creates END type token at end of input
 void Lexer::createEnd(std::deque<Token>& inputq, int line, int column, Type t) {
     inputq.push_back(Token(line, column, "END", t));
 }
 
 
 
-// Prints the queue, for debugging purposes
+// Prints tokens for debugging input
 void Lexer::printTokens() {
     while (!lexTokens.empty()) {
         Token printToken = lexTokens.front();
@@ -21,14 +21,14 @@ void Lexer::printTokens() {
 
 
 
-// Used to retrieve deque for classes using the Tokens
+// Retrieves the deque made from the input's tokens
 std::deque<Token> Lexer::getLexQueue() {
     return lexTokens;
 }
 
 
 
-// Constructs the deque based on standard output, stores it in member variable
+// Reads a string and lexes input into tokens stored in deque
 void Lexer::lex(std::string& inputString) {
     std::istringstream stream(inputString);
     int line = 1;
@@ -117,8 +117,12 @@ void Lexer::lex(std::string& inputString) {
                 if (placeholder == "true" || placeholder == "false") {
                     lexTokens.push_back(Token(line, startingColumn, placeholder, Type::BOOL));
                 }
-                else if (placeholder == "if" || placeholder == "else" || placeholder == "while" || placeholder == "print") {
+                else if (placeholder == "if" || placeholder == "else" || placeholder == "while" || placeholder == "print"
+                      || placeholder == "return" || placeholder == "def") {
                     lexTokens.push_back(Token(line, startingColumn, placeholder, Type::STATE));
+                }
+                else if (placeholder == "null"){
+                    lexTokens.push_back(Token(line, startingColumn, placeholder, Type::MISC));
                 }
                 else {
                     lexTokens.push_back(Token(line, startingColumn, placeholder, Type::ID));

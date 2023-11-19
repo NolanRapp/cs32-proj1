@@ -23,37 +23,39 @@
 class New_Parser {
     /* 
     Parser implentation for infix expressions.
-    Each helper function is for a different operator precendence expression- Recursive Descent Parsin
+    Each helper function is for a different operator precendence expression - Recursive Descent Parsin
     */
 
     public:
                   New_Parser(){};
                   ~New_Parser(){};
         
-        TreeNode* parse(std::deque<Token>& tokenizedQ);             // begins parse, and identifies when to end parse
-        TreeNode* parseForCalc(std::deque<Token>& tokenizedQ);      // main parse for calc.cpp
-        TreeNode* parseForState(std::deque<Token>& tokenizedQ);     // main parse for scrypt.cpp
+        TreeNode* parse(std::deque<Token>& tokenizedQ);                  // Semi-redundant parse of infix expression
+        TreeNode* parseForCalc(std::deque<Token>& tokenizedQ);           // Calls parse with certain end conditions - main parse for calc.cpp
+        TreeNode* parseForState(std::deque<Token>& tokenizedQ);          // Calls parse with certain end conditions - main parse for scrypt.cpp and format.cpp
 
-        TreeNode* parseE(std::deque<Token>& tokenizedQ);            // parsing expression operators "+" "-"
-        TreeNode* parseT(std::deque<Token>& tokenizedQ);            // parsing term operators "*" "/" "%"
-        TreeNode* parseF(std::deque<Token>& tokenizedQ);            // parsing a factor (integer, ID, parenthesis)
-        TreeNode* parseA(std::deque<Token>& tokenizedQ);            // parsing assignment operators "="
-        TreeNode* parseComparison(std::deque<Token>& tokenizedQ);   // parsing comparison operators "<" or ">="
-        TreeNode* parseEquality(std::deque<Token>& tokenizedQ);     // parsing an equality operators "==" and "!="
-        TreeNode* parseInclusive(std::deque<Token>& tokenizedQ);    // parsing inclusive operators "|" 
-        TreeNode* parseExclusive(std::deque<Token>& tokenizedQ);    // parsing exclusive operators  "^" 
-        TreeNode* parseAnd(std::deque<Token>& tokenizedQ);          // parsing and operators "&"
+        TreeNode* parseA(std::deque<Token>& tokenizedQ);                 // Parses assignment operators "="
+        TreeNode* parseInclusive(std::deque<Token>& tokenizedQ);         // Parses inclusive or operators "|" 
+        TreeNode* parseExclusive(std::deque<Token>& tokenizedQ);         // Parses exclusive or operators "^" 
+        TreeNode* parseAnd(std::deque<Token>& tokenizedQ);               // Parses and operators "&"
+        TreeNode* parseEquality(std::deque<Token>& tokenizedQ);          // Parses equality operators "==" and "!="
+        TreeNode* parseComparison(std::deque<Token>& tokenizedQ);        // Parses comparison operators "<" or ">="
+        TreeNode* parseE(std::deque<Token>& tokenizedQ);                 // Parses expression operators "+" "-"
+        TreeNode* parseT(std::deque<Token>& tokenizedQ);                 // Parses term operators "*" "/" "%"
+        TreeNode* parseCall(std::deque<Token>& tokenizedQ);              // Parses function calls
+        TreeNode* parseF(std::deque<Token>& tokenizedQ);                 // Parses a factor (integer, ID, parenthesis, null)
+        std::vector<TreeNode*> parseArgs(std::deque<Token>& tokenizedQ); // Parses arguments as expressions between bounding tokens ("()" or "[]")
 
 
     private:
-        std::string nextToken;      // the current token from the Token deque.
-        std::string lookahead;      // the token ahead of nextToken
-        Type        lookaheadType;  // lookahead's token type 
-        Type        tokenType;      // current token's token type
+        std::string nextToken;                                           // Current token from the Token deque.
+        std::string lookahead;                                           // Token ahead of nextToken
+        Type        lookaheadType;                                       // lookahead's token type 
+        Type        tokenType;                                           // Current token's token type
 
-        void        scanToken(std::deque<Token>& tokenizedQ); // sets nextToken and lookahead, pops front of deque
-        int         currentLine;
-        int         currentColumn;
+        void        scanToken(std::deque<Token>& tokenizedQ);            // Function to consume current token, moving nextToken to next value on the queue
+        int         currentLine;                                         // Current token's line
+        int         currentColumn;                                       // Current token's column
 };
 
 

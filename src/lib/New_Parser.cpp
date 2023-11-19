@@ -1,7 +1,7 @@
 #include "New_Parser.h"
 
 
-// Function to "consume" current token, moving nextToken to next value on the queue
+// Function to consume current token, moving nextToken to next value on the queue
 void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
 
     if (!tokenizedQ.empty()) {
@@ -29,7 +29,7 @@ void New_Parser::scanToken(std::deque<Token>& tokenizedQ) {
 
 
 
-// Function specifically to be called in calc.cpp, Track A of Scrypt 03
+// Calls parse with certain end conditions - main parse for calc.cpp
 TreeNode* New_Parser::parseForCalc(std::deque<Token>& tokenizedQ) {
     std::unique_ptr<TreeNode> ast;
     ast.reset(parse(tokenizedQ));
@@ -42,11 +42,12 @@ TreeNode* New_Parser::parseForCalc(std::deque<Token>& tokenizedQ) {
 
 
 
+// Calls parse with certain end conditions - main parse for scrypt.cpp and format.cpp
 TreeNode* New_Parser::parseForState(std::deque<Token>& tokenizedQ) {
     std::unique_ptr<TreeNode> ast;
     ast.reset(parse(tokenizedQ));
 
-    // Reattaches interrupting token to queue for check
+    // Reattaches interrupting token to queue for check in state parser
     Token pushTok(currentLine, currentColumn, nextToken, tokenType);
     tokenizedQ.push_front(pushTok);
 
@@ -55,7 +56,7 @@ TreeNode* New_Parser::parseForState(std::deque<Token>& tokenizedQ) {
 
 
 
-// MAIN Parser. Begining of Recursive Descent.
+// Semi-redundant parse of infix expression
 TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
     scanToken(tokenizedQ); // Initial consumption
@@ -66,7 +67,7 @@ TreeNode* New_Parser::parse(std::deque<Token>& tokenizedQ) {
 
 
 
-// Inclusive operator parser "=". Lowest precedence operator.
+// Parses assignment operators "="
 TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseInclusive(tokenizedQ));
@@ -92,7 +93,7 @@ TreeNode* New_Parser::parseA(std::deque<Token>& tokenizedQ) {
 
 
 
-// Inclusive operator parser "|".
+// Parses inclusive or operators "|" 
 TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseExclusive(tokenizedQ));
@@ -119,7 +120,7 @@ TreeNode* New_Parser::parseInclusive(std::deque<Token>& tokenizedQ) {
 
 
 
-// Exclusive operator parser "^".
+// Parses exclusive or operators "^" 
 TreeNode* New_Parser::parseExclusive(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseAnd(tokenizedQ));
@@ -145,7 +146,7 @@ TreeNode* New_Parser::parseExclusive(std::deque<Token>& tokenizedQ) {
 
 
 
-// And operator parser "&"
+// Parses and operators "&"
 TreeNode* New_Parser::parseAnd(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseEquality(tokenizedQ));
@@ -171,7 +172,7 @@ TreeNode* New_Parser::parseAnd(std::deque<Token>& tokenizedQ) {
 
 
 
-// Equality operator parser "==" and "!=".
+// Parses equality operators "==" and "!="
 TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseComparison(tokenizedQ));
@@ -199,7 +200,7 @@ TreeNode* New_Parser::parseEquality(std::deque<Token>& tokenizedQ) {
 
 
 
-// Comparison operator parser "<", ">", "<=", ">=".
+// Parses comparison operators "<" or ">="
 TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseE(tokenizedQ));
@@ -225,7 +226,7 @@ TreeNode* New_Parser::parseComparison(std::deque<Token>& tokenizedQ) {
 
 
 
-// Expression operator parser "+" and "-"
+// Parses expression operators "+" "-"
 TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 
     std::unique_ptr<TreeNode> left(parseT(tokenizedQ));
@@ -251,16 +252,16 @@ TreeNode* New_Parser::parseE(std::deque<Token>& tokenizedQ) {
 
 
 
-// Term operator parser "*", "/", "%"
+// Parses term operators "*" "/" "%"
 TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
-    std::unique_ptr<TreeNode> left(parseF(tokenizedQ));
+    std::unique_ptr<TreeNode> left(parseCall(tokenizedQ));
 
     while (nextToken == "*" || nextToken == "/" || nextToken == "%") {
         
         std::string op = nextToken;
         scanToken(tokenizedQ);
-        std::unique_ptr<TreeNode> right(parseF(tokenizedQ));
+        std::unique_ptr<TreeNode> right(parseCall(tokenizedQ));
 
         if (right == nullptr || left == nullptr) {
             throw ParseError(currentLine, currentColumn, nextToken);
@@ -277,13 +278,28 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
 
 
-// Factor operator parser (integers, identifiers, and parenthesis)
+// Parses function calls
+TreeNode* New_Parser::parseCall(std::deque<Token>& tokenizedQ) {
+    std::unique_ptr<TreeNode> left(parseF(tokenizedQ));
+
+    while (nextToken == "("){
+        std::unique_ptr<TreeCall> callNode(new TreeCall(left.release()));
+        callNode->setArgs(parseArgs(tokenizedQ));
+
+        left.reset(callNode.release());
+    }
+    return left.release();
+}
+
+
+
+// Parses a factor (integer, ID, parenthesis, null)
 TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
     if (nextToken.empty()) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
-
+    
     if (tokenType == Type::BOOL) { 
         std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean(nextToken));
         scanToken(tokenizedQ); // Consume true or false
@@ -312,11 +328,53 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         scanToken(tokenizedQ); // Consume variable 
         return leaf.release();
     }
+    else if (nextToken == "null"){
+        std::unique_ptr<TreeStatement> nullPtr(new TreeStatement("null"));
+        scanToken(tokenizedQ); // Consume "null"
+        return nullPtr.release();
+    }
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
 
     return nullptr; // Should never reach here
+}
+
+
+
+// Parses arguments as expressions between bounding tokens ("()" or "[]")
+std::vector<TreeNode*> New_Parser::parseArgs(std::deque<Token>& tokenizedQ) {
+    std::string boundL = nextToken; // Either "(" or "[" depending on where its called
+    scanToken(tokenizedQ); // Reads left bound
+    std::string boundR = (boundL == "(") ? ")" : "]"; // Finds what pair bound should be
+    std::vector<TreeNode*> argForest;
+
+    // No args case
+    if(nextToken == boundR){
+        scanToken(tokenizedQ); // Reads right bound
+        return argForest;
+    }
+
+    argForest.push_back(parseA(tokenizedQ));
+    if(nextToken != "," && nextToken != boundR){
+        throw ParseError(currentLine, currentColumn, nextToken);
+    }
+
+    // Non-first args are led by a ","
+    while(nextToken != boundR){
+        scanToken(tokenizedQ); // Reads ","
+        argForest.push_back(parseA(tokenizedQ));
+
+        if(nextToken == boundR){
+            break;
+        }
+        if(nextToken != ","){
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+    }
+    scanToken(tokenizedQ); // Reads right bound
+
+    return argForest;
 }
 
 

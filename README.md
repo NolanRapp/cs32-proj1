@@ -16,7 +16,7 @@ Using a `[Program]`:
     - Misc.: `null`, `{`, `}`, `,`, `;`, `[`, `]`
     - Numbers, Identifiers (Any non-resevred string of letters and underscore), `true`, `false`
 
-Scrypt`:
+`Scrypt`:
 > This program takes in user input in the form of a program using statement tokens along with infix expressions then evaluates the program.
 
 `Format`

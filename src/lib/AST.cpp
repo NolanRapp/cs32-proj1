@@ -190,7 +190,7 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
     }
 
     // Order Comparison (Only numbers)
-    if (lVal.type == ReturnType::NUM){
+    if (lVal.type == ReturnType::NUM && rVal.type == ReturnType::NUM){
         if (op == "<") {
             return variableVal(std::get<double>(lVal.value) < std::get<double>(rVal.value));
         }
@@ -205,7 +205,7 @@ variableVal TreeOperator::evalComp(std::unordered_map<std::string, variableVal>&
         }
     }
     // Logical comparison (Only bools)
-    else if(lVal.type == ReturnType::BOOL){
+    else if(lVal.type == ReturnType::BOOL && rVal.type == ReturnType::BOOL){
         if (op == "|"){
             return variableVal(std::get<bool>(lVal.value) || std::get<bool>(rVal.value));
         }

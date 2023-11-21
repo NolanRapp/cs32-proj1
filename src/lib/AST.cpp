@@ -18,6 +18,17 @@ bool variableVal::operator == (const variableVal& rVal) const{
             return (std::get<bool>(value) == std::get<bool>(rVal.value));
         case ReturnType::FUNC:
             return (std::get<std::shared_ptr<Func>>(value)->mForest == std::get<std::shared_ptr<Func>>(rVal.value)->mForest);
+        case ReturnType::ARRAY: {
+            if (std::get<std::vector<variableVal>>(value).size() != std::get<std::vector<variableVal>>(rVal.value).size()) {
+                return false;
+            }
+            for (size_t i = 0; i < std::get<std::vector<variableVal>>(value).size(); i++) {
+                if (!(std::get<std::vector<variableVal>>(value)[i] == std::get<std::vector<variableVal>>(rVal.value)[i])) {
+                    return false;
+                }
+            }
+        return true;
+    }
         default:
             throw std::runtime_error("Compared type not in variableVals, programmed wrong");
     }
@@ -725,4 +736,92 @@ void TreeStatement::printInfix(int depth) const{
 }
 
 
+
+
+
+// Tree Array Literal Constructor
+TreeArrayLiteral::TreeArrayLiteral(std::vector<TreeNode*> arrayElements) {
+    this->arrayElements = arrayElements;
+}
+
+
+
+// Evaluates Tree Array Literal Contents 
+variableVal TreeArrayLiteral::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
+    std::vector<variableVal> arrayContents;
+    for (TreeNode* a : arrayElements) {
+        arrayContents.push_back(a->evaluate(vars));
+    }
+    return variableVal(arrayContents);
+}
+
+
+
+// Prints Tree Array Literal Infix
+void TreeArrayLiteral::printInfix(int depth) const {
+    std::cout << "[";
+    for (size_t i = 0; i < arrayElements.size(); ++i) {
+        arrayElements[i]->printInfix(depth);
+        if (i < arrayElements.size()-1) {
+            std::cout << ", ";
+        }
+    }
+    std::cout << "]";
+}
+
+
+
+
+
+// Tree Array Lookup Constructor
+TreeArrayLookup::TreeArrayLookup(TreeNode* array, TreeNode* element) {
+    this->array = array;
+    this->element = element;
+}
+
+
+
+// Evaluates Tree Array Lookups, Checks for Errors
+// TODO: make sure error checking should go here 
+variableVal TreeArrayLookup::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
+    variableVal arrayExpression = array->evaluate(vars); // Evaulating expression in front of array
+    variableVal arrayElement = element->evaluate(vars); // Evaluating index of array
+
+    // Checking if index is a number
+    if (arrayElement.type != ReturnType::NUM) {
+        throw std::runtime_error("Runtime error: index is not a number.");
+    }
+
+    // Checking if array lookup is used on an array
+    if (arrayExpression.type != ReturnType::ARRAY) {
+        throw std::runtime_error("Runtime error: not an array.");
+    }
+
+    std::vector<variableVal>& a = std::get<std::vector<variableVal>>(arrayExpression.value);
+    int e = static_cast<int>(std::get<double>(arrayElement.value));
+
+    // Checking if index is out of bounds
+    if (e >= static_cast<int>(a.size()) || e < 0) {
+        throw std::runtime_error("Runtime error: index out of bounds.");
+    }
+    
+    // Checking if index is not an integer
+    double integral;
+    double fraction = modf(e, &integral);
+    if (fraction != 0.0) {
+        std::runtime_error("Runtime error: index is not an integer.");
+    }
+
+    return a[e];
+}
+
+
+
+// Prints Tree Array Lookup Infix
+void TreeArrayLookup::printInfix(int depth) const {
+    array->printInfix(depth);
+    std::cout << "[";
+    element->printInfix(depth);
+    std::cout << "]";
+}
 

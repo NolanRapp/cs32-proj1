@@ -9,6 +9,7 @@
 #include <cmath>
 #include <memory>
 #include <variant>
+#include <math.h>
 
 
 // For predicting output of node
@@ -60,7 +61,7 @@ struct variableVal {
     };*/
 
     ReturnType                                          type;    // Stores current ReturnType so the right value can be returned
-    std::variant<double, bool, std::shared_ptr<Func>>   value;   // Stores actual value in a std::variant (a union)
+    std::variant<double, bool, std::shared_ptr<Func>, std::vector<variableVal>>   value;   // Stores actual value in a std::variant (a union)
 
     bool operator == (const variableVal& lVal) const;            // Evaluates equality between values
     bool operator != (const variableVal& lVal) const;            // Evaluates inequality between values
@@ -70,6 +71,7 @@ struct variableVal {
     variableVal(double val)                     : type(ReturnType::NUM)  { value = val; }
     variableVal(bool val)                       : type(ReturnType::BOOL) { value = val; }
     variableVal(std::shared_ptr<Func> val)      : type(ReturnType::FUNC) { value = val; }
+    variableVal(std::vector<variableVal> val)  : type(ReturnType::ARRAY) { value = val;}
     //variableVal(std::shared_ptr<Array> val)     : type(ReturnType::ARRAY) { value = val; }
 };
 
@@ -309,6 +311,53 @@ class TreeStatement : public TreeNode {
         TreeNode*               condition = nullptr;                                                // Tree for condition
         std::vector<TreeNode*>  truths;                                                             // Forest for evaluation when condition is true
         std::vector<TreeNode*>  falses;                                                             // Forest for evaluation when condition is false
+};
+
+
+
+class TreeArrayLiteral : public TreeNode {
+    /*
+    This class is used to 
+    */
+
+    public:
+                                TreeArrayLiteral(std::vector<TreeNode*> arrayElements);
+        virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;
+        virtual void            printInfix(int depth) const;
+        virtual std::string     getID() {                                                              // Will only work on TreeIdentifiers
+            throw std::runtime_error("Runtime error: invalid assignee.");
+        }; 
+        ~TreeArrayLiteral() {
+            for (auto& a : arrayElements) {
+                delete a;
+            }
+        }
+
+        std::vector<TreeNode*> arrayElements;
+
+};
+
+
+
+class TreeArrayLookup : public TreeNode {
+    /*
+    This class is used to 
+    */
+
+        public:
+                                    TreeArrayLookup(TreeNode* array, TreeNode* element);
+            virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;
+            virtual void            printInfix(int depth) const;
+            virtual std::string     getID() {                                                                   // Will only work on TreeIdentifiers
+                throw std::runtime_error("Runtime error: invalid assignee.");
+            }; 
+            ~TreeArrayLookup() {
+                delete array;
+                delete element;
+            }
+
+            TreeNode* array;
+            TreeNode* element;
 };
 
 

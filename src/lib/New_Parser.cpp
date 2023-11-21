@@ -300,16 +300,27 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
     
-    if (tokenType == Type::BOOL) { 
+    // Parsing Array Literal or Array Lookup
+    if (nextToken == "[" || (tokenType == Type::ID && lookahead == "[")) {
+        std::unique_ptr<TreeNode> arrayNode(parseArray(tokenizedQ));
+        return arrayNode.release();
+    }
+
+    // Parsing Boolean
+    else if (tokenType == Type::BOOL) { 
         std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean(nextToken));
         scanToken(tokenizedQ); // Consume true or false
         return boolVal.release();
     }
+
+    // Parsing Number
     else if (tokenType == Type::NUM) {
         std::unique_ptr<TreeLeaf> leaf(new TreeLeaf(std::stold(nextToken)));
         scanToken(tokenizedQ); // Consume digit
         return leaf.release();
     }
+
+    // Parsing Parenthesis
     else if (nextToken == "(") {
         scanToken(tokenizedQ); // Consume open parenthesis
         std::unique_ptr<TreeNode> node(parseA(tokenizedQ));
@@ -323,16 +334,21 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             // Expects ")"
         }
     }
+    
+    // Parsing Identifiers
     else if (tokenType == Type::ID) {
         std::unique_ptr<TreeIdentifier> leaf(new TreeIdentifier(nextToken));
         scanToken(tokenizedQ); // Consume variable 
         return leaf.release();
     }
+
+    // Parsing Null
     else if (nextToken == "null"){
         std::unique_ptr<TreeStatement> nullPtr(new TreeStatement("null"));
         scanToken(tokenizedQ); // Consume "null"
         return nullPtr.release();
     }
+
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
@@ -379,3 +395,27 @@ std::vector<TreeNode*> New_Parser::parseArgs(std::deque<Token>& tokenizedQ) {
 
 
 
+
+// Parses an Array Literal OR an Array Lookup
+TreeNode* New_Parser::parseArray(std::deque<Token>& tokenizedQ) { 
+    
+    // Parsing Array Literal (or beginning of Array Lookup)
+    std::unique_ptr<TreeNode> left;
+    if (nextToken == "[") {
+        left = std::make_unique<TreeArrayLiteral>(parseArgs(tokenizedQ));
+    }
+
+    // Parsing Array Lookup (or Array Lookup following Array Literal)
+    while (nextToken == "[") {
+        std::vector<TreeNode*> arrayExpressions = parseArgs(tokenizedQ);
+        
+        // Expects only one expression for array lookup
+        if (arrayExpressions.size() != 1) {
+            throw ParseError(currentLine, currentColumn, nextToken);
+        }
+
+        left = std::make_unique<TreeArrayLookup>(left.release(), arrayExpressions[0]);
+    }
+
+    return left.release();
+}

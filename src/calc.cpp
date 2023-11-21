@@ -47,11 +47,11 @@ int main(){
                         std::cout << std::get<double>(array->elements[i].value);
                     } 
                     else if (array->elements[i].type == ReturnType::BOOL) {
-                        if (std::get<bool>(treeVal.value)) {
-                            std::cout << "true" << std::endl;
+                        if (std::get<bool>(array->elements[i].value)) {
+                            std::cout << "true";
                         }
                         else {
-                            std::cout << "false" << std::endl;
+                            std::cout << "false";
                         }
                     } 
                     if (i < array->elements.size() - 1) {

@@ -51,7 +51,7 @@ bool variableVal::operator == (const variableVal& rVal) const{
                 }
             }
 
-            // If everything is equal, return true
+            // If everything equal, return true
             return true;
     }
         default:

@@ -39,6 +39,27 @@ int main(){
                     std::cout << "false" << std::endl;
                 }
             }
+            else if (treeVal.type == ReturnType::ARRAY) {
+                auto array = std::get<std::shared_ptr<variableVal::Array>>(treeVal.value);
+                std::cout << "[";
+                for (size_t i = 0; i < array->elements.size(); ++i) {
+                    if (array->elements[i].type == ReturnType::NUM) {
+                        std::cout << std::get<double>(array->elements[i].value);
+                    } 
+                    else if (array->elements[i].type == ReturnType::BOOL) {
+                        if (std::get<bool>(treeVal.value)) {
+                            std::cout << "true" << std::endl;
+                        }
+                        else {
+                            std::cout << "false" << std::endl;
+                        }
+                    } 
+                    if (i < array->elements.size() - 1) {
+                        std::cout << ", ";
+                    }
+                }
+                std::cout << "]" << std::endl;
+            }
             
             variables = tempVars; // if evaluated correctly the variable map is updated
         }

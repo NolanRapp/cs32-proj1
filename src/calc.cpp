@@ -54,6 +54,36 @@ int main(){
                             std::cout << "false";
                         }
                     } 
+                    else if (array->elements[i].type == ReturnType::NUL) {
+                        std::cout << "null";
+                    }
+                    else if (array->elements[i].type == ReturnType::ARRAY) {
+                        std::cout << "[";
+                        auto nestedArray = std::get<std::shared_ptr<variableVal::Array>>(array->elements[i].value);
+                        for (size_t i = 0; i < nestedArray->elements.size(); ++i) {
+                            if (nestedArray->elements[i].type == ReturnType::NUM) {
+                                std::cout << std::get<double>(nestedArray->elements[i].value);
+                            }
+                            else if (nestedArray->elements[i].type == ReturnType::BOOL) {
+                                if (std::get<bool>(nestedArray->elements[i].value)) {
+                                    std::cout << "true";
+                                }
+                                else {
+                                    std::cout << "false";
+                                }
+                            } 
+                            else if (nestedArray->elements[i].type == ReturnType::NUL) {
+                                std::cout << "null";
+                            }
+                        }
+                        
+                        if (i < nestedArray->elements.size() - 1) {
+                            std::cout << ", ";
+                        }
+                        std::cout << "]";
+                    }
+
+
                     if (i < array->elements.size() - 1) {
                         std::cout << ", ";
                     }

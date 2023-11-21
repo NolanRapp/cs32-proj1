@@ -19,15 +19,40 @@ bool variableVal::operator == (const variableVal& rVal) const{
         case ReturnType::FUNC:
             return (std::get<std::shared_ptr<Func>>(value)->mForest == std::get<std::shared_ptr<Func>>(rVal.value)->mForest);
         case ReturnType::ARRAY: {
-            if (std::get<std::vector<variableVal>>(value).size() != std::get<std::vector<variableVal>>(rVal.value).size()) {
+            // Check if one variableVal is NOT an array
+            // using std::holds_alternative, https://en.cppreference.com/w/cpp/utility/variant/holds_alternative
+            if (!std::holds_alternative<std::shared_ptr<Array>>(value) ||
+                !std::holds_alternative<std::shared_ptr<Array>>(rVal.value)) {
                 return false;
             }
-            for (size_t i = 0; i < std::get<std::vector<variableVal>>(value).size(); i++) {
-                if (!(std::get<std::vector<variableVal>>(value)[i] == std::get<std::vector<variableVal>>(rVal.value)[i])) {
+
+            auto& left = std::get<std::shared_ptr<Array>>(value);
+            auto& right = std::get<std::shared_ptr<Array>>(rVal.value);
+
+            // Check if both shared pointers point to the same array
+            if (left == right) {
+                return true;
+            }
+
+            // Check if either array is null
+            if (!left || !right) {
+                return false;
+            }
+
+            // Check if array sizes are different
+            if (left->elements.size() != right->elements.size()) {
+                return false;
+            }
+
+            // Check if any elements in array are different
+            for (size_t i = 0; i < std::get<std::shared_ptr<Array>>(value)->elements.size(); i++) {
+                if (!(left->elements[i] == right->elements[i])) {
                     return false;
                 }
             }
-        return true;
+
+            // If everything is equal, return true
+            return true;
     }
         default:
             throw std::runtime_error("Compared type not in variableVals, programmed wrong");
@@ -53,6 +78,10 @@ variableVal::Func::~Func(){
     }
     mForest.reset();
 }
+
+/*variableVal::Array::~Array(){
+    // implement?
+}*/
 
 
 
@@ -344,8 +373,45 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
     variableVal rVal(children[children.size()-1]->evaluate(vars));
 
     for (size_t i = 0; i < children.size() - 1; i++) {
-        vars[children[i]->getID()] = rVal;
+        TreeNode* lVal = children[i];
+
+        // If left child is a TreeArrayCall type, set equal to arrayC
+        // using dynamic_cast https://en.cppreference.com/w/cpp/language/dynamic_cast
+        if (TreeArrayCall* arrayC = dynamic_cast<TreeArrayCall*>(lVal)) {
+            
+            // Array element assignment
+            std::string arrayId = arrayC->getArrayName()->getID();
+            
+            // Check if array exists
+            auto i = vars.find(arrayId);
+            if (i == vars.end() || i->second.type != ReturnType::ARRAY) {
+                throw std::runtime_error("Runtime error: Array doesn't exist.");
+            }
+
+
+            // Array index
+            variableVal index = arrayC->getArrayIndex()->evaluate(vars);
+            if (index.type != ReturnType::NUM) {
+                throw std::runtime_error("Runtime error: Index is not a number.");
+            }
+
+            int idx = static_cast<int>(std::get<double>(index.value));
+            auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(i->second.value)->elements;
+
+            if (idx < 0 || idx >= static_cast<int>(arrayElements.size())) {
+                throw std::runtime_error("Runtime error: Index out of bounds.");
+            }
+
+            // Assign value
+            arrayElements[idx] = rVal;
+        } 
+
+        // Otherwise, regular assignment
+        else {
+            vars[lVal->getID()] = rVal;
+        }
     }
+
     return rVal;
 }
 
@@ -739,29 +805,24 @@ void TreeStatement::printInfix(int depth) const{
 
 
 
-// Tree Array Literal Constructor
-TreeArrayLiteral::TreeArrayLiteral(std::vector<TreeNode*> arrayElements) {
-    this->arrayElements = arrayElements;
-}
-
 
 
 // Evaluates Tree Array Literal Contents 
-variableVal TreeArrayLiteral::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
+variableVal TreeArray::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
     std::vector<variableVal> arrayContents;
-    for (TreeNode* a : arrayElements) {
-        arrayContents.push_back(a->evaluate(vars));
+    for (auto& e : arrayElements) {
+        arrayContents.push_back(e->evaluate(vars));
     }
-    return variableVal(arrayContents);
+    return variableVal(std::make_shared<variableVal::Array>(arrayContents));
 }
 
 
 
 // Prints Tree Array Literal Infix
-void TreeArrayLiteral::printInfix(int depth) const {
+void TreeArray::printInfix(int depth) const {
     std::cout << "[";
     for (size_t i = 0; i < arrayElements.size(); ++i) {
-        arrayElements[i]->printInfix(depth);
+        arrayElements[i]->printInfix(0);
         if (i < arrayElements.size()-1) {
             std::cout << ", ";
         }
@@ -773,55 +834,60 @@ void TreeArrayLiteral::printInfix(int depth) const {
 
 
 
-// Tree Array Lookup Constructor
-TreeArrayLookup::TreeArrayLookup(TreeNode* array, TreeNode* element) {
-    this->array = array;
-    this->element = element;
-}
-
-
 
 // Evaluates Tree Array Lookups, Checks for Errors
-// TODO: make sure error checking should go here 
-variableVal TreeArrayLookup::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
-    variableVal arrayExpression = array->evaluate(vars); // Evaulating expression in front of array
-    variableVal arrayElement = element->evaluate(vars); // Evaluating index of array
+variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
 
-    // Checking if index is a number
-    if (arrayElement.type != ReturnType::NUM) {
+    std::string arrayId;
+    try { 
+        arrayId = arrayName->getID();
+    }
+    catch (const std::runtime_error& e) {
+        throw std::runtime_error("Runtime error: array identifier not found.");
+    }
+
+    // Check if array exists in variable map
+    auto arrayIdentifier = vars.find(arrayId);
+    if(arrayIdentifier == vars.end() || arrayIdentifier->second.type != ReturnType::ARRAY){
+        throw std::runtime_error("Runtime error: Array not found.");
+    }
+
+
+    // Evaluating index of array expression
+    variableVal arrayIndex = index->evaluate(vars);
+
+    // Check if index is a number
+    if (arrayIndex.type != ReturnType::NUM) {
         throw std::runtime_error("Runtime error: index is not a number.");
     }
 
-    // Checking if array lookup is used on an array
-    if (arrayExpression.type != ReturnType::ARRAY) {
-        throw std::runtime_error("Runtime error: not an array.");
-    }
 
-    std::vector<variableVal>& a = std::get<std::vector<variableVal>>(arrayExpression.value);
-    int e = static_cast<int>(std::get<double>(arrayElement.value));
+    // Converting index of array to an integer, and accessing array elements
+    auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(arrayIdentifier->second.value)->elements;
+    int index = static_cast<int>(std::get<double>(arrayIndex.value));
 
-    // Checking if index is out of bounds
-    if (e >= static_cast<int>(a.size()) || e < 0) {
+    // Check if index is out of bounds
+    if (index >= static_cast<int>(arrayElements.size()) || index < 0) {
         throw std::runtime_error("Runtime error: index out of bounds.");
     }
-    
-    // Checking if index is not an integer
+    // Check if index is not an integer
     double integral;
-    double fraction = modf(e, &integral);
+    double fraction = modf(index, &integral);
     if (fraction != 0.0) {
         std::runtime_error("Runtime error: index is not an integer.");
     }
 
-    return a[e];
+    // Return value of indexed array
+    return arrayElements[index];
 }
 
 
 
 // Prints Tree Array Lookup Infix
-void TreeArrayLookup::printInfix(int depth) const {
-    array->printInfix(depth);
+void TreeArrayCall::printInfix(int depth) const {
+    arrayName->printInfix(depth);
     std::cout << "[";
-    element->printInfix(depth);
+    index->printInfix(depth);
     std::cout << "]";
 }
 

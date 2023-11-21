@@ -46,6 +46,7 @@ class New_Parser {
         TreeNode* parseF(std::deque<Token>& tokenizedQ);                 // Parses a factor (integer, ID, parenthesis, null)
         std::vector<TreeNode*> parseArgs(std::deque<Token>& tokenizedQ); // Parses arguments as expressions between bounding tokens ("()" or "[]")
         TreeNode* parseArray(std::deque<Token>& tokenizedQ);             // Parses an Array (Array Lookup: "expression [expression]") (Array Literal: "[0+ expressions]")
+        TreeNode* parseIdx(std::deque<Token>& tokenizedQ);             
 
 
     private:

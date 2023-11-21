@@ -53,15 +53,21 @@ struct variableVal {
         ~Func(); 
     };
 
-    /*struct Array {
-        
+    struct Array {
+        /*
         A struct to properly store all information pretaining to arrays
         so a arrays can be assigned variables, reassigned, and properly handeled.
+        */
+
+        std::vector<variableVal> elements;
+        
+        Array(const std::vector<variableVal>& e) : elements(e) {}
+        //~Array();
             
-    };*/
+    };
 
     ReturnType                                          type;    // Stores current ReturnType so the right value can be returned
-    std::variant<double, bool, std::shared_ptr<Func>, std::vector<variableVal>>   value;   // Stores actual value in a std::variant (a union)
+    std::variant<double, bool, std::shared_ptr<Func>, std::shared_ptr<Array>>   value;   // Stores actual value in a std::variant (a union)
 
     bool operator == (const variableVal& lVal) const;            // Evaluates equality between values
     bool operator != (const variableVal& lVal) const;            // Evaluates inequality between values
@@ -71,8 +77,7 @@ struct variableVal {
     variableVal(double val)                     : type(ReturnType::NUM)  { value = val; }
     variableVal(bool val)                       : type(ReturnType::BOOL) { value = val; }
     variableVal(std::shared_ptr<Func> val)      : type(ReturnType::FUNC) { value = val; }
-    variableVal(std::vector<variableVal> val)  : type(ReturnType::ARRAY) { value = val;}
-    //variableVal(std::shared_ptr<Array> val)     : type(ReturnType::ARRAY) { value = val; }
+    variableVal(std::shared_ptr<Array> val)     : type(ReturnType::ARRAY) { value = val;}
 };
 
 
@@ -315,49 +320,57 @@ class TreeStatement : public TreeNode {
 
 
 
-class TreeArrayLiteral : public TreeNode {
+class TreeArray : public TreeNode {
     /*
     This class is used to 
     */
 
     public:
-                                TreeArrayLiteral(std::vector<TreeNode*> arrayElements);
+                                TreeArray(TreeNode* array, const std::vector<TreeNode*>& elements) : array(array), arrayElements(elements) {};
         virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void            printInfix(int depth) const;
-        virtual std::string     getID() {                                                              // Will only work on TreeIdentifiers
+        virtual std::string     getID() {
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
-        ~TreeArrayLiteral() {
-            for (auto& a : arrayElements) {
-                delete a;
+        ~TreeArray() {
+            for (auto e : arrayElements) {
+                delete e;
             }
+            delete array;
         }
 
-        std::vector<TreeNode*> arrayElements;
+        TreeNode* array; // name of array
+        std::vector<TreeNode*> arrayElements; // vector of elements within the array
 
 };
 
 
 
-class TreeArrayLookup : public TreeNode {
+class TreeArrayCall : public TreeNode {
     /*
     This class is used to 
     */
 
         public:
-                                    TreeArrayLookup(TreeNode* array, TreeNode* element);
+                                    TreeArrayCall(TreeNode* arrayName, TreeNode* index) : arrayName(arrayName), index(index) {};
             virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;
             virtual void            printInfix(int depth) const;
-            virtual std::string     getID() {                                                                   // Will only work on TreeIdentifiers
+            virtual std::string     getID() {
                 throw std::runtime_error("Runtime error: invalid assignee.");
             }; 
-            ~TreeArrayLookup() {
-                delete array;
-                delete element;
+            TreeNode* getArrayName() const {
+                return arrayName;
+            }
+            TreeNode* getArrayIndex() const {
+                return index;
+            }
+            ~TreeArrayCall() {
+                delete arrayName;
+                delete index;
             }
 
-            TreeNode* array;
-            TreeNode* element;
+            TreeNode* arrayName; // name of array
+            TreeNode* index; // index, in order to access value in array
 };
 
 

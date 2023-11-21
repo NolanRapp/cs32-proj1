@@ -300,24 +300,24 @@ TreeNode* New_Parser::parseArray(std::deque<Token>& tokenizedQ) {
     if (nextToken == "[") {
         std::vector<TreeNode*> elements = parseArgs(tokenizedQ);
         std::unique_ptr<TreeArray> arrayLiteralNode(new TreeArray(nullptr, elements));
-        left.reset(arrayLiteralNode.release());
+        left = std::move(arrayLiteralNode);
     }
 
-    // Parsing all other expressions (could lead to array lookup)
+    // Parsing all other expressions
     else {
         std::unique_ptr<TreeNode> node(parseF(tokenizedQ));
+        left.reset(node.release());
+    }
 
-        // Parsing an Array Lookup
-        if (nextToken == "[") {
-            std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(node.release(), parseIdx(tokenizedQ)));
-            left.reset(arrayCallNode.release());
-        }
-        else {
-            left.reset(node.release());
-        }
+    // Parsing array lookups, in the format of variable[array], or [array][index]
+    while (nextToken == "[") {
+        std::unique_ptr<TreeNode> idxNode(parseIdx(tokenizedQ));
+        std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(left.release(), idxNode.release()));
+        left = std::move(arrayCallNode);
     }
     return left.release();
 }
+
 
 
 // Parses a factor (integer, ID, parenthesis, null)

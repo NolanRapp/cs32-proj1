@@ -399,7 +399,7 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
             auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(i->second.value)->elements;
 
             if (idx < 0 || idx >= static_cast<int>(arrayElements.size())) {
-                throw std::runtime_error("Runtime error: Index out of bounds.");
+                throw std::runtime_error("Runtime error: index out of bounds.");
             }
 
             // Assign value
@@ -837,21 +837,15 @@ void TreeArray::printInfix(int depth) const {
 
 // Evaluates Tree Array Lookups, Checks for Errors
 variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
+    variableVal arrayId = arrayName->evaluate(vars);
 
-    std::string arrayId;
-    try { 
-        arrayId = arrayName->getID();
-    }
-    catch (const std::runtime_error& e) {
-        throw std::runtime_error("Runtime error: array identifier not found.");
+    // Check if arrayId is an array
+    if (arrayId.type != ReturnType::ARRAY) {
+        throw std::runtime_error("Runtime error: not an array.");
     }
 
-    // Check if array exists in variable map
-    auto arrayIdentifier = vars.find(arrayId);
-    if(arrayIdentifier == vars.end() || arrayIdentifier->second.type != ReturnType::ARRAY){
-        throw std::runtime_error("Runtime error: Array not found.");
-    }
-
+    // Getting array elements
+    auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(arrayId.value)->elements;
 
     // Evaluating index of array expression
     variableVal arrayIndex = index->evaluate(vars);
@@ -861,9 +855,7 @@ variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>
         throw std::runtime_error("Runtime error: index is not a number.");
     }
 
-
-    // Converting index of array to an integer, and accessing array elements
-    auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(arrayIdentifier->second.value)->elements;
+    // Converting index of array to an integer
     int index = static_cast<int>(std::get<double>(arrayIndex.value));
 
     // Check if index is out of bounds

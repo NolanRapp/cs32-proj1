@@ -48,9 +48,6 @@ class New_Parser {
         TreeNode* parseArray(std::deque<Token>& tokenizedQ);             // Parses an Array (Array Lookup: "expression [expression]") (Array Literal: "[0+ expressions]")
         TreeNode* parseIdx(std::deque<Token>& tokenizedQ);             
 
-        void printArray(const std::shared_ptr<variableVal::Array>& array);
-
-
     private:
         std::string nextToken;                                           // Current token from the Token deque.
         std::string lookahead;                                           // Token ahead of nextToken

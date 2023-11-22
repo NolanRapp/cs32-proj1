@@ -710,54 +710,8 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
 
     if (cVal.type == ReturnType::ARRAY) {
         auto array = std::get<std::shared_ptr<variableVal::Array>>(cVal.value);
-        std::cout << "[";
-        for (size_t i = 0; i < array->elements.size(); ++i) {
-            if (array->elements[i].type == ReturnType::NUM) {
-                std::cout << std::get<double>(array->elements[i].value);
-            } 
-            else if (array->elements[i].type == ReturnType::BOOL) {
-                if (std::get<bool>(array->elements[i].value)) {
-                    std::cout << "true";
-                }
-                else {
-                    std::cout << "false";
-                }
-            } 
-            else if (array->elements[i].type == ReturnType::NUL) {
-                std::cout << "null";
-            }
-            /*else if (array->elements[i].type == ReturnType::ARRAY) {
-                std::cout << "[";
-                auto nestedArray = std::get<std::shared_ptr<variableVal::Array>>(array->elements[i].value);
-                for (size_t i = 0; i < nestedArray->elements.size(); ++i) {
-                    if (nestedArray->elements[i].type == ReturnType::NUM) {
-                        std::cout << std::get<double>(nestedArray->elements[i].value);
-                    }
-                    else if (nestedArray->elements[i].type == ReturnType::BOOL) {
-                        if (std::get<bool>(nestedArray->elements[i].value)) {
-                            std::cout << "true";
-                        }
-                        else {
-                            std::cout << "false";
-                        }
-                    } 
-                    else if (nestedArray->elements[i].type == ReturnType::NUL) {
-                        std::cout << "null";
-                    }
-                }
-                
-                if (i < nestedArray->elements.size() - 1) {
-                    std::cout << ", ";
-                }
-                std::cout << "]";
-            }*/
-
-
-            if (i < array->elements.size() - 1) {
-                std::cout << ", ";
-            }
-        }
-        std::cout << "]" << std::endl;
+        printArray(array);
+        return;
     }
 
     throw std::runtime_error("Called print on non-number or non-bool"); // May need to change to specific syntax
@@ -948,5 +902,31 @@ void TreeArrayCall::printInfix(int depth) const {
     arrayName->printInfix(depth);
     std::cout << "[";
     index->printInfix(depth);
+    std::cout << "]";
+}
+
+
+
+void printArray(const std::shared_ptr<variableVal::Array>& array) {
+    std::cout << "[";
+    for (size_t i = 0; i < array->elements.size(); ++i) {
+
+        if (array->elements[i].type == ReturnType::NUM) {
+            std::cout << std::get<double>(array->elements[i].value);
+        }
+        else if (array->elements[i].type == ReturnType::BOOL) {
+            std::cout << (std::get<bool>(array->elements[i].value) ? "true" : "false");
+        }
+        else if (array->elements[i].type == ReturnType::NUL) {
+            std::cout << "null";
+        }
+        else if (array->elements[i].type == ReturnType::ARRAY) {
+            printArray(std::get<std::shared_ptr<variableVal::Array>>(array->elements[i].value));
+        }
+
+        if (i < array->elements.size() - 1) {
+            std::cout << ", ";
+        }
+    }
     std::cout << "]";
 }

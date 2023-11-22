@@ -374,4 +374,8 @@ class TreeArrayCall : public TreeNode {
 };
 
 
+// Helper function to recursively print a nested array
+void printArray(const std::shared_ptr<variableVal::Array>& array);
+
+
 #endif

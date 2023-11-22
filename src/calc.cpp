@@ -41,7 +41,7 @@ int main(){
             }
             else if (treeVal.type == ReturnType::ARRAY) {
                 auto array = std::get<std::shared_ptr<variableVal::Array>>(treeVal.value);
-                std::cout << "[";
+                /*std::cout << "[";
                 for (size_t i = 0; i < array->elements.size(); ++i) {
                     if (array->elements[i].type == ReturnType::NUM) {
                         std::cout << std::get<double>(array->elements[i].value);
@@ -88,7 +88,9 @@ int main(){
                         std::cout << ", ";
                     }
                 }
-                std::cout << "]" << std::endl;
+                std::cout << "]" << std::endl;*/
+                printArray(array);
+                std::cout << std::endl;
             }
 
             else if (treeVal.type == ReturnType::NUL) {

@@ -402,11 +402,19 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
                 throw std::runtime_error("Runtime error: index is not a number.");
             }
 
-            int idx = static_cast<int>(std::get<double>(index.value));
+            double idx = static_cast<double>(std::get<double>(index.value));
             auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(i->second.value)->elements;
 
+            // Check if index is positive and in bounds 
             if (idx < 0 || idx >= static_cast<int>(arrayElements.size())) {
                 throw std::runtime_error("Runtime error: index out of bounds.");
+            }
+
+            // Check if index is an integer
+            double integral;
+            double fraction = modf(idx, &integral);
+            if (fraction != 0.0) {
+                throw std::runtime_error("Runtime error: index is not an integer.");
             }
 
             // Assign value

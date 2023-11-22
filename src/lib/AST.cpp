@@ -378,21 +378,28 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
         // If left child is a TreeArrayCall type, set equal to arrayC
         // using dynamic_cast https://en.cppreference.com/w/cpp/language/dynamic_cast
         if (TreeArrayCall* arrayC = dynamic_cast<TreeArrayCall*>(lVal)) {
-            
+            std::string arrayId;
+
             // Array element assignment
-            std::string arrayId = arrayC->getArrayName()->getID();
+            try {
+                arrayId = arrayC->getArrayName()->getID();
+            }
+            catch (const std::runtime_error& e) {
+                // Gives error message with specific syntax
+                throw std::runtime_error("Runtime error: not an array.");
+            }
             
             // Check if array exists
             auto i = vars.find(arrayId);
             if (i == vars.end() || i->second.type != ReturnType::ARRAY) {
-                throw std::runtime_error("Runtime error: Array doesn't exist.");
+                throw std::runtime_error("Runtime error: not an array.");
             }
 
 
             // Array index
             variableVal index = arrayC->getArrayIndex()->evaluate(vars);
             if (index.type != ReturnType::NUM) {
-                throw std::runtime_error("Runtime error: Index is not a number.");
+                throw std::runtime_error("Runtime error: index is not a number.");
             }
 
             int idx = static_cast<int>(std::get<double>(index.value));
@@ -460,7 +467,7 @@ void TreeCall::setArgs(std::vector<TreeNode*> args){
 variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     std::string funcName;
 
-    try{ 
+    try { 
         // Will throw unless func is an identifier
         funcName = func->getID();
     }
@@ -856,17 +863,18 @@ variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>
     }
 
     // Converting index of array to an integer
-    int index = static_cast<int>(std::get<double>(arrayIndex.value));
+    double index = static_cast<double>(std::get<double>(arrayIndex.value));
 
     // Check if index is out of bounds
-    if (index >= static_cast<int>(arrayElements.size()) || index < 0) {
+    if (index >= static_cast<int>(arrayElements.size()) || index < 0.0) {
         throw std::runtime_error("Runtime error: index out of bounds.");
     }
+
     // Check if index is not an integer
     double integral;
     double fraction = modf(index, &integral);
     if (fraction != 0.0) {
-        std::runtime_error("Runtime error: index is not an integer.");
+        throw std::runtime_error("Runtime error: index is not an integer.");
     }
 
     // Return value of indexed array

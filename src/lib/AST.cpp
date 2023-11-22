@@ -890,4 +890,3 @@ void TreeArrayCall::printInfix(int depth) const {
     index->printInfix(depth);
     std::cout << "]";
 }
-

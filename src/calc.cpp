@@ -90,6 +90,10 @@ int main(){
                 }
                 std::cout << "]" << std::endl;
             }
+
+            else if (treeVal.type == ReturnType::NUL) {
+                std::cout << "null" << std::endl;
+            }
             
             variables = tempVars; // if evaluated correctly the variable map is updated
         }

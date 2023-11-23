@@ -100,7 +100,7 @@ Completion (Checkpoint 4)
 > Arrays (Track C)
 >
 >> This uses `Scrypt` and `New_Parser` and implements array literals `[expression(s)]`, array lookups `expression[expression(s)]`, and array assignments `[expression(s)][index]=[expression(s)]` or `expression[index] = expression(s)`. Arrays can now be utilized throughout the program with all the nuances of the previous checkpoints. In addition, len(), pop(), and push() array utility functions were implemented as specialty array pre-defined functions.
-
+>
 
 
 

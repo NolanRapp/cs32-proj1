@@ -62,11 +62,10 @@ struct variableVal {
         std::vector<variableVal> elements;
         
         Array(const std::vector<variableVal>& e) : elements(e) {}
-        ~Array();
-            
+        ~Array();            
     };
 
-    ReturnType                                          type;                               // Stores current ReturnType so the right value can be returned
+    ReturnType                                                                  type;       // Stores current ReturnType so the right value can be returned
     std::variant<double, bool, std::shared_ptr<Func>, std::shared_ptr<Array>>   value;      // Stores actual value in a std::variant (a union)
 
     bool operator == (const variableVal& lVal) const;                                       // Evaluates equality between values
@@ -128,7 +127,7 @@ class TreeLeaf : public TreeNode {
             throw std::runtime_error("Runtime error: not an array.");
         }
     private:
-        double value;   // Stored double value
+        double value;                                                                                       // Stored double value
 };
 
 
@@ -160,8 +159,8 @@ class TreeOperator : public TreeNode {
         }
 
     private:
-        std::string op;                              // Stored operator as string
-        std::vector<TreeNode*> children;             // Children stored in vector (first index is left child and second index is right child)
+        std::string op;                                                                                     // Stored operator as string
+        std::vector<TreeNode*> children;                                                                    // Children stored in vector (first index is left child and second index is right child)
 };
 
 
@@ -180,7 +179,7 @@ class TreeIdentifier : public TreeNode {
         virtual std::string getID();                                                                        // Returns the variable name, also used to see if a node is a TreeIdentifier
         std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);   // Returns shared_ptr< Array>, checks map to see if this ID is assigned to an array
     private:
-        std::string idName;                          // Identifier name as string
+        std::string idName;                                                                                 // Identifier name as string
 
 };
 
@@ -204,7 +203,7 @@ class TreeBoolean : public TreeNode {
         };
 
     private:
-        std::string value;                    // Node's boolean value stored as "true" or "false"
+        std::string value;                                                                                  // Node's boolean value stored as "true" or "false"
 };
 
 
@@ -233,7 +232,7 @@ class TreeAssign : public TreeNode {
         }
 
     private:
-        std::vector<TreeNode*> children;            // Children stored in vector (first index is left child and second index is right child)
+        std::vector<TreeNode*> children;                                                                    // Children stored in vector (first index is left child and second index is right child)
 };
 
 
@@ -266,8 +265,8 @@ class TreeCall : public TreeNode {
         }
 
     private:
-        TreeNode*               func;                                // Stored function name (TreeIdentifier or will error when called)
-        std::vector<TreeNode*>  args;                                // Vector of expression that will return values for the parameters of the Func called
+        TreeNode*               func;                                                                       // Stored function name (TreeIdentifier or will error when called)
+        std::vector<TreeNode*>  args;                                                                       // Vector of expression that will return values for the parameters of the Func called
 };
 
 
@@ -298,9 +297,9 @@ class TreeDefinition : public TreeNode {
             forest.reset();
         }
 
-        std::string               funcName;                              // Name of function defined
-        std::vector<std::string>  params;                                // Vector of identifier names
-        std::shared_ptr<std::vector<TreeNode*>> forest;                  // shared_ptr to a forest to be based to a Func
+        std::string               funcName;                                                                 // Name of function defined
+        std::vector<std::string>  params;                                                                   // Vector of identifier names
+        std::shared_ptr<std::vector<TreeNode*>> forest;                                                     // shared_ptr to a forest to be based to a Func
 };
 
 
@@ -337,10 +336,10 @@ class TreeStatement : public TreeNode {
             }
         }
 
-        std::string             stateStr;                               // Stored type of statement as string
-        TreeNode*               condition = nullptr;                    // Tree for condition
-        std::vector<TreeNode*>  truths;                                 // Forest for evaluation when condition is true
-        std::vector<TreeNode*>  falses;                                 // Forest for evaluation when condition is false
+        std::string             stateStr;                                                                   // Stored type of statement as string
+        TreeNode*               condition = nullptr;                                                        // Tree for condition
+        std::vector<TreeNode*>  truths;                                                                     // Forest for evaluation when condition is true
+        std::vector<TreeNode*>  falses;                                                                     // Forest for evaluation when condition is false
 };
 
 
@@ -366,8 +365,8 @@ class TreeArray : public TreeNode {
             delete array;
         }
 
-        TreeNode* array;                            // name of array (should be nullptr, if array literal)
-        std::vector<TreeNode*> arrayElements;       // vector of elements within the array
+        TreeNode* array;                                                                                    // name of array (should be nullptr, if array literal)
+        std::vector<TreeNode*> arrayElements;                                                               // vector of elements within the array
 
 };
 
@@ -407,10 +406,10 @@ class TreeArrayCall : public TreeNode {
             delete assigned;
         }
 
-        TreeNode* arrayName;            // name of array
-        TreeNode* index;                // index, in order to access value in array
-        TreeNode* assigned;             // assigned value, only used if parsing an array lookup + assignment. Default nullptr
-        variableVal assignValue;        // assigned value used for array lookup assignments 
+        TreeNode* arrayName;                                                                                // name of array
+        TreeNode* index;                                                                                    // index, in order to access value in array
+        TreeNode* assigned;                                                                                 // assigned value, only used if parsing an array lookup + assignment. Default nullptr
+        variableVal assignValue;                                                                            // assigned value used for array lookup assignments 
 };
 
 

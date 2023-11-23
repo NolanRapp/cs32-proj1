@@ -292,7 +292,8 @@ TreeNode* New_Parser::parseCall(std::deque<Token>& tokenizedQ) {
 }
 
 
-// Parses an Array Literal, Array Lookup, and Array Lookup Assignment
+
+// Parses an Array (Array Lookup: "expression [expression]") (Array Literal: "[0+ expressions]")
 TreeNode* New_Parser::parseArray(std::deque<Token>& tokenizedQ) { 
     std::unique_ptr<TreeNode> left;
 
@@ -332,7 +333,7 @@ TreeNode* New_Parser::parseArray(std::deque<Token>& tokenizedQ) {
 
 
 
-// Parses a factor (integer, ID, parenthesis, null)
+// Parses a factor (integer, ID, parenthesis, null, array)
 TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
     if (nextToken.empty()) {

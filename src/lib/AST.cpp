@@ -519,6 +519,7 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
 }
 
 
+
 // Utility Function helper function to evaluate the length of an arry
 variableVal TreeCall::evaluateLen(std::unordered_map<std::string, variableVal>& vars) const{
     if(args.size() != 1){
@@ -535,6 +536,7 @@ variableVal TreeCall::evaluateLen(std::unordered_map<std::string, variableVal>& 
 
     return variableVal(sizeD);
 }
+
 
 
 // Utility Function helper function to evaluate an array push  
@@ -554,6 +556,7 @@ variableVal TreeCall::evaluatePush(std::unordered_map<std::string, variableVal>&
 
     return variableVal(nullptr);
 }
+
 
 
 // Utility Function helper function to evaluate an array pop  
@@ -661,6 +664,7 @@ void TreeDefinition::printInfix(int depth) const {
     }
     std::cout << "}"; 
 }
+
 
 
 
@@ -901,6 +905,9 @@ void TreeStatement::printInfix(int depth) const{
 
 
 
+
+
+
 // Evaluates Tree Array Literal Contents 
 variableVal TreeArray::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
     std::vector<variableVal> arrayContents;
@@ -925,6 +932,7 @@ void TreeArray::printInfix(int depth) const {
 }
 
 
+
 // Returns shared_ptr< Array>, checks map to see if this ID is assigned to an array
 std::shared_ptr<variableVal::Array> TreeArray::getArray(std::unordered_map<std::string, variableVal>& vars){
     std::vector<variableVal> tempArray;
@@ -933,6 +941,9 @@ std::shared_ptr<variableVal::Array> TreeArray::getArray(std::unordered_map<std::
     }
     return std::make_shared<variableVal::Array>(tempArray);
 }
+
+
+
 
 
 
@@ -1017,3 +1028,6 @@ void printArray(const std::shared_ptr<variableVal::Array>& array) {
     }
     std::cout << "]";
 }
+
+
+

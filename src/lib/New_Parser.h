@@ -45,9 +45,9 @@ class New_Parser {
         TreeNode* parseE(std::deque<Token>& tokenizedQ);                 // Parses expression operators "+" "-"
         TreeNode* parseT(std::deque<Token>& tokenizedQ);                 // Parses term operators "*" "/" "%"
         TreeNode* parseCall(std::deque<Token>& tokenizedQ);              // Parses function calls
-        TreeNode* parseF(std::deque<Token>& tokenizedQ);                 // Parses a factor (integer, ID, parenthesis, null)
-        std::vector<TreeNode*> parseArgs(std::deque<Token>& tokenizedQ); // Parses arguments as expressions between bounding tokens ("()" or "[]")
+        TreeNode* parseF(std::deque<Token>& tokenizedQ);                 // Parses a factor (integer, ID, parenthesis, null, array)
         TreeNode* parseArray(std::deque<Token>& tokenizedQ);             // Parses an Array (Array Lookup: "expression [expression]") (Array Literal: "[0+ expressions]")
+        std::vector<TreeNode*> parseArgs(std::deque<Token>& tokenizedQ); // Parses arguments as expressions between bounding tokens ("()" or "[]")
         TreeNode* parseIdx(std::deque<Token>& tokenizedQ);               // Helper function to parse index for array lookup             
 
     private:

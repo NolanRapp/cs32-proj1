@@ -105,6 +105,7 @@ class TreeNode {
         virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const = 0; // Evaluates value based on type of node
         virtual void        printInfix(int depth) const = 0;                                        // Prints node is desired format with depth (indentation)
         virtual std::string getID() = 0;                                                            // Will error on all nodes except TreeIdentifiers
+        virtual std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) = 0;
         virtual ~TreeNode() {};
 };
 
@@ -122,7 +123,10 @@ class TreeLeaf : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Prints double value
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        };
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
     private:
         double value;                                                                               // Stored double value
 };
@@ -145,7 +149,10 @@ class TreeOperator : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Print in format "([left child] [operator] [right child])"
         virtual std::string getID(){                                                                // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        };
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
         ~TreeOperator() {
             for (TreeNode* child : children) {
                 delete child;
@@ -171,7 +178,7 @@ class TreeIdentifier : public TreeNode {
         virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Return variableVal that the identifiers name maps to in the variable map
         virtual void        printInfix(int depth) const;                                            // Prints identifier name
         virtual std::string getID();                                                                // Returns the variable name, also used to see if a node is a TreeIdentifier
-
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);
     private:
         std::string idName;                                                                         // Identifier name as string
 
@@ -191,6 +198,9 @@ class TreeBoolean : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Prints "True" or "False" depending on node's value string
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
+        };
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
         };
 
     private:
@@ -212,7 +222,10 @@ class TreeAssign : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Print in format "([left child] = [right child])"
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        };
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
         ~TreeAssign() {
             for (TreeNode* child : children) {
                 delete child;
@@ -238,7 +251,10 @@ class TreeCall : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Prints in format "[func]([args])"
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        };
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
         ~TreeCall() {
             delete func;
             for (TreeNode* child : args) {
@@ -265,8 +281,10 @@ class TreeDefinition : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Prints in format "def [funcName]([params]){[forest]}" with proper newlines and indentation
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        }; 
-
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
         ~TreeDefinition() {
             // Only deleted forest if it is the only object using the forest
             if(forest.use_count() == 1){
@@ -302,8 +320,10 @@ class TreeStatement : public TreeNode {
         virtual void        printInfix(int depth) const;                                                // Complicated print to print statement based on stateStr
         virtual std::string getID() {                                                                   // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        }; 
-
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
         ~TreeStatement() {
             delete condition;
             for (TreeNode* child : truths) {
@@ -334,7 +354,8 @@ class TreeArray : public TreeNode {
         virtual void            printInfix(int depth) const;                                                                                        // Prints Tree Array Literal Infix
         virtual std::string     getID() {                                                                                                           // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        };
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);
         ~TreeArray() {
             for (auto e : arrayElements) {
                 delete e;
@@ -363,7 +384,10 @@ class TreeArrayCall : public TreeNode {
         virtual void            printInfix(int depth) const;                                                                    // Prints Tree Array Lookup Infix
         virtual std::string     getID() {                                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        }; 
+        }
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+            throw std::runtime_error("Runtime error: not an array.");
+        }
         TreeNode* getArrayName() const {
             return arrayName;
         }

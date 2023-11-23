@@ -19,12 +19,6 @@ bool variableVal::operator == (const variableVal& rVal) const{
         case ReturnType::FUNC:
             return (std::get<std::shared_ptr<Func>>(value)->mForest == std::get<std::shared_ptr<Func>>(rVal.value)->mForest);
         case ReturnType::ARRAY: {
-            // Check if one variableVal is NOT an array
-            if (!std::holds_alternative<std::shared_ptr<Array>>(value) ||
-                !std::holds_alternative<std::shared_ptr<Array>>(rVal.value)) {
-                return false;
-            }
-
             auto& left = std::get<std::shared_ptr<Array>>(value);
             auto& right = std::get<std::shared_ptr<Array>>(rVal.value);
 

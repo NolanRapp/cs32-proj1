@@ -396,7 +396,7 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
             std::string arrayId;
 
             // Array element assignment
-            std::shared_ptr<variableVal::Array> arrayElements = arrayC->getArray(vars);
+            std::shared_ptr<variableVal::Array> arrayElements = arrayC->arrayName->getArray(vars);
 
             // Array index
             variableVal index = arrayC->getArrayIndex()->evaluate(vars);
@@ -870,15 +870,8 @@ std::shared_ptr<variableVal::Array> TreeArray::getArray(std::unordered_map<std::
 
 // Evaluates Tree Array Lookups, Checks for Errors
 variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
-    variableVal arrayId = arrayName->evaluate(vars);
-
-    // Check if arrayId is an array
-    if (arrayId.type != ReturnType::ARRAY) {
-        throw std::runtime_error("Runtime error: not an array.");
-    }
-
     // Getting array elements
-    auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(arrayId.value)->elements;
+    std::shared_ptr<variableVal::Array> arrayElements = arrayName->getArray(vars);
 
     // Evaluating index of array expression
     variableVal arrayIndex = index->evaluate(vars);
@@ -892,7 +885,7 @@ variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>
     double index = static_cast<double>(std::get<double>(arrayIndex.value));
 
     // Check if index is out of bounds
-    if (index >= static_cast<int>(arrayElements.size()) || index < 0.0) {
+    if (index >= static_cast<int>(arrayElements->elements.size()) || index < 0.0) {
         throw std::runtime_error("Runtime error: index out of bounds.");
     }
 
@@ -906,13 +899,13 @@ variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>
     // If assignment, evaluate and return assigned value
     if (assigned) {
         variableVal val = assigned->evaluate(vars);
-        arrayElements[index] = val;
+        arrayElements->elements[index] = val;
         return val;
     }
 
     // If an array lookup:
     else {
-        return arrayElements[index];
+        return arrayElements->elements[index];
     }
 }
 

@@ -62,15 +62,15 @@ struct variableVal {
         std::vector<variableVal> elements;
         
         Array(const std::vector<variableVal>& e) : elements(e) {}
-        //~Array();
+        ~Array();
             
     };
 
-    ReturnType                                          type;    // Stores current ReturnType so the right value can be returned
-    std::variant<double, bool, std::shared_ptr<Func>, std::shared_ptr<Array>>   value;   // Stores actual value in a std::variant (a union)
+    ReturnType                                          type;                               // Stores current ReturnType so the right value can be returned
+    std::variant<double, bool, std::shared_ptr<Func>, std::shared_ptr<Array>>   value;      // Stores actual value in a std::variant (a union)
 
-    bool operator == (const variableVal& lVal) const;            // Evaluates equality between values
-    bool operator != (const variableVal& lVal) const;            // Evaluates inequality between values
+    bool operator == (const variableVal& lVal) const;                                       // Evaluates equality between values
+    bool operator != (const variableVal& lVal) const;                                       // Evaluates inequality between values
 
     variableVal()                               : type(ReturnType::NONE) {}
     variableVal(std::nullptr_t)                 : type(ReturnType::NUL)  {} 
@@ -102,10 +102,10 @@ class TreeNode {
     */
 
     public:
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const = 0; // Evaluates value based on type of node
-        virtual void        printInfix(int depth) const = 0;                                        // Prints node is desired format with depth (indentation)
-        virtual std::string getID() = 0;                                                            // Will error on all nodes except TreeIdentifiers
-        virtual std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) = 0;
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const = 0;                     // Evaluates value based on type of node
+        virtual void        printInfix(int depth) const = 0;                                                            // Prints node is desired format with depth (indentation)
+        virtual std::string getID() = 0;                                                                                // Will error on all nodes except TreeIdentifiers
+        virtual std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) = 0;   // Will error on all nodes execpt TreeArray and TreeIdentifier
         virtual ~TreeNode() {};
 };
 
@@ -118,17 +118,17 @@ class TreeLeaf : public TreeNode {
     */
 
     public:
-                            TreeLeaf(double val);                                                   // Stores a double inside node
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Returns a variableVal holding the the node's double value
-        virtual void        printInfix(int depth) const;                                            // Prints double value
-        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
+                            TreeLeaf(double val);                                                           // Stores a double inside node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Returns a variableVal holding the the node's double value
+        virtual void        printInfix(int depth) const;                                                    // Prints double value
+        virtual std::string getID() {                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         }
     private:
-        double value;                                                                               // Stored double value
+        double value;   // Stored double value
 };
 
 
@@ -141,16 +141,16 @@ class TreeOperator : public TreeNode {
     */
 
     public:
-                            TreeOperator(std::string operation);                                    // Stores operator as string inside node
-                void        addChild(TreeNode* child);                                              // Adds children to node (left and right child)
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Returns either a variableVal based on operator and its children
-        variableVal         evalOp(std::unordered_map<std::string, variableVal>& vars) const;       // Called by evaluate to return a double variableVal determined by children
-        variableVal         evalComp(std::unordered_map<std::string, variableVal>& vars) const;     // Called by evaluate to return a bool variableVal determined by children
-        virtual void        printInfix(int depth) const;                                            // Print in format "([left child] [operator] [right child])"
-        virtual std::string getID(){                                                                // Will only work on TreeIdentifiers
+                            TreeOperator(std::string operation);                                            // Stores operator as string inside node
+                void        addChild(TreeNode* child);                                                      // Adds children to node (left and right child)
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Returns either a variableVal based on operator and its children
+        variableVal         evalOp(std::unordered_map<std::string, variableVal>& vars) const;               // Called by evaluate to return a double variableVal determined by children
+        variableVal         evalComp(std::unordered_map<std::string, variableVal>& vars) const;             // Called by evaluate to return a bool variableVal determined by children
+        virtual void        printInfix(int depth) const;                                                    // Print in format "([left child] [operator] [right child])"
+        virtual std::string getID(){                                                                        // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         }
         ~TreeOperator() {
@@ -160,8 +160,8 @@ class TreeOperator : public TreeNode {
         }
 
     private:
-        std::string op;                                                                             // Stored operator as string
-        std::vector<TreeNode*> children;                                                            // Children stored in vector (first index is left child and second index is right child)
+        std::string op;                              // Stored operator as string
+        std::vector<TreeNode*> children;             // Children stored in vector (first index is left child and second index is right child)
 };
 
 
@@ -174,13 +174,13 @@ class TreeIdentifier : public TreeNode {
     */
 
     public:
-                            TreeIdentifier(std::string name);                                       // Stores identifier name as string inside node
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Return variableVal that the identifiers name maps to in the variable map
-        virtual void        printInfix(int depth) const;                                            // Prints identifier name
-        virtual std::string getID();                                                                // Returns the variable name, also used to see if a node is a TreeIdentifier
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);
+                            TreeIdentifier(std::string name);                                               // Stores identifier name as string inside node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Return variableVal that the identifiers name maps to in the variable map
+        virtual void        printInfix(int depth) const;                                                    // Prints identifier name
+        virtual std::string getID();                                                                        // Returns the variable name, also used to see if a node is a TreeIdentifier
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);   // Returns shared_ptr< Array>, checks map to see if this ID is assigned to an array
     private:
-        std::string idName;                                                                         // Identifier name as string
+        std::string idName;                          // Identifier name as string
 
 };
 
@@ -193,18 +193,18 @@ class TreeBoolean : public TreeNode {
     */
 
     public:
-                            TreeBoolean(std::string value);                                         // Stores "true" or "false" as string inside node
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Returns variableVal True or False depending on node's value string
-        virtual void        printInfix(int depth) const;                                            // Prints "True" or "False" depending on node's value string
-        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
+                            TreeBoolean(std::string value);                                                 // Stores "true" or "false" as string inside node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Returns variableVal True or False depending on node's value string
+        virtual void        printInfix(int depth) const;                                                    // Prints "True" or "False" depending on node's value string
+        virtual std::string getID() {                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         };
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         };
 
     private:
-        std::string value;                                                                          // Node's boolean value stored as "true" or "false"
+        std::string value;                    // Node's boolean value stored as "true" or "false"
 };
 
 
@@ -216,14 +216,14 @@ class TreeAssign : public TreeNode {
     */
 
     public:
-                            TreeAssign(){}                                                          // No constructor needed
-                void        addChild(TreeNode* child);                                              // Adds children to node (left and right child)
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Attempts to assign left child (identifier or error) the value of its right child
-        virtual void        printInfix(int depth) const;                                            // Print in format "([left child] = [right child])"
-        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
+                            TreeAssign(){}                                                                  // No constructor needed
+                void        addChild(TreeNode* child);                                                      // Adds children to node (left and right child)
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Attempts to assign left child (identifier or error) the value of its right child
+        virtual void        printInfix(int depth) const;                                                    // Print in format "([left child] = [right child])"
+        virtual std::string getID() {                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         }
         ~TreeAssign() {
@@ -233,7 +233,7 @@ class TreeAssign : public TreeNode {
         }
 
     private:
-        std::vector<TreeNode*> children;                                                            // Children stored in vector (first index is left child and second index is right child)
+        std::vector<TreeNode*> children;            // Children stored in vector (first index is left child and second index is right child)
 };
 
 
@@ -245,17 +245,17 @@ class TreeCall : public TreeNode {
     */
 
     public:
-                            TreeCall(TreeNode* func);                                               // Stores a ptr to a node as the name of the TreeCall (runtime error when name isn't an identifier)
-                void        setArgs(std::vector<TreeNode*> args);                                   // Sets args vector given a vector of expressions
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Evaluates a Func from the variable map corresponding to name of TreeCall
-                variableVal evaluateLen(std::unordered_map<std::string, variableVal>& vars) const;
-                variableVal evaluatePush(std::unordered_map<std::string, variableVal>& vars) const;
-                variableVal evaluatePop(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void        printInfix(int depth) const;                                            // Prints in format "[func]([args])"
-        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
+                            TreeCall(TreeNode* func);                                                       // Stores a ptr to a node as the name of the TreeCall (runtime error when name isn't an identifier)
+                void        setArgs(std::vector<TreeNode*> args);                                           // Sets args vector given a vector of expressions
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Evaluates a Func from the variable map corresponding to name of TreeCall
+                variableVal evaluateLen(std::unordered_map<std::string, variableVal>& vars) const;          // Utility Function helper function to evaluate the length of an arry
+                variableVal evaluatePush(std::unordered_map<std::string, variableVal>& vars) const;         // Utility Function helper function to evaluate an array push
+                variableVal evaluatePop(std::unordered_map<std::string, variableVal>& vars) const;          // Utility Function helper function to evaluate an array pop
+        virtual void        printInfix(int depth) const;                                                    // Prints in format "[func]([args])"
+        virtual std::string getID() {                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         }
         ~TreeCall() {
@@ -266,8 +266,8 @@ class TreeCall : public TreeNode {
         }
 
     private:
-        TreeNode*               func;                                                               // Stored function name (TreeIdentifier or will error when called)
-        std::vector<TreeNode*>  args;                                                               // Vector of expression that will return values for the parameters of the Func called
+        TreeNode*               func;                                // Stored function name (TreeIdentifier or will error when called)
+        std::vector<TreeNode*>  args;                                // Vector of expression that will return values for the parameters of the Func called
 };
 
 
@@ -279,13 +279,13 @@ class TreeDefinition : public TreeNode {
     */
 
     public:
-                            TreeDefinition(std::string name);                                       // Stored a string as the name of the function defined
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Makes a Func object from member variables and stores in variable map under funcName
-        virtual void        printInfix(int depth) const;                                            // Prints in format "def [funcName]([params]){[forest]}" with proper newlines and indentation
-        virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
+                            TreeDefinition(std::string name);                                               // Stored a string as the name of the function defined
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Makes a Func object from member variables and stores in variable map under funcName
+        virtual void        printInfix(int depth) const;                                                    // Prints in format "def [funcName]([params]){[forest]}" with proper newlines and indentation
+        virtual std::string getID() {                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         }
         ~TreeDefinition() {
@@ -298,9 +298,9 @@ class TreeDefinition : public TreeNode {
             forest.reset();
         }
 
-        std::string               funcName;                                                         // Name of function defined
-        std::vector<std::string>  params;                                                           // Vector of identifier names
-        std::shared_ptr<std::vector<TreeNode*>> forest;                                             // shared_ptr to a forest to be based to a Func
+        std::string               funcName;                              // Name of function defined
+        std::vector<std::string>  params;                                // Vector of identifier names
+        std::shared_ptr<std::vector<TreeNode*>> forest;                  // shared_ptr to a forest to be based to a Func
 };
 
 
@@ -313,18 +313,18 @@ class TreeStatement : public TreeNode {
     */    
 
     public:
-                            TreeStatement(std::string statement);                                       // Stores command string in node
-        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;         // Will call a function based on stateStr or return a NUL type variableVal
-                void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;       // Evaluates an "if" statement
-                void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;    // Evaluates a "while" statement
-                void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;    // Evaluates a "print" statement
-                void        evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const;   // Evaluates a "return" statement
-                void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;      // Evaluates a standalone expression
-        virtual void        printInfix(int depth) const;                                                // Complicated print to print statement based on stateStr
-        virtual std::string getID() {                                                                   // Will only work on TreeIdentifiers
+                            TreeStatement(std::string statement);                                           // Stores command string in node
+        virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;             // Will call a function based on stateStr or return a NUL type variableVal
+                void        evaluateIf(std::unordered_map<std::string, variableVal>& vars) const;           // Evaluates an "if" statement
+                void        evaluateWhile(std::unordered_map<std::string, variableVal>& vars) const;        // Evaluates a "while" statement
+                void        evaluatePrint(std::unordered_map<std::string, variableVal>& vars) const;        // Evaluates a "print" statement
+                void        evaluateReturn(std::unordered_map<std::string, variableVal>& vars) const;       // Evaluates a "return" statement
+                void        evaluateExp(std::unordered_map<std::string, variableVal>& vars) const;          // Evaluates a standalone expression
+        virtual void        printInfix(int depth) const;                                                    // Complicated print to print statement based on stateStr
+        virtual std::string getID() {                                                                       // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {  // Will error on all nodes execpt TreeArray and TreeIdentifier
             throw std::runtime_error("Runtime error: not an array.");
         }
         ~TreeStatement() {
@@ -337,10 +337,10 @@ class TreeStatement : public TreeNode {
             }
         }
 
-        std::string             stateStr;                                                           // Stored type of statement as string
-        TreeNode*               condition = nullptr;                                                // Tree for condition
-        std::vector<TreeNode*>  truths;                                                             // Forest for evaluation when condition is true
-        std::vector<TreeNode*>  falses;                                                             // Forest for evaluation when condition is false
+        std::string             stateStr;                               // Stored type of statement as string
+        TreeNode*               condition = nullptr;                    // Tree for condition
+        std::vector<TreeNode*>  truths;                                 // Forest for evaluation when condition is true
+        std::vector<TreeNode*>  falses;                                 // Forest for evaluation when condition is false
 };
 
 
@@ -358,7 +358,7 @@ class TreeArray : public TreeNode {
         virtual std::string     getID() {                                                                                                           // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars);                                           // Returns shared_ptr< Array>, checks map to see if this ID is assigned to an array
         ~TreeArray() {
             for (auto e : arrayElements) {
                 delete e;
@@ -366,8 +366,8 @@ class TreeArray : public TreeNode {
             delete array;
         }
 
-        TreeNode* array;                        // name of array (should be nullptr, if array literal)
-        std::vector<TreeNode*> arrayElements;   // vector of elements within the array
+        TreeNode* array;                            // name of array (should be nullptr, if array literal)
+        std::vector<TreeNode*> arrayElements;       // vector of elements within the array
 
 };
 
@@ -382,13 +382,14 @@ class TreeArrayCall : public TreeNode {
     */
 
     public:
-                                TreeArrayCall(TreeNode* arrayName, TreeNode* index, TreeNode* assigned = nullptr) : arrayName(arrayName), index(index), assigned(assigned) {};  // Stores an array (TreeArray), and its index (TreeIdentifier)
-        virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;                             // Evaluates Tree Array Lookups, Checks for Errors
-        virtual void            printInfix(int depth) const;                                                                    // Prints Tree Array Lookup Infix
-        virtual std::string     getID() {                                                                                       // Will only work on TreeIdentifiers
+                                TreeArrayCall(TreeNode* arrayName, TreeNode* index, TreeNode* assigned = nullptr) 
+                                                : arrayName(arrayName), index(index), assigned(assigned) {};        // Stores an array (TreeArray), and its index (TreeIdentifier)
+        virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;                 // Evaluates Tree Array Lookups, Checks for Errors
+        virtual void            printInfix(int depth) const;                                                        // Prints Tree Array Lookup Infix
+        virtual std::string     getID() {                                                                           // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }
-        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {
+        std::shared_ptr<variableVal::Array> getArray(std::unordered_map<std::string, variableVal>& vars) {          // Will error on all nodes execpt TreeArray and TreeIdentifier                       
             throw std::runtime_error("Runtime error: not an array.");
         }
         TreeNode* getArrayName() const {
@@ -406,10 +407,10 @@ class TreeArrayCall : public TreeNode {
             delete assigned;
         }
 
-        TreeNode* arrayName; // name of array
-        TreeNode* index; // index, in order to access value in array
-        TreeNode* assigned; // assigned value, only used if parsing an array lookup + assignment. Default nullptr
-        variableVal assignValue; // assigned value used for array lookup assignments 
+        TreeNode* arrayName;            // name of array
+        TreeNode* index;                // index, in order to access value in array
+        TreeNode* assigned;             // assigned value, only used if parsing an array lookup + assignment. Default nullptr
+        variableVal assignValue;        // assigned value used for array lookup assignments 
 };
 
 

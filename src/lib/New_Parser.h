@@ -17,13 +17,15 @@
                     https://cplusplus.com/reference/istream/istream/peek/ 
                     https://cplusplus.com/reference/iomanip/setw/
                     https://cplusplus.com/reference/istream/istream/get/
-                
+                    https://en.cppreference.com/w/cpp/utility/variant/holds_alternative
+                    https://en.cppreference.com/w/cpp/language/dynamic_cast  
 */
 
 class New_Parser {
     /* 
     Parser implentation for infix expressions.
-    Each helper function is for a different operator precendence expression - Recursive Descent Parsin
+    Each helper function is for a different operator precendence expression / Parsing Requirement
+    Method: Recursive Descent Parsing
     */
 
     public:
@@ -46,10 +48,7 @@ class New_Parser {
         TreeNode* parseF(std::deque<Token>& tokenizedQ);                 // Parses a factor (integer, ID, parenthesis, null)
         std::vector<TreeNode*> parseArgs(std::deque<Token>& tokenizedQ); // Parses arguments as expressions between bounding tokens ("()" or "[]")
         TreeNode* parseArray(std::deque<Token>& tokenizedQ);             // Parses an Array (Array Lookup: "expression [expression]") (Array Literal: "[0+ expressions]")
-        TreeNode* parseIdx(std::deque<Token>& tokenizedQ);             
-
-        void printArray(const std::shared_ptr<variableVal::Array>& array);
-
+        TreeNode* parseIdx(std::deque<Token>& tokenizedQ);               // Helper function to parse index for array lookup             
 
     private:
         std::string nextToken;                                           // Current token from the Token deque.

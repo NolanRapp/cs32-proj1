@@ -20,7 +20,6 @@ bool variableVal::operator == (const variableVal& rVal) const{
             return (std::get<std::shared_ptr<Func>>(value)->mForest == std::get<std::shared_ptr<Func>>(rVal.value)->mForest);
         case ReturnType::ARRAY: {
             // Check if one variableVal is NOT an array
-            // using std::holds_alternative, https://en.cppreference.com/w/cpp/utility/variant/holds_alternative
             if (!std::holds_alternative<std::shared_ptr<Array>>(value) ||
                 !std::holds_alternative<std::shared_ptr<Array>>(rVal.value)) {
                 return false;
@@ -79,9 +78,9 @@ variableVal::Func::~Func(){
     mForest.reset();
 }
 
-/*variableVal::Array::~Array(){
-    // implement?
-}*/
+variableVal::Array::~Array(){
+    // nothing to do here
+}
 
 
 
@@ -390,7 +389,6 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
     TreeNode* lVal = children[0];
 
     // If left child is a TreeArrayCall type, set equal to arrayC
-    // using dynamic_cast https://en.cppreference.com/w/cpp/language/dynamic_cast
     if (TreeArrayCall* arrayC = dynamic_cast<TreeArrayCall*>(lVal)) {
         std::string arrayId;
 
@@ -527,7 +525,7 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
 }
 
 
-
+// Utility Function helper function to evaluate the length of an arry
 variableVal TreeCall::evaluateLen(std::unordered_map<std::string, variableVal>& vars) const{
     if(args.size() != 1){
         throw std::runtime_error("Runtime error: incorrect argument count.");
@@ -545,7 +543,7 @@ variableVal TreeCall::evaluateLen(std::unordered_map<std::string, variableVal>& 
 }
 
 
-
+// Utility Function helper function to evaluate an array push  
 variableVal TreeCall::evaluatePush(std::unordered_map<std::string, variableVal>& vars) const{
     if(args.size() != 2){
         throw std::runtime_error("Runtime error: incorrect argument count.");
@@ -564,7 +562,7 @@ variableVal TreeCall::evaluatePush(std::unordered_map<std::string, variableVal>&
 }
 
 
-
+// Utility Function helper function to evaluate an array pop  
 variableVal TreeCall::evaluatePop(std::unordered_map<std::string, variableVal>& vars) const{
     if(args.size() != 1){
         throw std::runtime_error("Runtime error: incorrect argument count.");

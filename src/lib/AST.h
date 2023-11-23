@@ -248,6 +248,9 @@ class TreeCall : public TreeNode {
                             TreeCall(TreeNode* func);                                               // Stores a ptr to a node as the name of the TreeCall (runtime error when name isn't an identifier)
                 void        setArgs(std::vector<TreeNode*> args);                                   // Sets args vector given a vector of expressions
         virtual variableVal evaluate(std::unordered_map<std::string, variableVal>& vars) const;     // Evaluates a Func from the variable map corresponding to name of TreeCall
+                variableVal evaluateLen(std::unordered_map<std::string, variableVal>& vars) const;
+                variableVal evaluatePush(std::unordered_map<std::string, variableVal>& vars) const;
+                variableVal evaluatePop(std::unordered_map<std::string, variableVal>& vars) const;
         virtual void        printInfix(int depth) const;                                            // Prints in format "[func]([args])"
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");

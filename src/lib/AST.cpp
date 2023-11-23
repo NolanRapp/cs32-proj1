@@ -385,46 +385,48 @@ void TreeAssign::addChild(TreeNode* child){
 
 // Attempts to assign left child (identifier or error) the value of its right child
 variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
-    variableVal rVal(children[children.size()-1]->evaluate(vars));
+    variableVal rVal(children[1]->evaluate(vars));
 
-    for (size_t i = 0; i < children.size() - 1; i++) {
-        TreeNode* lVal = children[i];
+    TreeNode* lVal = children[0];
 
-        // If left child is a TreeArrayCall type, set equal to arrayC
-        // using dynamic_cast https://en.cppreference.com/w/cpp/language/dynamic_cast
-        if (TreeArrayCall* arrayC = dynamic_cast<TreeArrayCall*>(lVal)) {
-            std::string arrayId;
+    // If left child is a TreeArrayCall type, set equal to arrayC
+    // using dynamic_cast https://en.cppreference.com/w/cpp/language/dynamic_cast
+    if (TreeArrayCall* arrayC = dynamic_cast<TreeArrayCall*>(lVal)) {
+        std::string arrayId;
 
-            // Array element assignment
-            std::shared_ptr<variableVal::Array> arrayElements = arrayC->arrayName->getArray(vars);
+        // Array element assignment
+        std::shared_ptr<variableVal::Array> arrayElements = arrayC->arrayName->getArray(vars);
 
-            // Array index
-            variableVal index = arrayC->getArrayIndex()->evaluate(vars);
-            if (index.type != ReturnType::NUM) {
-                throw std::runtime_error("Runtime error: index is not a number.");
-            }
-
-            double idx = static_cast<double>(std::get<double>(index.value));
-            // Check if index is positive and in bounds 
-            if (idx < 0 || idx >= static_cast<int>(arrayElements->elements.size())) {
-                throw std::runtime_error("Runtime error: index out of bounds.");
-            }
-
-            // Check if index is an integer
-            double integral;
-            double fraction = modf(idx, &integral);
-            if (fraction != 0.0) {
-                throw std::runtime_error("Runtime error: index is not an integer.");
-            }
-
-            // Assign value
-            arrayElements->elements[idx] = rVal;
-        } 
-
-        // Otherwise, regular assignment
-        else {
-            vars[lVal->getID()] = rVal;
+        // Array index
+        variableVal index = arrayC->getArrayIndex()->evaluate(vars);
+        if (index.type != ReturnType::NUM) {
+            throw std::runtime_error("Runtime error: index is not a number.");
         }
+
+        double idx = static_cast<double>(std::get<double>(index.value));
+        // Check if index is positive and in bounds 
+        if (idx < 0 || idx >= static_cast<int>(arrayElements->elements.size())) {
+            throw std::runtime_error("Runtime error: index out of bounds.");
+        }
+
+        // Check if index is an integer
+        double integral;
+        double fraction = modf(idx, &integral);
+        if (fraction != 0.0) {
+            throw std::runtime_error("Runtime error: index is not an integer.");
+        }
+
+        // Assign value
+        arrayElements->elements[idx] = rVal;
+    } 
+
+    // Otherwise, regular assignment
+    else {
+        std::string idName = lVal->getID();
+        if(idName == "pop" || idName == "push" || idName == "len"){
+            throw std::runtime_error("Runtime error: attempted to assign utility function a new value.");
+        }
+        vars[idName] = rVal;
     }
 
     return rVal;
@@ -484,6 +486,18 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
         // Gives error message new syntax
         throw std::runtime_error("Runtime error: not a function.");
     }
+
+    // Utility function behavior
+    if(funcName == "len"){
+        return evaluateLen(vars);
+    }
+    else if(funcName == "push"){
+        return evaluatePush(vars);
+    }
+    else if(funcName == "pop"){
+        return evaluatePop(vars);
+    }
+
     // Will throw if identifier doesn't have a value or its not a function
     if(vars.find(funcName) == vars.end() || vars[funcName].type != ReturnType::FUNC){
         throw std::runtime_error("Runtime error: not a function.");
@@ -509,6 +523,62 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
     }
 
     return variableVal(nullptr);
+}
+
+
+
+variableVal TreeCall::evaluateLen(std::unordered_map<std::string, variableVal>& vars) const{
+    if(args.size() != 1){
+        throw std::runtime_error("Runtime error: incorrect argument count.");
+    }
+
+    variableVal arrayVal = args[0]->evaluate(vars);
+    if(arrayVal.type != ReturnType::ARRAY){
+        throw std::runtime_error("Runtime error: not an array."); 
+    }
+    std::shared_ptr<variableVal::Array> array = std::get<std::shared_ptr<variableVal::Array>>(arrayVal.value);
+    size_t size  = array->elements.size();
+    double sizeD = static_cast<double>(size);
+
+    return variableVal(sizeD);
+}
+
+
+
+variableVal TreeCall::evaluatePush(std::unordered_map<std::string, variableVal>& vars) const{
+    if(args.size() != 2){
+        throw std::runtime_error("Runtime error: incorrect argument count.");
+    }
+
+    variableVal arrayVal = args[0]->evaluate(vars);
+    if(arrayVal.type != ReturnType::ARRAY){
+        throw std::runtime_error("Runtime error: not an array."); 
+    }
+    std::shared_ptr<variableVal::Array> array = std::get<std::shared_ptr<variableVal::Array>>(arrayVal.value);
+
+    variableVal pushVal = args[1]->evaluate(vars);
+    array->elements.push_back(pushVal);
+
+    return variableVal(nullptr);
+}
+
+
+
+variableVal TreeCall::evaluatePop(std::unordered_map<std::string, variableVal>& vars) const{
+    if(args.size() != 1){
+        throw std::runtime_error("Runtime error: incorrect argument count.");
+    }
+
+    variableVal arrayVal = args[0]->evaluate(vars);
+    if(arrayVal.type != ReturnType::ARRAY){
+        throw std::runtime_error("Runtime error: not an array."); 
+    }
+    std::shared_ptr<variableVal::Array> array = std::get<std::shared_ptr<variableVal::Array>>(arrayVal.value);
+
+    variableVal popVal = array->elements[array->elements.size() - 1];
+    array->elements.pop_back();
+
+    return popVal;
 }
 
 
@@ -548,7 +618,11 @@ TreeDefinition::TreeDefinition(std::string name){
 
 
 // Makes a Func object from member variables and stores in variable map under funcName
-variableVal TreeDefinition::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
+variableVal TreeDefinition::evaluate(std::unordered_map<std::string, variableVal>& vars) const{ 
+    if(funcName == "pop" || funcName == "push" || funcName == "len"){
+        throw std::runtime_error("Runtime error: attempted to assign utility function a new value.");
+    }
+
     // Makes function object
     std::shared_ptr<variableVal::Func> func(new variableVal::Func(forest, params, vars));
 

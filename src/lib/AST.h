@@ -124,8 +124,7 @@ class TreeLeaf : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Prints double value
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        } 
-
+        };
     private:
         double value;                                                                               // Stored double value
 };
@@ -148,7 +147,7 @@ class TreeOperator : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Print in format "([left child] [operator] [right child])"
         virtual std::string getID(){                                                                // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        } 
+        };
         ~TreeOperator() {
             for (TreeNode* child : children) {
                 delete child;
@@ -177,6 +176,7 @@ class TreeIdentifier : public TreeNode {
 
     private:
         std::string idName;                                                                         // Identifier name as string
+
 };
 
 
@@ -214,7 +214,7 @@ class TreeAssign : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Print in format "([left child] = [right child])"
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        }; 
+        };
         ~TreeAssign() {
             for (TreeNode* child : children) {
                 delete child;
@@ -240,7 +240,7 @@ class TreeCall : public TreeNode {
         virtual void        printInfix(int depth) const;                                            // Prints in format "[func]([args])"
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        }; 
+        };
         ~TreeCall() {
             delete func;
             for (TreeNode* child : args) {
@@ -268,6 +268,7 @@ class TreeDefinition : public TreeNode {
         virtual std::string getID() {                                                               // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
+
         ~TreeDefinition() {
             // Only deleted forest if it is the only object using the forest
             if(forest.use_count() == 1){
@@ -304,6 +305,7 @@ class TreeStatement : public TreeNode {
         virtual std::string getID() {                                                                   // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
         }; 
+
         ~TreeStatement() {
             delete condition;
             for (TreeNode* child : truths) {
@@ -324,16 +326,17 @@ class TreeStatement : public TreeNode {
 
 class TreeArray : public TreeNode {
     /*
-    This class is used to 
+    This class is used to store Array Literals.
+    It evaluates each individual element in an array, and prints infix.
     */
 
     public:
-                                TreeArray(TreeNode* array, const std::vector<TreeNode*>& elements) : array(array), arrayElements(elements) {};
-        virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-        virtual void            printInfix(int depth) const;
-        virtual std::string     getID() {
+                                TreeArray(TreeNode* array, const std::vector<TreeNode*>& elements) : array(array), arrayElements(elements) {};      // Stores an array name (should be nullptr, if array literal) and array elements in vector
+        virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;                                                 // Evaluates Tree Array Literal Contents 
+        virtual void            printInfix(int depth) const;                                                                                        // Prints Tree Array Literal Infix
+        virtual std::string     getID() {                                                                                                           // Will only work on TreeIdentifiers
             throw std::runtime_error("Runtime error: invalid assignee.");
-        }; 
+        };
         ~TreeArray() {
             for (auto e : arrayElements) {
                 delete e;
@@ -341,8 +344,8 @@ class TreeArray : public TreeNode {
             delete array;
         }
 
-        TreeNode* array; // name of array
-        std::vector<TreeNode*> arrayElements; // vector of elements within the array
+        TreeNode* array;                        // name of array (should be nullptr, if array literal)
+        std::vector<TreeNode*> arrayElements;   // vector of elements within the array
 
 };
 
@@ -350,29 +353,38 @@ class TreeArray : public TreeNode {
 
 class TreeArrayCall : public TreeNode {
     /*
-    This class is used to 
+    This class is used to store and evaluate Array Lookups (variable[array], or [array][index])
+    and Array Lookup Assignments. The parser determines which is which, and TreeArrayCall has an optional 
+    "assigned" member variable to handle Array Lookup Assignments. 
+    This class also has several helper functions used to aid in array indexing and array lookups.
     */
 
-        public:
-                                    TreeArrayCall(TreeNode* arrayName, TreeNode* index) : arrayName(arrayName), index(index) {};
-            virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;
-            virtual void            printInfix(int depth) const;
-            virtual std::string     getID() {
-                throw std::runtime_error("Runtime error: invalid assignee.");
-            }; 
-            TreeNode* getArrayName() const {
-                return arrayName;
-            }
-            TreeNode* getArrayIndex() const {
-                return index;
-            }
-            ~TreeArrayCall() {
-                delete arrayName;
-                delete index;
-            }
+    public:
+                                TreeArrayCall(TreeNode* arrayName, TreeNode* index, TreeNode* assigned = nullptr) : arrayName(arrayName), index(index), assigned(assigned) {};  // Stores an array (TreeArray), and its index (TreeIdentifier)
+        virtual variableVal     evaluate(std::unordered_map<std::string, variableVal>& vars) const;                             // Evaluates Tree Array Lookups, Checks for Errors
+        virtual void            printInfix(int depth) const;                                                                    // Prints Tree Array Lookup Infix
+        virtual std::string     getID() {                                                                                       // Will only work on TreeIdentifiers
+            throw std::runtime_error("Runtime error: invalid assignee.");
+        }; 
+        TreeNode* getArrayName() const {
+            return arrayName;
+        }
+        TreeNode* getArrayIndex() const {
+            return index;
+        }
+        void setAssign(const variableVal& value) {
+            this->assignValue = value;
+        }
+        ~TreeArrayCall() {
+            delete arrayName;
+            delete index;
+            delete assigned;
+        }
 
-            TreeNode* arrayName; // name of array
-            TreeNode* index; // index, in order to access value in array
+        TreeNode* arrayName; // name of array
+        TreeNode* index; // index, in order to access value in array
+        TreeNode* assigned; // assigned value, only used if parsing an array lookup + assignment. Default nullptr
+        variableVal assignValue; // assigned value used for array lookup assignments 
 };
 
 

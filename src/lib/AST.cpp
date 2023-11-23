@@ -375,50 +375,11 @@ variableVal TreeAssign::evaluate(std::unordered_map<std::string, variableVal>& v
     for (size_t i = 0; i < children.size() - 1; i++) {
         TreeNode* lVal = children[i];
 
-        // If left child is a TreeArrayCall type, set equal to arrayC
+        // If left child is a TreeArrayCall type, set equal to arrayC and evaluate
         // using dynamic_cast https://en.cppreference.com/w/cpp/language/dynamic_cast
         if (TreeArrayCall* arrayC = dynamic_cast<TreeArrayCall*>(lVal)) {
-            std::string arrayId;
-
-            // Array element assignment
-            try {
-                arrayId = arrayC->getArrayName()->getID();
-            }
-            catch (const std::runtime_error& e) {
-                // Gives error message with specific syntax
-                throw std::runtime_error("Runtime error: not an array.");
-            }
-            
-            // Check if array exists
-            auto i = vars.find(arrayId);
-            if (i == vars.end() || i->second.type != ReturnType::ARRAY) {
-                throw std::runtime_error("Runtime error: not an array.");
-            }
-
-
-            // Array index
-            variableVal index = arrayC->getArrayIndex()->evaluate(vars);
-            if (index.type != ReturnType::NUM) {
-                throw std::runtime_error("Runtime error: index is not a number.");
-            }
-
-            double idx = static_cast<double>(std::get<double>(index.value));
-            auto& arrayElements = std::get<std::shared_ptr<variableVal::Array>>(i->second.value)->elements;
-
-            // Check if index is positive and in bounds 
-            if (idx < 0 || idx >= static_cast<int>(arrayElements.size())) {
-                throw std::runtime_error("Runtime error: index out of bounds.");
-            }
-
-            // Check if index is an integer
-            double integral;
-            double fraction = modf(idx, &integral);
-            if (fraction != 0.0) {
-                throw std::runtime_error("Runtime error: index is not an integer.");
-            }
-
-            // Assign value
-            arrayElements[idx] = rVal;
+            arrayC->setAssign(rVal);
+            arrayC->evaluate(vars);
         } 
 
         // Otherwise, regular assignment
@@ -474,6 +435,7 @@ void TreeCall::setArgs(std::vector<TreeNode*> args){
 // Evaluates a Func from the variable map corresponding to name of TreeCall
 variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const{
     std::string funcName;
+    variableVal temp;
 
     try { 
         // Will throw unless func is an identifier
@@ -857,6 +819,7 @@ void TreeArray::printInfix(int depth) const {
 
 
 
+
 // Evaluates Tree Array Lookups, Checks for Errors
 variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>& vars) const {
     variableVal arrayId = arrayName->evaluate(vars);
@@ -892,8 +855,17 @@ variableVal TreeArrayCall::evaluate(std::unordered_map<std::string, variableVal>
         throw std::runtime_error("Runtime error: index is not an integer.");
     }
 
-    // Return value of indexed array
-    return arrayElements[index];
+    // If assignment, evaluate and return assigned value
+    if (assigned) {
+        variableVal val = assigned->evaluate(vars);
+        arrayElements[index] = val;
+        return val;
+    }
+
+    // If an array lookup:
+    else {
+        return arrayElements[index];
+    }
 }
 
 
@@ -908,6 +880,7 @@ void TreeArrayCall::printInfix(int depth) const {
 
 
 
+// Helper function to recursively print a nested array
 void printArray(const std::shared_ptr<variableVal::Array>& array) {
     std::cout << "[";
     for (size_t i = 0; i < array->elements.size(); ++i) {

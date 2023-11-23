@@ -309,11 +309,23 @@ TreeNode* New_Parser::parseArray(std::deque<Token>& tokenizedQ) {
         left.reset(node.release());
     }
 
-    // Parsing array lookups, in the format of variable[array], or [array][index]
+    // Parsing array lookups (in the format of variable[array], or [array][index]) and array lookup assignments ([array][index] = [assignment])
     while (nextToken == "[") {
         std::unique_ptr<TreeNode> idxNode(parseIdx(tokenizedQ));
-        std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(left.release(), idxNode.release()));
-        left = std::move(arrayCallNode);
+
+        // If array is an assignment, create TreeArrayCall with right assigned node
+        if (lookahead == "=") {
+            scanToken(tokenizedQ);
+            std::unique_ptr<TreeNode> right(parseA(tokenizedQ));
+            std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(left.release(), idxNode.release(), right.release()));
+            left = std::move(arrayCallNode);
+        }
+
+        // If NOT an assignment, create a regular TreeArrayCall, right assigned node is automatically nullptr
+        else {
+            std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(left.release(), idxNode.release()));
+            left = std::move(arrayCallNode);
+        }
     }
     return left.release();
 }

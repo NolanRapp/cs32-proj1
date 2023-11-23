@@ -8,8 +8,9 @@ int main(){
     std::unordered_map<std::string, variableVal> variables; // holds all currently assigned variables
     std::unordered_map<std::string, variableVal> tempVars;  // Temporary map to store variables in (will be deleted if runtime_error)
     
-    std::string line;       // string to hold a line of user input
-    New_Parser  infix;      // parser object for parsing lines
+    std::string line;                                       // string to hold a line of user input
+    New_Parser  infix;                                      // parser object for parsing lines
+        
         
     // Parses line by line (errors will not interrupt program)
     while(getline(std::cin, line)) {
@@ -38,6 +39,15 @@ int main(){
                 else {
                     std::cout << "false" << std::endl;
                 }
+            }
+            else if (treeVal.type == ReturnType::ARRAY) {
+                auto array = std::get<std::shared_ptr<variableVal::Array>>(treeVal.value);
+                printArray(array);
+                std::cout << std::endl;
+            }
+
+            else if (treeVal.type == ReturnType::NUL) {
+                std::cout << "null" << std::endl;
             }
             
             variables = tempVars; // if evaluated correctly the variable map is updated

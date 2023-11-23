@@ -280,7 +280,7 @@ TreeNode* New_Parser::parseT(std::deque<Token>& tokenizedQ) {
 
 // Parses function calls
 TreeNode* New_Parser::parseCall(std::deque<Token>& tokenizedQ) {
-    std::unique_ptr<TreeNode> left(parseF(tokenizedQ));
+    std::unique_ptr<TreeNode> left(parseArray(tokenizedQ));
 
     while (nextToken == "("){
         std::unique_ptr<TreeCall> callNode(new TreeCall(left.release()));
@@ -293,23 +293,68 @@ TreeNode* New_Parser::parseCall(std::deque<Token>& tokenizedQ) {
 
 
 
-// Parses a factor (integer, ID, parenthesis, null)
+// Parses an Array (Array Lookup: "expression [expression]") (Array Literal: "[0+ expressions]")
+TreeNode* New_Parser::parseArray(std::deque<Token>& tokenizedQ) { 
+    std::unique_ptr<TreeNode> left;
+
+    // Parsing an Array Literal
+    if (nextToken == "[") {
+        std::vector<TreeNode*> elements = parseArgs(tokenizedQ);
+        std::unique_ptr<TreeArray> arrayLiteralNode(new TreeArray(nullptr, elements));
+        left = std::move(arrayLiteralNode);
+    }
+
+    // Parsing all other expressions
+    else {
+        std::unique_ptr<TreeNode> node(parseF(tokenizedQ));
+        left.reset(node.release());
+    }
+
+    // Parsing an Array Lookup (in the format of variable[array], or [array][index]) and Array Lookup Assignments ([array][index] = [assignment])
+    while (nextToken == "[") {
+        std::unique_ptr<TreeNode> idxNode(parseIdx(tokenizedQ));
+
+        // If assignment, create TreeArrayCall with right assigned node
+        if (lookahead == "=") {
+            scanToken(tokenizedQ);
+            std::unique_ptr<TreeNode> right(parseA(tokenizedQ));
+            std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(left.release(), idxNode.release(), right.release()));
+            left = std::move(arrayCallNode);
+        }
+
+        // If not assignment, create a regular TreeArrayCall (default right = nullptr)
+        else {
+            std::unique_ptr<TreeArrayCall> arrayCallNode(new TreeArrayCall(left.release(), idxNode.release()));
+            left = std::move(arrayCallNode);
+        }
+    }
+    return left.release();
+}
+
+
+
+// Parses a factor (integer, ID, parenthesis, null, array)
 TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
 
     if (nextToken.empty()) {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
-    
-    if (tokenType == Type::BOOL) { 
+
+    // Parsing Boolean
+    else if (tokenType == Type::BOOL) { 
         std::unique_ptr<TreeBoolean> boolVal(new TreeBoolean(nextToken));
         scanToken(tokenizedQ); // Consume true or false
         return boolVal.release();
     }
+
+    // Parsing Number
     else if (tokenType == Type::NUM) {
         std::unique_ptr<TreeLeaf> leaf(new TreeLeaf(std::stold(nextToken)));
         scanToken(tokenizedQ); // Consume digit
         return leaf.release();
     }
+
+    // Parsing Parenthesis
     else if (nextToken == "(") {
         scanToken(tokenizedQ); // Consume open parenthesis
         std::unique_ptr<TreeNode> node(parseA(tokenizedQ));
@@ -323,16 +368,21 @@ TreeNode* New_Parser::parseF(std::deque<Token>& tokenizedQ) {
             // Expects ")"
         }
     }
+    
+    // Parsing Identifiers
     else if (tokenType == Type::ID) {
         std::unique_ptr<TreeIdentifier> leaf(new TreeIdentifier(nextToken));
         scanToken(tokenizedQ); // Consume variable 
         return leaf.release();
     }
+
+    // Parsing Null
     else if (nextToken == "null"){
         std::unique_ptr<TreeStatement> nullPtr(new TreeStatement("null"));
         scanToken(tokenizedQ); // Consume "null"
         return nullPtr.release();
     }
+
     else {
         throw ParseError(currentLine, currentColumn, nextToken);
     }
@@ -378,4 +428,18 @@ std::vector<TreeNode*> New_Parser::parseArgs(std::deque<Token>& tokenizedQ) {
 }
 
 
+// Helper function to parse index for array lookup
+TreeNode* New_Parser::parseIdx(std::deque<Token>& tokenizedQ) {
+    scanToken(tokenizedQ); // Consume '['
 
+    // If index is an expression, parse:
+    std::unique_ptr<TreeNode> idxNode(parseA(tokenizedQ)); 
+    
+    // Check for closing square bracket
+    if (nextToken != "]") {
+        throw ParseError(currentLine, currentColumn, nextToken);
+    }
+
+    scanToken(tokenizedQ); // Consume ']'
+    return (idxNode.release());
+}

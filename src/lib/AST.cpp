@@ -712,6 +712,7 @@ void TreeStatement::evaluatePrint(std::unordered_map<std::string, variableVal>& 
     if (cVal.type == ReturnType::ARRAY) {
         auto array = std::get<std::shared_ptr<variableVal::Array>>(cVal.value);
         printArray(array);
+        std::cout << "\n";
         return;
     }
 

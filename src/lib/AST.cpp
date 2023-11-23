@@ -575,6 +575,10 @@ variableVal TreeCall::evaluatePop(std::unordered_map<std::string, variableVal>& 
     }
     std::shared_ptr<variableVal::Array> array = std::get<std::shared_ptr<variableVal::Array>>(arrayVal.value);
 
+    if(array->elements.size() < 1){
+        throw std::runtime_error("Runtime error: underflow."); 
+    }
+
     variableVal popVal = array->elements[array->elements.size() - 1];
     array->elements.pop_back();
 

@@ -512,6 +512,7 @@ variableVal TreeCall::evaluate(std::unordered_map<std::string, variableVal>& var
     for(size_t i = 0; i < args.size(); i++){
         tempVars[function->mParams[i]] = args[i]->evaluate(vars);
     }
+    tempVars[funcName] = vars[funcName]; // Allows recursion
 
     try{
         for(TreeNode* tree : *function->mForest){

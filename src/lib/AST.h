@@ -17,7 +17,6 @@ enum class ReturnType {
     BOOL, // Booleans
     NUM,  // Doubles
     NUL,  // null
-    NAME, // name
     FUNC, // Functions
     ARRAY, // Arrays
     NONE  // Undefined var
@@ -68,14 +67,13 @@ struct variableVal {
     };
 
     ReturnType                                          type;    // Stores current ReturnType so the right value can be returned
-    std::variant<double, bool, std::shared_ptr<Func>, std::shared_ptr<Array>, std::string>   value;   // Stores actual value in a std::variant (a union)
+    std::variant<double, bool, std::shared_ptr<Func>, std::shared_ptr<Array>>   value;   // Stores actual value in a std::variant (a union)
 
     bool operator == (const variableVal& lVal) const;            // Evaluates equality between values
     bool operator != (const variableVal& lVal) const;            // Evaluates inequality between values
 
     variableVal()                               : type(ReturnType::NONE) {}
     variableVal(std::nullptr_t)                 : type(ReturnType::NUL)  {} 
-    variableVal(std::string)                    : type(ReturnType::NAME)  {} 
     variableVal(double val)                     : type(ReturnType::NUM)  { value = val; }
     variableVal(bool val)                       : type(ReturnType::BOOL) { value = val; }
     variableVal(std::shared_ptr<Func> val)      : type(ReturnType::FUNC) { value = val; }
